@@ -127,7 +127,7 @@ sub,sup{line-height:0}
 
   <header>
     <h1>Elektronen einfüllen</h1>
-    <p class="lede">Vorwissen: Das Energiestufenmodell (n = 1, 2, 3, …) und das Periodensystem. Wie viele Elektronen passen auf eine Energiestufe, und was verrät die Verteilung über Periode und Hauptgruppe?</p>
+    <p class="lede">Vorwissen: Das Energiestufenmodell (n = 1, 2, 3, …) und das Periodensystem. Wie viele Elektronen passen auf eine Energiestufe, und was verrät die Elektronenkonfiguration über Periode und Hauptgruppe?</p>
   </header>
   <main>
       <div class="chips" role="radiogroup" aria-label="Element">
@@ -150,9 +150,10 @@ sub,sup{line-height:0}
       </div>
       <div class="fill">
         <div>
-          <div class="task" style="margin-bottom:10px"><b>Aufgabe</b>Verteile die Elektronen des gewählten Atoms auf die Energiestufen. Finde heraus, wie viele Elektronen auf jede Energiestufe passen.</div>
+          <div class="task" style="margin-bottom:10px"><b>Aufgabe</b>Verteile die Elektronen des gewählten Atoms auf die Energiestufen. Finde heraus, wie viele Elektronen auf jede Energiestufe passen. Gib die Elektronenkonfiguration in der Kurzschreibweise an.</div>
           <div id="rack"></div>
-          <p class="small" id="fillcount" style="margin:10px 0 8px"></p>
+          <p class="small" id="fillcount" style="margin:10px 0 2px"></p>
+          <p class="small" style="margin:0 0 8px">Kurzschreibweise: <b id="kurz" style="font-family:var(--mono)"></b></p>
           <div class="controls">
             <button class="btn primary" id="fillcheck" type="button">Prüfen</button>
             <button class="btn" id="fillreset" type="button">Neu</button>
@@ -165,14 +166,15 @@ sub,sup{line-height:0}
           <div class="status" id="fillmsg" aria-live="polite"></div>
         </div>
       </div>
-      <p class="crosslink" style="margin-top:16px">Weiter: Warum leuchten Wasserstoff und Natrium in der Flamme, wenn das Außenelektron springt? <a href="rutherford.html#erklaerung">Rutherford gegen das Spektrum, Reiter Erklärung &rarr;</a></p>
+      <p class="crosslink" style="margin-top:16px">Weiter: Warum leuchten Wasserstoff und Natrium in der Flamme, wenn ein Valenzelektron springt? <a href="rutherford.html#erklaerung">Rutherford gegen das Spektrum, Reiter Erklärung &rarr;</a></p>
   </main>
   <details>
     <summary>Zahlen im Hintergrund</summary>
     <ul>
-      <li>Energiestufenmodell: Auf der Energiestufe n sitzen höchstens 2n² Elektronen (2, 8, 18, 32). Bis Calcium (Z = 20) ergibt sich die Verteilung eindeutig aus 2n², der Achterregel für die äußerste Energiestufe und dem Füllen von unten nach oben. Deshalb beginnt bei Kalium und Calcium schon die vierte Energiestufe, obwohl n = 3 bis zu 18 Elektronen aufnehmen könnte.</li>
-      <li>Ab Scandium (Nebengruppen) reichen diese Regeln nicht mehr aus: Die zweitäußerste Energiestufe wächst auf bis zu 18 Elektronen. Strontium (2, 8, 18, 8, 2) und Barium (2, 8, 18, 18, 8, 2) aus dem Flammenversuch sind deshalb hier nicht dabei. Warum die Reihenfolge so ist, erklären erst die Orbitalmodelle.</li>
-      <li>Ionen: Die Kernladung bleibt gleich, nur die Zahl der Elektronen ändert sich. Die gebildeten Ionen haben die Verteilung eines Edelgases.</li>
+      <li>Energiestufenmodell: Auf der Energiestufe n sitzen höchstens 2n² Elektronen (2, 8, 18, 32). Bis Calcium (Z = 20) ergibt sich die Verteilung eindeutig aus 2n², der Achterregel für die höchste besetzte Energiestufe (Edelgaskonfiguration) und dem Füllen von unten nach oben. Deshalb beginnt bei Kalium und Calcium schon die vierte Energiestufe, obwohl n = 3 bis zu 18 Elektronen aufnehmen könnte.</li>
+      <li>Ab Scandium (Nebengruppen) reichen diese Regeln nicht mehr aus: Die zweithöchste Energiestufe wächst auf bis zu 18 Elektronen. Strontium (2, 8, 18, 8, 2) und Barium (2, 8, 18, 18, 8, 2) aus dem Flammenversuch sind deshalb hier nicht dabei. Warum die Reihenfolge so ist, erklären erst die Orbitalmodelle.</li>
+      <li>Ionen: Die Kernladung bleibt gleich, nur die Zahl der Elektronen ändert sich. Die gebildeten Ionen haben die Elektronenkonfiguration eines Edelgases (Edelgasregel).</li>
+      <li>Für den Unterricht: Mit dem Link fuellen.html?bis=Ar fehlen Kalium und Calcium. Ohne Parameter sind alle Elemente bis Calcium sichtbar.</li>
     </ul>
   </details>
 </div>
@@ -209,6 +211,10 @@ const Fill = (() => {
   const remaining = () => total - sum(cnt);
   const isOver = (i,k) => k>=cap(i) || (i===outer() && k>=8);
   const plural = n => n>1 ? "en" : "";
+  const ROM = ["","I","II","III","IV","V","VI","VII","VIII"];
+  const SUPD = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  const sup = n => String(n).split("").map(d=>SUPD[+d]).join("");
+  const kurz = () => cnt.map((c,i)=>c>0?`${i+1}${sup(c)}`:"").filter(Boolean).join(" ")||"–";
 
   function startText(){
     const e = NAME[key];
@@ -235,8 +241,8 @@ const Fill = (() => {
   function rules(){
     const o=outer(), r2=o<0||cnt[o]<=8;
     const li=(ok,txt)=>`<li class="${ok?"ok":"no"}"><b>${ok?"✓":"✕"}</b> ${txt}</li>`;
-    let h=li(r2,"Die äußerste Energiestufe hat höchstens 8 Elektronen.");
-    h+=li(o<0||gapAt(o)<0,"Es wird von unten nach oben gefüllt.");
+    let h=li(r2,"Die höchste besetzte Energiestufe hat höchstens 8 Elektronen (Valenzelektronen).");
+    h+=li(o<0||gapAt(o)<0,"Es wird von unten nach oben gefüllt (aufsteigender Energiegehalt).");
     $("rules").innerHTML=h;
   }
   function render(){
@@ -251,20 +257,22 @@ const Fill = (() => {
       b.disabled = dd>0 ? rem<=0 : cnt[i]<=0;
     });
     $("fillcount").textContent = rem>0 ? `Noch zu verteilen: ${rem} von ${total} Elektronen.` : `Alle ${total} Elektronen sind verteilt.`;
-    rules(); draw();
+    $("kurz").textContent=kurz(); rules(); draw();
   }
   function link(){
     const o=target.reduce((m,c,i)=>c>0?i:m,0), c=target[o], n=o+1;
     let t;
     if(ion){
-      t=`Richtig. Das ${ION[key].lab}-Ion hat dieselbe Verteilung wie das Edelgas ${ION[key].ed}: ${c} Elektronen auf der äußersten Energiestufe (n = ${n}).`;
-      if(ION[key].q>0) t+=` Die bisher äußerste Energiestufe des Atoms ist leer und fällt weg.`;
+      t=`Richtig. Das ${ION[key].lab}-Ion hat dieselbe Elektronenkonfiguration wie das Edelgas ${ION[key].ed}: ${c} Valenzelektronen auf der höchsten besetzten Energiestufe (n = ${n}). Das ist die Edelgasregel.`;
+      t+=` Elektronenkonfiguration: ${kurz()}.`;
+      if(ION[key].q>0) t+=` Die bisher höchste Energiestufe des Atoms ist leer und fällt weg, das Kation hat ${ION[key].q} Valenzelektron${plural(ION[key].q)} abgegeben.`;
       return t;
     }
-    t=`Richtig. Die äußerste Energiestufe (n = ${n}) enthält ${c} Außenelektron${plural(c)}. Mit ${n} besetzte${n>1?"n":"r"} Energiestufe${n>1?"n":""} steht das Element in der ${n}. Periode.`;
-    if(key==="He") t+=` Helium ist die Ausnahme: Mit 2 Elektronen ist seine einzige Energiestufe voll, es gehört trotzdem zur 8. Hauptgruppe (Edelgase).`;
-    else t+=` Die Zahl der Außenelektronen passt zur ${c}. Hauptgruppe.`;
-    if(FLAME[key]) t+=` Dieses Außenelektron springt in der Flamme (siehe Rutherford gegen das Spektrum).`;
+    t=`Richtig. Die höchste besetzte Energiestufe (n = ${n}) enthält ${c} Valenzelektron${plural(c)}. Mit ${n} besetzte${n>1?"n":"r"} Energiestufe${n>1?"n":""} steht das Element in der ${n}. Periode.`;
+    if(key==="He") t+=` Helium ist die Ausnahme: Mit 2 Elektronen ist seine einzige Energiestufe voll, es gehört trotzdem zur VIII. Hauptgruppe (Edelgase).`;
+    else t+=` Die Zahl der Valenzelektronen passt zur ${ROM[c]}. Hauptgruppe.`;
+    t+=` Elektronenkonfiguration: ${kurz()}.`;
+    if(FLAME[key]) t+=` Ein Valenzelektron springt in der Flamme (siehe Rutherford gegen das Spektrum).`;
     return t;
   }
   function check(){
@@ -275,9 +283,9 @@ const Fill = (() => {
     const over=cnt.findIndex((c,i)=>c>cap(i));
     if(over>=0){ setMsg(`Die Energiestufe ${NAMES[over]} ist überfüllt: Dort passen höchstens ${cap(over)} Elektronen (2n² mit n = ${over+1}).`); return; }
     const o=outer();
-    if(cnt[o]>8){ setMsg(`Die äußerste Energiestufe (${NAMES[o]}) darf höchstens 8 Elektronen enthalten. Setze die übrigen auf die nächste Energiestufe.`); return; }
+    if(cnt[o]>8){ setMsg(`Die höchste besetzte Energiestufe (${NAMES[o]}) darf höchstens 8 Elektronen enthalten. Setze die übrigen auf die nächste Energiestufe.`); return; }
     const gap=gapAt(o);
-    if(gap>=0){ setMsg(`Fülle von unten nach oben: Die Energiestufe ${NAMES[gap]} ist noch nicht voll, aber weiter oben sitzen schon Elektronen. Nur wenn die äußerste Energiestufe sonst mehr als 8 Elektronen bekäme, beginnt die nächste Energiestufe früher.`); return; }
+    if(gap>=0){ setMsg(`Fülle von unten nach oben: Die Energiestufe ${NAMES[gap]} ist noch nicht voll, aber weiter oben sitzen schon Elektronen. Nur wenn die höchste Energiestufe sonst mehr als 8 Elektronen bekäme, beginnt die nächste Energiestufe früher.`); return; }
     setMsg("Noch nicht richtig. Vergleiche die Regeln rechts.");
   }
   function draw(){
@@ -329,6 +337,7 @@ $("ionbtn").addEventListener("click", () => pick(key, true));
 window.addEventListener("resize", () => Fill.redraw());
 if (window.ResizeObserver) new ResizeObserver(() => Fill.redraw()).observe($("shells"));
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => Fill.redraw());
+try{ if(new URLSearchParams(location.search).get("bis")==="Ar") document.querySelectorAll(".chips button[data-el=K],.chips button[data-el=Ca]").forEach(b=>b.hidden=true); }catch(e){}
 pick("H", false);
 })();
 </script>
