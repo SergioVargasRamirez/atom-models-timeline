@@ -155,14 +155,7 @@ sub,sup{line-height:0}
       </div>
       <div class="side">
         <div class="task"><b>Aufgabe</b>Entferne nacheinander drei Elektronen aus dem Atom. Je mehr Energie das äußerste Elektron hat, desto stärker zittert es. Die Energie fließt aber ständig wieder ab, also musst du weiterklicken. Beschreibe, wie viel Energie jedes Elektron braucht, und erkläre den Verlauf mit dem Energiestufenmodell.</div>
-        <div>
-          <p class="small" style="margin:0 0 6px">Energiequelle</p>
-          <div class="chips small" role="radiogroup" aria-label="Energiequelle" style="margin:0">
-            <button type="button" role="radio" aria-checked="true" id="srcweak">schwach<span>1 eV pro Klick</span></button>
-            <button type="button" role="radio" aria-checked="false" id="srcstrong">stark<span>4 eV pro Klick</span></button>
-          </div>
-        </div>
-        <button class="bigbtn" id="pump" type="button">Energie zuführen</button>
+        <button class="bigbtn" id="pump" type="button">Energie (2,5 eV) zuführen</button>
         <div class="predbox" id="predbox" hidden>
           <b id="predq"></b>
           <div class="controls">
@@ -182,8 +175,8 @@ sub,sup{line-height:0}
     <summary>Zahlen im Hintergrund und Grenzen des Modells</summary>
     <ul>
       <li>Ionisierungsenergien (Literaturwerte, gerundet): Natrium 5,14 eV, 47,29 eV, 71,62 eV. Magnesium 7,65 eV, 15,04 eV, 80,14 eV. Kalium 4,34 eV, 31,63 eV, 45,81 eV. Calcium 6,11 eV, 11,87 eV, 50,91 eV. Umrechnung: 1 eV je Atom entspricht 96,5 kJ/mol (Natrium: 496 kJ/mol für das erste Elektron).</li>
-      <li>Die Energiezufuhr per Klick ist eine Analogie, etwa für Erhitzen oder Stöße mit schnellen Teilchen. Er darf nicht so gelesen werden, als könne ein Atom viele schwache Portionen Licht sammeln: Ein einzelnes Lichtquant muss die gesamte Ionisierungsenergie auf einmal liefern. Die Klickzahl hängt außerdem von der gewählten Quelle und vom Abfluss ab und ist keine Messgröße.</li>
-      <li>Der Abfluss steht für Energie, die das Elektron durch Stöße wieder abgibt. In diesem Modell beträgt er konstant 2,5 eV pro Sekunde.</li>
+      <li>Die Energiezufuhr per Klick ist eine Analogie, etwa für Erhitzen oder Stöße mit schnellen Teilchen. Er darf nicht so gelesen werden, als könne ein Atom viele schwache Portionen Licht sammeln: Ein einzelnes Lichtquant muss die gesamte Ionisierungsenergie auf einmal liefern. Die Klickzahl hängt außerdem vom Abfluss und von der Klickgeschwindigkeit ab und ist keine Messgröße.</li>
+      <li>Ein Klick liefert immer 2,5 eV. Der Abfluss steht für Energie, die das Elektron durch Stöße wieder abgibt. In diesem Modell beträgt er konstant 2,5 eV pro Sekunde.</li>
     </ul>
   </details>
 </div>
@@ -211,7 +204,7 @@ const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: 
 const fmt = (v,d=2) => v.toFixed(d).replace(".",",");
 const plural = n => n===1 ? "" : "en";
 
-let key="Na", cnt=[], r=0, level=0, clicks=0, pulse=1, phase="heat", pred=null, phaseTime=0, hinted=false;
+let key="Na", cnt=[], r=0, level=0, clicks=0, pulse=2.5, phase="heat", pred=null, phaseTime=0, hinted=false;
 let results=[], flying=null, tpos=null, tAnim=0, last=performance.now();
 const cv=$("ionatom");
 const setMsg = t => { $("ionmsg").textContent = t; };
@@ -271,14 +264,6 @@ document.querySelectorAll("[data-pred]").forEach(b=>b.addEventListener("click",(
   setMsg(`Deine Vermutung: ${pred==="gleich"?"gleich viel":pred} Energie. Prüfe sie: Klicke weiter, bis das Elektron frei ist.`);
 }));
 document.querySelectorAll(".chips button[data-el]").forEach(b=>b.addEventListener("click",()=>reset(b.dataset.el)));
-function setSrc(strong){
-  pulse=strong?4:1;
-  $("srcweak").setAttribute("aria-checked",String(!strong)); $("srcstrong").setAttribute("aria-checked",String(strong));
-}
-$("srcweak").addEventListener("click",()=>setSrc(false));
-$("srcstrong").addEventListener("click",()=>setSrc(true));
-$("ionreset").addEventListener("click",()=>reset());
-
 function draw(t){
   const f=fit(cv); if(!f) return; const {x,W,H}=f;
   x.fillStyle="#0a0e18"; x.fillRect(0,0,W,H);
@@ -321,9 +306,6 @@ function frame(now){
   if(phase==="heat"){
     if(level>0){ level=Math.max(0,level-LEAK*dt); }
     phaseTime+=dt;
-    if(!hinted && phaseTime>20 && pulse===1 && target()>20){
-      hinted=true; setMsg("Mit der schwachen Quelle kommst du hier kaum voran: Ein Klick liefert zu wenig, um den Energieverlust auszugleichen. Wähle eine stärkere Quelle.");
-    }
   }
   if(flying){ flying.x+=flying.dx*260*dt; flying.y+=flying.dy*260*dt; flying.a-=dt/1.1; if(flying.a<=0) flying=null; }
   draw(tAnim);
