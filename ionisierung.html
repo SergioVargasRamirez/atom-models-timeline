@@ -121,18 +121,7 @@ sub,sup{line-height:0}
 
 .iongrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:760px){.iongrid{grid-template-columns:minmax(0,1fr)}}
-.stagerow{display:grid;grid-template-columns:minmax(0,1fr) 150px}
-#ionatom{height:320px}
-.tubecol{padding:12px 6px 10px 0;display:flex;flex-direction:column;align-items:flex-start;color:var(--stage-fg)}
-.tubecap{font:12px var(--mono);color:var(--stage-dim);margin:0 0 6px 40px}
-.tubebox{position:relative;height:260px;width:44px;margin-left:40px;border:2px solid var(--stage-dim);border-radius:8px;background:#0f1526}
-.tubein{position:absolute;inset:0;overflow:hidden;border-radius:5px}
-.fillbar{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(#ffb347,#ff6a1f)}
-.tick{position:absolute;left:-40px;width:34px;text-align:right;font:11px var(--mono);color:var(--stage-dim);transform:translateY(50%)}
-.tick::after{content:"";position:absolute;right:-6px;top:50%;width:4px;border-top:1px solid var(--stage-dim)}
-.mark{position:absolute;left:-6px;width:calc(100% + 12px);border-top:3px solid #ffd166;transform:translateY(50%)}
-.mark span{position:absolute;left:calc(100% + 8px);top:-8px;width:64px;font:12px/1.15 var(--mono);color:#ffd166;white-space:normal}
-.tubeval{font:600 15px var(--mono);margin:8px 0 0 40px;color:var(--stage-fg)}
+#ionatom{height:380px}
 .bigbtn{font:inherit;font-weight:700;font-size:1.15rem;width:100%;padding:16px 12px;border-radius:12px;border:0;background:var(--flame);color:#fff;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .bigbtn:active{transform:scale(.98)}
 .bigbtn:disabled{opacity:.4;cursor:default}
@@ -162,21 +151,10 @@ sub,sup{line-height:0}
     </div>
     <div class="fill iongrid">
       <div class="stagewrap">
-        <div class="stagerow">
-          <canvas id="ionatom" aria-label="Atommodell mit Energiestufen"></canvas>
-          <div class="tubecol">
-            <div class="tubecap">Energie in eV</div>
-            <div class="tubebox" id="tubebox" role="img" aria-label="Energiespeicher">
-              <div class="tubein"><div class="fillbar" id="fillbar"></div></div>
-              <div id="ticks"></div>
-              <div class="mark" id="mark" hidden><span id="marklab"></span></div>
-            </div>
-            <div class="tubeval" id="tubeval">0,0 eV</div>
-          </div>
-        </div>
+        <canvas id="ionatom" aria-label="Atommodell mit Energiestufen"></canvas>
       </div>
       <div class="side">
-        <div class="task"><b>Aufgabe</b>Entferne nacheinander drei Elektronen aus dem Atom. Der Energiespeicher verliert ständig Energie, also musst du ihn gefüllt halten. Beschreibe, wie viel Energie jedes Elektron braucht, und erkläre den Verlauf mit dem Energiestufenmodell.</div>
+        <div class="task"><b>Aufgabe</b>Entferne nacheinander drei Elektronen aus dem Atom. Je mehr Energie das äußerste Elektron hat, desto stärker zittert es. Die Energie fließt aber ständig wieder ab, also musst du weiterklicken. Beschreibe, wie viel Energie jedes Elektron braucht, und erkläre den Verlauf mit dem Energiestufenmodell.</div>
         <div>
           <p class="small" style="margin:0 0 6px">Energiequelle</p>
           <div class="chips small" role="radiogroup" aria-label="Energiequelle" style="margin:0">
@@ -204,9 +182,8 @@ sub,sup{line-height:0}
     <summary>Zahlen im Hintergrund und Grenzen des Modells</summary>
     <ul>
       <li>Ionisierungsenergien (Literaturwerte, gerundet): Natrium 5,14 eV, 47,29 eV, 71,62 eV. Magnesium 7,65 eV, 15,04 eV, 80,14 eV. Kalium 4,34 eV, 31,63 eV, 45,81 eV. Calcium 6,11 eV, 11,87 eV, 50,91 eV. Umrechnung: 1 eV je Atom entspricht 96,5 kJ/mol (Natrium: 496 kJ/mol für das erste Elektron).</li>
-      <li>Der Energiespeicher ist eine Analogie, etwa für Erhitzen oder Stöße mit schnellen Teilchen. Er darf nicht so gelesen werden, als könne ein Atom viele schwache Portionen Licht sammeln: Ein einzelnes Lichtquant muss die gesamte Ionisierungsenergie auf einmal liefern. Die Klickzahl hängt außerdem von der gewählten Quelle und vom Abfluss ab und ist keine Messgröße.</li>
+      <li>Die Energiezufuhr per Klick ist eine Analogie, etwa für Erhitzen oder Stöße mit schnellen Teilchen. Er darf nicht so gelesen werden, als könne ein Atom viele schwache Portionen Licht sammeln: Ein einzelnes Lichtquant muss die gesamte Ionisierungsenergie auf einmal liefern. Die Klickzahl hängt außerdem von der gewählten Quelle und vom Abfluss ab und ist keine Messgröße.</li>
       <li>Der Abfluss steht für Energie, die das Elektron durch Stöße wieder abgibt. In diesem Modell beträgt er konstant 2,5 eV pro Sekunde.</li>
-      <li>Die Skala der Energie unterscheidet sich je Element, damit auch das dritte Elektron noch auf den Speicher passt.</li>
     </ul>
   </details>
 </div>
@@ -243,17 +220,6 @@ const target = () => D().IE[r];
 const outerIdx = () => { let t=-1; cnt.forEach((c,i)=>{ if(c>0) t=i; }); return t; };
 const sym = () => key + SUP[r];
 
-function ticks(){
-  const box=$("ticks"); box.textContent="";
-  for(let v=0; v<=D().max; v+=10){
-    const t=document.createElement("div"); t.className="tick"; t.style.bottom=(v/D().max*100)+"%"; t.textContent=v; box.appendChild(t);
-  }
-}
-function updateMark(){
-  const m=$("mark");
-  if(phase==="heat"||phase==="fly"){ m.hidden=false; m.style.bottom=(target()/D().max*100)+"%"; $("marklab").textContent=`${r+1}. Elektron frei`; }
-  else m.hidden=true;
-}
 function proto(){
   const ul=$("proto"); ul.textContent="";
   for(let i=0;i<3;i++){
@@ -269,19 +235,15 @@ function reset(k){
   if(k) key=k;
   cnt=D().dist.slice(); r=0; level=0; clicks=0; phase="heat"; pred=null; phaseTime=0; hinted=false; results=[]; flying=null;
   $("predbox").hidden=true; $("pump").disabled=false;
-  ticks(); updateMark(); proto(); tube();
+  proto();
   document.querySelectorAll(".chips button[data-el]").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.el===key)));
-  setMsg(`Du hast ein ${D().name}-Atom. Drücke „Energie zuführen“ und beobachte, was mit dem Energiespeicher passiert, wenn du aufhörst zu klicken.`);
-}
-function tube(){
-  $("fillbar").style.height=Math.min(100,level/D().max*100)+"%";
-  $("tubeval").textContent=fmt(level,1)+" eV";
+  setMsg(`Du hast ein ${D().name}-Atom. Drücke „Energie zuführen“ und beobachte das gelbe Elektron, auch wenn du aufhörst zu klicken.`);
 }
 function ionize(){
   const E=target(); results[r]={E,clicks};
   const o=outerIdx(); if(tpos) flying={x:tpos.x,y:tpos.y,dx:tpos.dx,dy:tpos.dy,a:1};
   cnt[o]-=1; r+=1; level=0; phase=r>=3?"done":"predict"; clicks=0; phaseTime=0;
-  proto(); tube();
+  proto();
   const prev=r>=2?results[r-2].E:null;
   let t=(r===1?`Ein Elektron ist weg: Aus dem ${D().name}-Atom wurde ein ${key}${SUP[1]}-Ion.`:`Noch ein Elektron ist weg: Das ${key}${SUP[r-1]}-Ion wurde zum ${key}${SUP[r]}-Ion.`)+` Es waren ${fmt(E)} eV nötig.`;
   if(prev){
@@ -297,17 +259,16 @@ function ionize(){
     $("predq").textContent=`Das ${r+1}. Elektron braucht ... Energie als das ${r}. Elektron.`;
     $("predbox").hidden=false; $("pump").disabled=true; pred=null;
   } else { $("pump").disabled=true; }
-  updateMark();
 }
 $("pump").addEventListener("click",()=>{
   if(phase!=="heat") return;
-  level+=pulse; clicks++; tube();
+  level+=pulse; clicks++;
   if(level>=target()) ionize();
 });
 document.querySelectorAll("[data-pred]").forEach(b=>b.addEventListener("click",()=>{
   if(phase!=="predict") return;
-  pred=b.dataset.pred; phase="heat"; $("predbox").hidden=true; $("pump").disabled=false; updateMark();
-  setMsg(`Deine Vermutung: ${pred==="gleich"?"gleich viel":pred} Energie. Prüfe sie: Halte den Energiespeicher gefüllt, bis das Elektron frei ist.`);
+  pred=b.dataset.pred; phase="heat"; $("predbox").hidden=true; $("pump").disabled=false;
+  setMsg(`Deine Vermutung: ${pred==="gleich"?"gleich viel":pred} Energie. Prüfe sie: Klicke weiter, bis das Elektron frei ist.`);
 }));
 document.querySelectorAll(".chips button[data-el]").forEach(b=>b.addEventListener("click",()=>reset(b.dataset.el)));
 function setSrc(strong){
@@ -338,9 +299,9 @@ function draw(t){
       if(isT){
         const frac=Math.min(1,level/target());
         tpos={x:px,y:py,dx:Math.cos(a),dy:Math.sin(a)};
-        if(!reduce){ const amp=7*frac; px+=Math.sin(t*37)*amp; py+=Math.cos(t*29)*amp; }
-        x.fillStyle=`rgba(255,${Math.round(209-frac*110)},${Math.round(102-frac*70)},.25)`;
-        x.beginPath(); x.arc(px,py,6+frac*10,0,7); x.fill();
+        if(!reduce){ const amp=9*frac; px+=Math.sin(t*37)*amp; py+=Math.cos(t*29)*amp; }
+        x.fillStyle=`rgba(255,${Math.round(209-frac*110)},${Math.round(102-frac*70)},${0.2+frac*0.4})`;
+        x.beginPath(); x.arc(px,py,6+frac*16,0,7); x.fill();
       }
       x.fillStyle=isT?"#ffd166":"#5ac8fa";
       x.beginPath(); x.arc(px,py,4,0,7); x.fill();
@@ -358,7 +319,7 @@ function draw(t){
 function frame(now){
   const dt=Math.min(0.1,(now-last)/1000); last=now; tAnim+=dt;
   if(phase==="heat"){
-    if(level>0){ level=Math.max(0,level-LEAK*dt); tube(); }
+    if(level>0){ level=Math.max(0,level-LEAK*dt); }
     phaseTime+=dt;
     if(!hinted && phaseTime>20 && pulse===1 && target()>20){
       hinted=true; setMsg("Mit der schwachen Quelle kommst du hier kaum voran: Ein Klick liefert zu wenig, um den Energieverlust auszugleichen. Wähle eine stärkere Quelle.");
