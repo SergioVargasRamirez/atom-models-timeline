@@ -707,6 +707,17 @@ const Bohr = (() => {
   function draw(){
     const f=fit(cv); if(!f||!sp) return; const {x,W,H}=f;
     x.fillStyle="#0a0e18"; x.fillRect(0,0,W,H);
+    if(flame){
+      x.save(); x.globalCompositeOperation="lighter";
+      const n=Math.max(6,Math.round(W/60));
+      for(let i=0;i<n;i++){
+        const fx=(i+.5)/n*W, h=26+16*Math.sin(clock*9+i*1.9)+8*Math.sin(clock*17+i*3.1), w=W/n*.8;
+        const g=x.createLinearGradient(0,H,0,H-h);
+        g.addColorStop(0,"rgba(255,140,40,.85)"); g.addColorStop(.6,"rgba(255,90,20,.4)"); g.addColorStop(1,"rgba(255,60,10,0)");
+        x.fillStyle=g; x.beginPath(); x.moveTo(fx-w/2,H); x.quadraticCurveTo(fx-w/4,H-h*.7,fx+Math.sin(clock*6+i)*5,H-h); x.quadraticCurveTo(fx+w/4,H-h*.7,fx+w/2,H); x.fill();
+      }
+      x.restore();
+    }
     const xl=XL(), xr=XR(), cols=sp.cols, nc=cols?cols.length:1, colW=(xr-xl)/nc;
     x.font='11.5px ui-monospace,monospace'; x.textBaseline="middle";
     // Energieachse (nur bei Spaltenschemata)
