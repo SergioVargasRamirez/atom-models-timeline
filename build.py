@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-build.py — regenerates index.html from template/index.template.html plus the
+build.py — regenerates timeline.html from template/index.template.html plus the
 content files under content/.
 
 Usage:
@@ -9,7 +9,7 @@ Usage:
 
 Sergio's workflow: edit a file under content/events, content/questions,
 content/models, or one of content/tools.md, content/eras.md, content/ideas.md,
-then run this script. It validates everything and rewrites index.html.
+then run this script. It validates everything and rewrites timeline.html.
 Any problem is reported with the exact file and field — nothing is silently
 dropped or guessed.
 
@@ -26,7 +26,7 @@ import sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONTENT = os.path.join(ROOT, "content")
 TEMPLATE = os.path.join(ROOT, "template", "index.template.html")
-OUT = os.path.join(ROOT, "index.html")
+OUT = os.path.join(ROOT, "timeline.html")
 
 MIN_YEAR, MAX_YEAR = 1785, 1950
 ERRORS = []
@@ -431,7 +431,7 @@ def main():
     check_cross_refs(events, event_ids, questions, question_ids, models)
 
     if ERRORS:
-        print(f"build.py: {len(ERRORS)} Fehler gefunden, index.html wurde NICHT geschrieben:\n", file=sys.stderr)
+        print(f"build.py: {len(ERRORS)} Fehler gefunden, timeline.html wurde NICHT geschrieben:\n", file=sys.stderr)
         for e in ERRORS:
             print(" - " + e, file=sys.stderr)
         sys.exit(1)
@@ -525,7 +525,7 @@ def main():
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(tpl)
 
-    print(f"OK: index.html geschrieben ({len(events)} Ereignisse, {len(questions)} Fragen, "
+    print(f"OK: timeline.html geschrieben ({len(events)} Ereignisse, {len(questions)} Fragen, "
           f"{len(models)} Modelle, {len(tools)} Werkzeuge, {len(eras)} Epochen, {len(ideas)} Ideen).")
     print(f"Geprüft: {n_reviewed}/{n_total} Ereignisse und Fragen.")
 

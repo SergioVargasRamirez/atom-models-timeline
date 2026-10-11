@@ -1,13 +1,19 @@
 # Atommodelle im Wissensstand ihrer Zeit
 
-Interaktive Zeitleiste der Geschichte der Atommodelle (Dalton 1808 bis zum
-Kernschalenmodell 1949/50) für den Chemieunterricht. Läuft als einzelne,
-selbstständige `index.html`-Datei auf GitHub Pages — keine externen
+Interaktive Seiten für den Chemie-/NTG-Unterricht zu Atommodellen. Jede Seite
+ist eine einzelne, selbstständige HTML-Datei auf GitHub Pages — keine externen
 Anfragen, auch Schriften sind eingebettet.
 
-**Wichtig: `index.html` wird nicht mehr von Hand bearbeitet.** Sie wird aus
-den Dateien in `content/` und `template/index.template.html` von `build.py`
-erzeugt. Jede Änderung an `index.html` selbst geht beim nächsten Build
+| Datei | Inhalt | Entstehung |
+|---|---|---|
+| `index.html` | Startseite mit Links zu den drei Werkzeugen | von Hand |
+| `timeline.html` | Zeitleiste der Atommodelle (Dalton 1808 bis Kernschalenmodell 1949/50) | **generiert** aus `content/` + `template/` |
+| `rutherford.html` | Rutherford gegen das Spektrum (Vorhersage, Experiment, Erklärung; H, Na, Sr, Ba) | von Hand |
+| `fuellen.html` | Elektronen einfüllen (Schalenmodell, 2n², H, Na, Sr, Ba, Ionen) | von Hand |
+
+**Wichtig: `timeline.html` wird nicht von Hand bearbeitet.** Sie wird aus den
+Dateien in `content/` und `template/index.template.html` von `build.py`
+erzeugt. Jede Änderung an `timeline.html` selbst geht beim nächsten Build
 verloren.
 
 ## Workflow
@@ -17,14 +23,14 @@ verloren.
 2. `python3 build.py` ausführen.
 3. Bei Fehlern: Die Meldung nennt genau die Datei und das Feld. Beheben,
    erneut ausführen.
-4. Bei Erfolg wird `index.html` neu geschrieben. `index.html` im Browser
+4. Bei Erfolg wird `timeline.html` neu geschrieben. `timeline.html` im Browser
    öffnen und prüfen.
 5. Änderungen committen und pushen (`content/`, `template/` und die neue
-   `index.html` gehören zusammen in einen Commit).
+   `timeline.html` gehören zusammen in einen Commit).
 
 Ein GitHub Action-Workflow (`.github/workflows/build.yml`) führt `build.py`
 zusätzlich bei jedem Push automatisch aus und committet eine aktualisierte
-`index.html`, falls man das selbst vergisst — der lokale Lauf vorher bleibt
+`timeline.html`, falls man das selbst vergisst — der lokale Lauf vorher bleibt
 aber der schnellere Weg, um Fehler sofort zu sehen.
 
 ## Ordnerstruktur
@@ -39,8 +45,8 @@ content/
   ideas.md            — Ideen-Tabelle für die Challenge-Aufgabe
 template/
   index.template.html — HTML/CSS/JS-Gerüst mit Platzhaltern wie /*__NODES__*/
-build.py              — validiert content/ und erzeugt index.html
-index.html            — generiert, wird von GitHub Pages ausgeliefert
+build.py              — validiert content/ und erzeugt timeline.html
+timeline.html         — generiert, wird von GitHub Pages ausgeliefert
 ```
 
 ## Frontmatter-Felder
@@ -125,7 +131,7 @@ geprüft sein).
 
 ## Validierung durch `build.py`
 
-Vor dem Schreiben von `index.html` prüft `build.py`:
+Vor dem Schreiben von `timeline.html` prüft `build.py`:
 
 - alle Pflichtfelder sind gesetzt,
 - `id`s sind eindeutig (über Ereignisse, Fragen und Modelle hinweg so weit
@@ -137,7 +143,7 @@ Vor dem Schreiben von `index.html` prüft `build.py`:
 - der Modell-Body hat alle vier Pflichtabschnitte.
 
 Jeder Fehler nennt die betroffene Datei und das Feld. Bei einem Fehler wird
-`index.html` nicht überschrieben — die zuletzt funktionierende Version
+`timeline.html` nicht überschrieben — die zuletzt funktionierende Version
 bleibt online, bis der Fehler behoben ist.
 
 ## Offen / nächste Schritte
