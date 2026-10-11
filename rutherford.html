@@ -101,6 +101,9 @@ sub,sup{line-height:0}
 .sitenav a:hover{color:var(--accent);text-decoration:underline}
 .sitenav a[aria-current="page"]{color:var(--fg);font-weight:700}
 .crosslink a{color:var(--accent)}
+.bigbtn{font:inherit;font-weight:700;font-size:1.05rem;width:100%;padding:14px 12px;border-radius:12px;border:0;background:var(--flame);color:#fff;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.bigbtn:active{transform:scale(.98)}
+input[type=range]{accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -189,16 +192,17 @@ sub,sup{line-height:0}
           <div class="readout" id="read3"></div>
         </div>
         <div class="side">
-          <div class="task"><b>Aufgabe</b>Wähle ein Element und rege das Atom an (Flamme oder Knopf). Erkläre, warum nur bestimmte Farben auftreten. Vergleiche mit der Messung.</div>
+          <div class="task"><b>Aufgabe</b>Wähle ein Element und rege das Atom an (Flamme oder „Energie zuführen“). Finde heraus, wie viel Energie das Elektron für den Sprung auf eine höhere Stufe braucht, und erkläre, warum nur bestimmte Farben auftreten. Vergleiche mit der Messung.</div>
           <label class="switch"><input type="checkbox" id="flame3" role="switch"> Flamme</label>
           <div class="chips small" id="iontoggle" role="radiogroup" aria-label="Atom oder Ion" hidden style="margin:0">
             <button type="button" role="radio" aria-checked="true" id="atombtn">Atom</button>
             <button type="button" role="radio" aria-checked="false" id="ionbtn">Ion</button>
           </div>
           <div>
-            <div class="small" style="margin-bottom:6px">Elektron gezielt anheben auf:</div>
-            <div class="controls" id="exbtns"></div>
+            <label class="small" for="ein" style="display:block;margin-bottom:4px">Energie pro Zufuhr: <b id="einval"></b></label>
+            <input type="range" id="ein" min="0" max="14" step="0.05" value="1" style="width:100%">
           </div>
+          <button class="bigbtn" id="giveE" type="button">Energie zuführen</button>
           <div class="controls">
             <button class="btn" id="pause3" type="button">Pause</button>
             <button class="btn" id="clear3" type="button">Spektrum löschen</button>
@@ -231,6 +235,7 @@ sub,sup{line-height:0}
       <li>Nicht maßstäblich: die Zeit (Zeitlupe), die Umlaufgeschwindigkeit in der Animation und die Größe des Kerns.</li>
       <li>Energiestufen in eV über der untersten Stufe. Wasserstoff: E<sub>n</sub> = 13,6 eV · (1 − 1/n²). Natrium, Strontium und Barium: Literaturwerte, gerundet. Die Wellenlänge folgt aus λ = 1240 eV·nm / ΔE. Sr und Ba sind vereinfacht mit je zwei angeregten Stufen im Atom gezeichnet; die Ionen (Sr⁺, Ba⁺) sind eigene Schemata mit ihrer eigenen untersten Stufe.</li>
       <li>Die Anregung ist in der Simulation zufällig verteilt. In einer echten Flamme werden fast nur die untersten angeregten Stufen besetzt, deshalb leuchtet Natrium fast nur gelb. Die Häufigkeit der Sprünge ist grob nach ν³ gewichtet (außer bei Wasserstoff, dort gleichverteilt) und nicht gemessen.</li>
+      <li>„Energie zuführen“ entspricht einem Stoß, wie in der Flamme: Das Elektron springt auf die höchste Stufe, die die Energie erreicht, und das Stoßteilchen behält den Rest. Bei Licht ist das anders: Ein Photon wird nur aufgenommen, wenn seine Energie genau zum Abstand zweier Stufen passt.</li>
       <li>Linienwellenlängen und relative Stärken sind Literaturwerte, qualitativ gezeichnet und nicht gegen eine Datenbank geprüft. Die Flammenfarben von Strontium und Barium stammen zu einem großen Teil von Molekülbanden (Hydroxide, Chloride) und nicht nur von Atomlinien; die Banden sind als schwache, breite Bereiche angedeutet (ungefähre Lage).</li>
     </ul>
   </details>
@@ -587,14 +592,10 @@ const Bohr = (() => {
   const yOf=e=>(cv.clientHeight-B0)-e/sp.top*(cv.clientHeight-T0-B0);
   const nmTxt=l=>l>=100?String(Math.round(l)):de(l,0);
   const setMsg=t=>{$("msg3").textContent=t};
-  const idleMsg=()=>setMsg(`${sp.title}: Das Elektron sitzt auf der untersten Stufe (${sp.lv[0].id}) und bleibt dort. ${flame?"Die Flamme regt es gleich an.":"Hebe es mit einem Knopf oder mit der Flamme an."}`);
+  const idleMsg=()=>setMsg(`${sp.title}: Das Elektron sitzt auf der untersten Stufe (${sp.lv[0].id}) und bleibt dort. ${flame?"Die Flamme regt es gleich an.":"Gib Energie mit dem Regler und dem Knopf oder schalte die Flamme ein."}`);
 
-  function buildButtons(){
-    const box=$("exbtns"); box.textContent="";
-    sp.lv.forEach((lv,i)=>{ if(lv.w>0){
-      const b=document.createElement("button"); b.type="button"; b.className="btn"; b.dataset.k=i; b.textContent=lv.id; box.appendChild(b);
-    }});
-  }
+  const ein=$("ein"), einval=$("einval"), giveE=$("giveE");
+  function einUpdate(){ const v=+ein.value; einval.textContent=de(v,2)+" eV"; giveE.textContent=`Energie (${de(v,2)} eV) zuführen`; }
   function setScheme(k,i){
     key=k; ion=i&&!!SCHEMES[k].ion; sp=SCHEMES[k][ion?"ion":"atom"];
     cur=0; Epos=0; Xpos=xf(sp.lv[0]); act=null; queue=[]; wait=0; idle=0; photons=[]; irOut=0; lastText="";
@@ -607,9 +608,21 @@ const Bohr = (() => {
     const has=!!SCHEMES[k].ion; $("iontoggle").hidden=!has;
     $("ionbtn").textContent=`Ion (${k}⁺)`; $("atombtn").textContent=`Atom (${k})`;
     $("atombtn").setAttribute("aria-checked",String(!ion)); $("ionbtn").setAttribute("aria-checked",String(ion));
-    buildButtons(); idleMsg();
+    ein.max=(Math.ceil((sp.ionE+0.5)*20)/20).toFixed(2); ein.value=Math.min(1,+ein.max); einUpdate(); idleMsg();
   }
   function excite(k){ if(act||queue.length||cur!==0) return; queue.push({type:"up",to:k}); }
+  function giveEnergy(E){
+    if(act||queue.length||cur!==0){ setMsg("Das Elektron ist noch unterwegs. Warte, bis es wieder auf der untersten Stufe sitzt."); return; }
+    paused=false; $("pause3").textContent="Pause";
+    if(E>=sp.ionE-1e-9){ queue.push({type:"ion",to:0,E}); return; }
+    let k=-1; sp.lv.forEach((l,i)=>{ if(i>0&&l.w>0&&l.E<=E+1e-9&&(k<0||l.E>sp.lv[k].E)) k=i; });
+    if(k<0){
+      const first=sp.lv.filter((l,i)=>i>0&&l.w>0).reduce((m,l)=>l.E<m.E?l:m);
+      setMsg(`${de(E,2)} eV reichen nicht: Die tiefste Stufe über ${sp.lv[0].id} liegt bei ${de(first.E,2)} eV. Das Elektron bleibt auf ${sp.lv[0].id}.`);
+      return;
+    }
+    queue.push({type:"up",to:k,E});
+  }
   function pickExcite(){
     const c=sp.lv.map((l,i)=>[i,l.w]).filter(p=>p[1]>0), tot=c.reduce((s,p)=>s+p[1],0); let r=Math.random()*tot;
     for(const [i,w] of c){ r-=w; if(r<=0) return i; } return c[c.length-1][0];
@@ -621,8 +634,11 @@ const Bohr = (() => {
   }
   function start(a){
     act=a; a.t=0; a.fromE=Epos; a.fromX=Xpos; a.toE=sp.lv[a.to].E; a.toX=xf(sp.lv[a.to]);
-    a.dur=a.type==="up"?.9:a.type==="coll"?.7:.6;
+    a.dur=a.type==="up"?.9:a.type==="ion"?1.2:a.type==="coll"?.7:.6;
+    if(a.type==="ion"){ a.toE=Math.max(sp.ionE,sp.top)*1.15; a.toX=a.fromX; }
     if(a.type==="down") emit(cur,a.to);
+    else if(a.type==="ion") setMsg(`${de(a.E,2)} eV reichen für die Ionisierung (ab ${de(sp.ionE,2)} eV): Das Elektron verlässt das Atom. Für die nächsten Versuche setzen wir ein neues Atom ein. Mehr dazu auf der Seite Ionisierungsenergie.`);
+    else if(a.type==="up"&&a.E!=null){ const L=sp.lv[a.to].E, rest=a.E-L; setMsg(`Du gibst ${de(a.E,2)} eV. Das reicht bis ${sp.lv[a.to].id} (${de(L,2)} eV). ${rest>0.004?`Die übrigen ${de(rest,2)} eV nimmt das Stoßteilchen wieder mit.`:"Die Energie passt genau."}`); }
     else if(a.type==="up") setMsg(`Energie von der Flamme hebt das Elektron von ${sp.lv[cur].id} auf ${sp.lv[a.to].id}.`);
     else setMsg(`Von ${sp.lv[cur].id} gibt es keinen Sprung nach unten, der Licht aussendet. Durch Stöße mit anderen Teilchen fällt das Elektron ohne Licht zurück.`);
   }
@@ -635,6 +651,7 @@ const Bohr = (() => {
     $("read3").textContent=lastText+(irOut?` · IR außerhalb der Skala: ${irOut}`:"");
   }
   function finish(){
+    if(act.type==="ion"){ cur=0; Epos=sp.lv[0].E; Xpos=xf(sp.lv[0]); wait=.8; act=null; idle=0; return; }
     cur=act.to; Epos=act.toE; Xpos=act.toX; wait=act.type==="up"?.8:.55; act=null;
     if(cur===0) idle=0;
   }
@@ -697,7 +714,7 @@ const Bohr = (() => {
       }
     });
     // Anheben (Pfeil)
-    if(act&&act.type==="up"){
+    if(act&&(act.type==="up"||act.type==="ion")){
       const ax=xPix(Xpos)-30, y0=yOf(act.fromE), y1=yOf(Epos);
       x.strokeStyle="#ff9548"; x.fillStyle="#ff9548"; x.lineWidth=3;
       x.beginPath(); x.moveTo(ax,y0); x.lineTo(ax,y1+8); x.stroke();
@@ -721,7 +738,8 @@ const Bohr = (() => {
   document.querySelectorAll("#s3 .chips button[data-el]").forEach(b=>b.addEventListener("click",()=>{setScheme(b.dataset.el,false); draw()}));
   $("atombtn").addEventListener("click",()=>{setScheme(key,false); draw()});
   $("ionbtn").addEventListener("click",()=>{setScheme(key,true); draw()});
-  $("exbtns").addEventListener("click",e=>{const b=e.target.closest("button[data-k]"); if(!b) return; paused=false; $("pause3").textContent="Pause"; excite(+b.dataset.k)});
+  ein.addEventListener("input",einUpdate);
+  giveE.addEventListener("click",()=>giveEnergy(+ein.value));
   $("flame3").addEventListener("change",e=>{flame=e.target.checked; idle=0; if(!act&&!queue.length&&cur===0) idleMsg();});
   $("pause3").addEventListener("click",()=>{paused=!paused; $("pause3").textContent=paused?"Weiter":"Pause"});
   $("clear3").addEventListener("click",()=>{scope.bins.fill(0); irOut=0; $("read3").textContent=lastText||`${sp.title} · noch kein Sprung`; scope.draw()});
