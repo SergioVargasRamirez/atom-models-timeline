@@ -238,7 +238,7 @@ function proto(){
     const li=document.createElement("li");
     if(results[i]){
       const res=results[i];
-      li.innerHTML=`<span><b>${i+1}. Elektron:</b> ${nf(res.E)} kJ/mol <span class="small">(${res.clicks} Klicks)</span></span><span class="bar"><i style="width:${res.E/mx*100}%"></i></span>`;
+      li.innerHTML=`<span><b>${i+1}. Elektron:</b> ${nf(res.E)} kJ/mol · <b>${res.clicks} Klicks</b></span><span class="bar"><i style="width:${res.E/mx*100}%"></i></span>`;
     } else li.innerHTML=`<span class="empty">${i+1}. Elektron: noch offen</span>`;
     ul.appendChild(li);
   }
@@ -325,7 +325,7 @@ $("logbtn").addEventListener("click",()=>{ logScale=!logScale; $("logbtn").textC
 $("allchart").addEventListener("click",e=>{
   const rc=e.target.getBoundingClientRect(), px=e.clientX-rc.left;
   const h=allHit.find(q=>px>=q.x0&&px<q.x1); if(!h) return;
-  $("allread").textContent=`${h.i+1}. Elektron: ${nf(D().IE[h.i])} kJ/mol (Energiestufe n = ${stufenOf(key)[h.i]})`;
+  $("allread").textContent=`${h.i+1}. Elektron: ${nf(D().IE[h.i])} kJ/mol (Energiestufe n = ${stufenOf(key)[h.i]}), mindestens ${Math.ceil(D().IE[h.i]/250)} Klicks`;
 });
 function draw(t){
   const f=fit(cv); if(!f) return; const {x,W,H}=f;
