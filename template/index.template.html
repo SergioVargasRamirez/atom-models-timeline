@@ -268,12 +268,17 @@ footer{color:var(--muted);font-size:14px;padding:0 0 40px}
   .task textarea{border:1px solid #000;min-height:110px;resize:none;background:#fff;color:#000}
   .cbox{background:#fff;border:1px solid #999}
 }
+.sitenav{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-size:15px;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.sitenav a{color:var(--muted);text-decoration:none}
+.sitenav a:hover{color:var(--accent);text-decoration:underline}
+.sitenav a[aria-current="page"]{color:var(--ink);font-weight:700}
 </style>
 </head>
 <body>
 
 <header class="hero np">
   <div class="wrap">
+    <nav class="sitenav" aria-label="Seiten"><a href="./">Start</a><a href="timeline.html" aria-current="page">Zeitleiste</a><a href="rutherford.html">Rutherford gegen das Spektrum</a><a href="fuellen.html">Elektronen einfüllen</a></nav>
     <h1>Atommodelle im Wissensstand ihrer Zeit</h1>
     <p class="lede">Ein Modell kann nur so gut sein wie die Werkzeuge und Daten seiner Zeit.</p>
     <p class="how">Ziehe den Regler auf ein Jahr: Du siehst, was damals bekannt war, welche Geräte es gab und welche Fragen offen waren. Alles Spätere ist gesperrt. Lies die Zeitleiste von oben nach unten: Fragen, Belege, Modelle.</p>

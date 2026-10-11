@@ -1,4 +1,4 @@
-name: Build index.html
+name: Build timeline.html
 
 on:
   push:
@@ -18,17 +18,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build index.html
+      - name: Build timeline.html
         run: python3 build.py
 
-      - name: Commit rebuilt index.html
+      - name: Commit rebuilt timeline.html
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- index.html; then
-            echo "index.html unverändert, nichts zu committen."
+          if git diff --quiet -- timeline.html; then
+            echo "timeline.html unverändert, nichts zu committen."
           else
-            git add index.html
-            git commit -m "Automatischer Build: index.html aus content/ aktualisiert"
+            git add timeline.html
+            git commit -m "Automatischer Build: timeline.html aus content/ aktualisiert"
             git push
           fi
