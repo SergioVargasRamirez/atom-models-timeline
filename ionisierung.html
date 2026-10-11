@@ -160,8 +160,8 @@ sub,sup{line-height:0}
         <canvas id="ionatom" aria-label="Atommodell mit Energiestufen"></canvas>
       </div>
       <div class="side">
-        <div class="task"><b>Aufgabe</b>Entferne nacheinander Elektronen aus dem Atom, bis ein Elektron von der nächstniedrigeren Energiestufe an der Reihe ist. Je mehr Energie das Elektron hat, desto stärker zittert es. Die Energie fließt aber ständig wieder ab, also musst du weiterklicken. Beschreibe, wie viel Energie jedes Elektron braucht, und erkläre den Verlauf mit dem Energiestufenmodell.</div>
-        <button class="bigbtn" id="pump" type="button">Energie (250 kJ/mol) zuführen</button>
+        <div class="task"><b>Aufgabe</b>Entferne nacheinander Elektronen aus dem Atom. Achte auf die Klickzahl und die Energie jedes Elektrons und suche die größte Lücke. Je mehr Energie das Elektron hat, desto stärker zittert es. Die Energie fließt aber ständig wieder ab, also musst du weiterklicken. Beschreibe, wie viel Energie jedes Elektron braucht, und erkläre den Verlauf mit dem Energiestufenmodell.</div>
+        <button class="bigbtn" id="pump" type="button">Energie (500 kJ/mol) zuführen</button>
         <div class="predbox" id="predbox" hidden>
           <b id="predq"></b>
           <div class="controls">
@@ -189,7 +189,7 @@ sub,sup{line-height:0}
     <ul>
       <li>Die Werte sind gerundete Literaturwerte der molaren Ionisierungsenergien in kJ/mol (z. B. Natrium: 496 kJ/mol für das erste Elektron, 4562 kJ/mol für das zweite). Sie gelten für einzelne Atome bzw. Ionen im Gaszustand.</li>
       <li>Die Energiezufuhr per Klick ist eine Analogie, etwa für Erhitzen oder Stöße mit schnellen Teilchen. Sie darf nicht so gelesen werden, als könne ein Atom viele schwache Portionen Licht sammeln: Ein einzelnes Lichtquant muss die gesamte Ionisierungsenergie auf einmal liefern. Die Klickzahl hängt vom Abfluss und von der Klickgeschwindigkeit ab und ist keine Messgröße.</li>
-      <li>Ein Klick liefert immer 250 kJ/mol. Der Abfluss steht für Energie, die das Elektron durch Stöße wieder abgibt. In diesem Modell beträgt er konstant 250 kJ/mol pro Sekunde.</li>
+      <li>Ein Klick liefert immer 500 kJ/mol. Der Abfluss steht für Energie, die das Elektron durch Stöße wieder abgibt. In diesem Modell beträgt er konstant 500 kJ/mol pro Sekunde.</li>
       <li>Grenzen des Energiestufenmodells: Dass Aluminium (578 kJ/mol) leichter ein Elektron abgibt als Magnesium (738 kJ/mol), obwohl die Kernladung größer ist, erklärt das Modell nicht. Dafür braucht man Unterschalen (Orbitale), die erst später behandelt werden.</li>
       <li>Kalium und Calcium (Beginn der 4. Periode) gehen über die Regeln im Buch hinaus: Das Energiestufenmodell mit 2, 8, 8 passt hier nur noch teilweise. Mit dem Link <code>ionisierung.html?bis=Ar</code> werden sie ausgeblendet.</li>
     </ul>
@@ -214,15 +214,15 @@ const DATA = {
   K:{name:"Kalium", Z:19, dist:[2,8,8,1], gr:"I", IE:[419,3052,4420,5877,7975,9590,11343,14944,16964,48610,54490]},
   Ca:{name:"Calcium", Z:20, dist:[2,8,8,2], gr:"II", IE:[590,1145,4912,6491,8153,10496,12270,14206,18191,20385,57110]}
 };
-const NE = k => DATA[k].dist[DATA[k].dist.length-1]+1;
+const NE = k => DATA[k].dist[DATA[k].dist.length-1]+2;
 const nf = v => Math.round(v).toLocaleString("de-DE");
 const SUP = ["","⁺","²⁺","³⁺","⁴⁺"];
-const LEAK = 250;
+const LEAK = 500;
 const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const fmt = (v,d=2) => v.toFixed(d).replace(".",",");
 const plural = n => n===1 ? "" : "en";
 
-let key="Na", cnt=[], r=0, level=0, clicks=0, pulse=250, phase="heat", pred=null, phaseTime=0, hinted=false;
+let key="Na", cnt=[], r=0, level=0, clicks=0, pulse=500, phase="heat", pred=null, phaseTime=0, hinted=false;
 let results=[], flying=null, tpos=null, tAnim=0, last=performance.now();
 const cv=$("ionatom");
 if(new URLSearchParams(location.search).get("bis")==="Ar"){ ["K","Ca"].forEach(k=>{ const b=document.querySelector(`.chips [data-el=${k}]`); if(b) b.remove(); }); }
@@ -239,7 +239,7 @@ function proto(){
     const li=document.createElement("li");
     if(results[i]){
       const res=results[i];
-      li.innerHTML=`<span><b>${i+1}. Elektron:</b> ${nf(res.E)} kJ/mol · <b>${res.clicks} Klicks</b></span><span class="bar"><i style="width:${res.E/mx*100}%"></i></span>`;
+      li.innerHTML=`<span><b>${i+1}. Elektron:</b> ${nf(res.E)} kJ/mol · <b>${res.clicks} ${res.clicks===1?"Klick":"Klicks"}</b></span><span class="bar"><i style="width:${res.E/mx*100}%"></i></span>`;
     } else li.innerHTML=`<span class="empty">${i+1}. Elektron: noch offen</span>`;
     ul.appendChild(li);
   }
@@ -265,7 +265,7 @@ function ionize(){
     if(pred) t+=` Deine Vermutung („${pred==="gleich"?"gleich viel":pred}“) war ${pred===truth?"richtig":"nicht richtig"}.`;
   }
   const ne=NE(key);
-  if(r<ne){ t+= r===ne-1 ? ` Dieses Elektron saß auf der höchsten Energiestufe. Das nächste kommt von der Energiestufe darunter. Vermute, wie viel Energie es braucht.` : ` Wie viele Valenzelektronen hat das ${key}${SUP[r]}-Ion noch? Vermute, wie viel Energie das nächste Elektron braucht.`; }
+  if(r<ne){ t+=` Vermute, ob das nächste Elektron mehr oder weniger Energie braucht als dieses.`; }
   else t+=` Vergleiche die Werte: Wo ist der große Sprung, und was sagt er über die Anzahl der Valenzelektronen und die Hauptgruppe von ${D().name}? Erkläre mit dem Energiestufenmodell.`;
   setMsg(t);
   if(phase==="predict"){
@@ -326,7 +326,7 @@ $("logbtn").addEventListener("click",()=>{ logScale=!logScale; $("logbtn").textC
 $("allchart").addEventListener("click",e=>{
   const rc=e.target.getBoundingClientRect(), px=e.clientX-rc.left;
   const h=allHit.find(q=>px>=q.x0&&px<q.x1); if(!h) return;
-  $("allread").textContent=`${h.i+1}. Elektron: ${nf(D().IE[h.i])} kJ/mol (Energiestufe n = ${stufenOf(key)[h.i]}), mindestens ${Math.ceil(D().IE[h.i]/250)} Klicks`;
+  $("allread").textContent=`${h.i+1}. Elektron: ${nf(D().IE[h.i])} kJ/mol (Energiestufe n = ${stufenOf(key)[h.i]}), mindestens ${Math.ceil(D().IE[h.i]/500)} Klicks`;
 });
 function draw(t){
   const f=fit(cv); if(!f) return; const {x,W,H}=f;
