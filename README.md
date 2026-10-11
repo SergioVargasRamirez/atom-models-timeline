@@ -6,10 +6,11 @@ Anfragen, auch Schriften sind eingebettet.
 
 | Datei | Inhalt | Entstehung |
 |---|---|---|
-| `index.html` | Startseite mit Links zu den drei Werkzeugen | von Hand |
+| `index.html` | Startseite mit Links zu den Werkzeugen | von Hand |
 | `timeline.html` | Zeitleiste der Atommodelle (Dalton 1808 bis Kernschalenmodell 1949/50) | **generiert** aus `content/` + `template/` |
 | `rutherford.html` | Rutherford gegen das Spektrum (Vorhersage, Experiment, Erklärung; H, Na, Sr, Ba) | von Hand |
-| `fuellen.html` | Elektronen einfüllen (Schalenmodell, 2n², H, Na, Sr, Ba, Ionen) | von Hand |
+| `fuellen.html` | Elektronen einfüllen (Energiestufen, 2n², Atome und Ionen H bis Ca) | von Hand |
+| `ionisierung.html` | Ionisierungsenergie (Energiespeicher-Klickspiel, Na und Mg) | von Hand |
 
 **Wichtig: `timeline.html` wird nicht von Hand bearbeitet.** Sie wird aus den
 Dateien in `content/` und `template/index.template.html` von `build.py`
