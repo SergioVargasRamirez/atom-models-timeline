@@ -113,10 +113,11 @@ sub,sup{line-height:0}
 [role="tabpanel"][hidden]{display:none}
 @media (prefers-reduced-motion: reduce){.switch input,.switch input::after{transition:none}}
 
-.sitenav{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-size:.92rem;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.sitenav a{color:var(--muted);text-decoration:none}
-.sitenav a:hover{color:var(--accent);text-decoration:underline}
-.sitenav a[aria-current="page"]{color:var(--fg);font-weight:700}
+.sitenav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sitenav a{display:inline-block;padding:8px 16px;border-radius:999px;border:2px solid var(--accent);background:var(--surface);color:var(--accent);font-weight:700;font-size:.92rem;text-decoration:none;transition:background .15s,color .15s}
+.sitenav a:hover{background:var(--accent);color:var(--accent-fg)}
+.sitenav a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.sitenav a[aria-current="page"]{background:var(--accent);color:var(--accent-fg)}
 .crosslink a{color:var(--accent)}
 </style>
 </head>
