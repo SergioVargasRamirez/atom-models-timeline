@@ -188,7 +188,7 @@ const Fill = (() => {
   const ZS = {H:1, Na:11, Sr:38, Ba:56};
   const TARGET = {H:{atom:[1]}, Na:{atom:[2,8,1]}, Sr:{atom:[2,8,18,8,2], ion:[2,8,18,8,1]}, Ba:{atom:[2,8,18,18,8,2], ion:[2,8,18,18,8,1]}};
   const GROUND = {H:"n = 1", Na:"3s", Sr:"5s²", Ba:"6s²"}, GROUND_ION = {Sr:"5s", Ba:"6s"};
-  const NAMES = ["n = 1","n = 2","n = 3","n = 4","n = 5","n = 6"]; let showOver=false;
+  const NAMES = ["n = 1","n = 2","n = 3","n = 4","n = 5","n = 6"]; let showOver=true;
   const cap = i => 2*(i+1)*(i+1), sum = a => a.reduce((s,v)=>s+v,0);
   const cv = $("shells"), rack = $("rack");
   let key="H", ion=false, target=[1], cnt=[0], total=1, tries=0, solved=false, extra=false;
@@ -203,7 +203,7 @@ const Fill = (() => {
   }
   function setElement(k,i){
     key=k; ion=!!(i&&TARGET[k].ion); target=TARGET[k][ion?"ion":"atom"]; total=sum(target);
-    cnt=target.map(()=>0); tries=0; solved=false; showOver=false; extra=(k==="Sr"||k==="Ba");
+    cnt=target.map(()=>0); tries=0; solved=false; showOver=true; extra=(k==="Sr"||k==="Ba");
     build(); render(); setMsg(startText());
   }
   function build(){
@@ -291,11 +291,11 @@ const Fill = (() => {
     const b=e.target.closest("button[data-i]"); if(!b||b.disabled) return;
     const i=+b.dataset.i, d=+b.dataset.d;
     if(d>0&&remaining()<=0) return; if(d<0&&cnt[i]<=0) return;
-    cnt[i]+=d; solved=false; showOver=false; render();
+    cnt[i]+=d; solved=false; showOver=true; render();
     if(remaining()===0&&tries===0) setMsg("Alle Elektronen sind verteilt. Prüfe jetzt deine Verteilung.");
   });
   $("fillcheck").addEventListener("click",check);
-  $("fillreset").addEventListener("click",()=>{cnt=target.map(()=>0); tries=0; solved=false; showOver=false; render(); setMsg(startText());});
+  $("fillreset").addEventListener("click",()=>{cnt=target.map(()=>0); tries=0; solved=false; showOver=true; render(); setMsg(startText());});
   $("fillsolve").addEventListener("click",()=>{cnt=target.slice(); solved=true; render(); setMsg("Lösung eingeblendet. "+link().replace(/^Richtig\.\s*/,""));});
   return {setElement, hasIon:k=>!!TARGET[k].ion, redraw(){draw()}};
 })();
