@@ -198,7 +198,7 @@ input[type=range]{accent-color:var(--accent)}
           <div class="readout" id="read3"></div>
         </div>
         <div class="side">
-          <div class="task"><b>Aufgabe</b>Wähle ein Element und rege das Atom an: Halte den Knopf „Energie zuführen“ gedrückt oder tippe ihn mehrmals an. Das Elektron zittert stärker, je mehr Energie es hat, und die Energie fließt wieder ab, wenn du aufhörst. Es springt nur dann, wenn die Energie genau zum Abstand zweier Energiestufen passt. Finde die Stufen, notiere die nötigen Energien und erkläre, warum nur bestimmte Farben auftreten. Vergleiche mit der Messung. Alternativ regt die Flamme das Atom an.</div>
+          <div class="task"><b>Aufgabe</b>Wähle ein Element und rege das Atom an: Halte den Knopf „Energie zuführen“ gedrückt (schnell) oder tippe ihn an (fein). Die orange Linie im Diagramm zeigt, wie viel Energie das Elektron gerade hat. Das Elektron zittert stärker, je mehr Energie es hat, und die Energie fließt wieder ab, wenn du aufhörst. Es springt nur dann, wenn die Energie genau zum Abstand zweier Energiestufen passt. Finde die Stufen, notiere die nötigen Energien und erkläre, warum nur bestimmte Farben auftreten. Vergleiche mit der Messung. Alternativ regt die Flamme das Atom an.</div>
           <label class="switch"><input type="checkbox" id="flame3" role="switch"> Flamme</label>
           <div class="chips small" id="iontoggle" role="radiogroup" aria-label="Atom oder Ion" hidden style="margin:0">
             <button type="button" role="radio" aria-checked="true" id="atombtn">Atom</button>
@@ -211,7 +211,6 @@ input[type=range]{accent-color:var(--accent)}
             <ul class="foundlist" id="foundlist"></ul>
           </div>
           <div class="controls">
-            <button class="btn" id="showall3" type="button">Alle Stufen zeigen</button>
             <button class="btn" id="pause3" type="button">Pause</button>
             <button class="btn" id="clear3" type="button">Spektrum löschen</button>
           </div>
@@ -243,7 +242,7 @@ input[type=range]{accent-color:var(--accent)}
       <li>Nicht maßstäblich: die Zeit (Zeitlupe), die Umlaufgeschwindigkeit in der Animation und die Größe des Kerns.</li>
       <li>Energiestufen in eV über der untersten Stufe. Wasserstoff: E<sub>n</sub> = 13,6 eV · (1 − 1/n²). Natrium, Strontium und Barium: Literaturwerte, gerundet. Die Wellenlänge folgt aus λ = 1240 eV·nm / ΔE. Sr und Ba sind vereinfacht mit je zwei angeregten Stufen im Atom gezeichnet; die Ionen (Sr⁺, Ba⁺) sind eigene Schemata mit ihrer eigenen untersten Stufe.</li>
       <li>Die Anregung ist in der Simulation zufällig verteilt. In einer echten Flamme werden fast nur die untersten angeregten Stufen besetzt, deshalb leuchtet Natrium fast nur gelb. Die Häufigkeit der Sprünge ist grob nach ν³ gewichtet (außer bei Wasserstoff, dort gleichverteilt) und nicht gemessen.</li>
-      <li>„Energie zuführen“ ist eine Analogie zum Erhitzen: Viele kleine Energieportionen (je 0,05 eV, das entspricht rund 4,8 kJ/mol) laden den Balken, ein Teil fließt ständig ab. Das Elektron springt, wenn die Energie genau zum Abstand zweier Stufen passt. Der Ring um das Elektron leuchtet heller, wenn du dich einer passenden Energie näherst. Das ist eine Hilfe für die Suche und kein physikalischer Effekt. Bei Licht ist es anders: Ein Photon wird nur aufgenommen, wenn seine Energie genau zum Abstand zweier Stufen passt und liefert die ganze Energie auf einmal. Zur Umrechnung: 1 eV je Atom entspricht 96,5 kJ/mol.</li>
+      <li>„Energie zuführen“ ist eine Analogie zum Erhitzen: Viele kleine Energieportionen (je 0,05 eV, das entspricht rund 4,8 kJ/mol, beim Halten mehrere pro Moment) laden den Balken, ein Teil fließt ständig ab. Das Elektron springt, wenn die Energie genau zum Abstand zweier Stufen passt. Der Ring um das Elektron leuchtet heller, wenn du dich einer passenden Energie näherst. Das ist eine Hilfe für die Suche und kein physikalischer Effekt. Bei Licht ist es anders: Ein Photon wird nur aufgenommen, wenn seine Energie genau zum Abstand zweier Stufen passt und liefert die ganze Energie auf einmal. Zur Umrechnung: 1 eV je Atom entspricht 96,5 kJ/mol.</li>
       <li>Linienwellenlängen und relative Stärken sind Literaturwerte, qualitativ gezeichnet und nicht gegen eine Datenbank geprüft. Die Flammenfarben von Strontium und Barium stammen zu einem großen Teil von Molekülbanden (Hydroxide, Chloride) und nicht nur von Atomlinien; die Banden sind als schwache, breite Bereiche angedeutet (ungefähre Lage).</li>
     </ul>
   </details>
@@ -603,7 +602,7 @@ const Bohr = (() => {
   const idleMsg=()=>setMsg(`${sp.title}: Das Elektron sitzt auf der untersten Stufe (${sp.lv[0].id}) und bleibt dort. ${flame?"Die Flamme regt es gleich an.":"Halte „Energie zuführen“ gedrückt oder tippe mehrmals, oder schalte die Flamme ein."}`);
 
   const giveE=$("giveE"), STEP=0.05, KJ=96.485;
-  let steps=0, lastIn=-9, checked=true, found=new Set(), showAll=false, holdT=null, holdN=0, close=0;
+  let steps=0, lastIn=-9, checked=true, found=new Set(), holdT=null, holdN=0, holdStart=0, close=0;
   const kj=E=>Math.round(E*KJ).toLocaleString("de-DE");
   const exc=()=>sp.lv.map((l,i)=>i>0&&l.w>0?i:-1).filter(i=>i>=0);
   const ionSteps=()=>Math.round(sp.ionE/STEP);
@@ -625,7 +624,7 @@ const Bohr = (() => {
     if(steps>=ionSteps()){ const E=steps*STEP; steps=0; queue.push({type:"ion",to:0,E}); }
     renderBar();
   }
-  function holdLoop(){ addStep(); holdN++; holdT=setTimeout(holdLoop,Math.max(18,130*Math.pow(.93,holdN))); }
+  function holdLoop(){ const k=1+Math.min(3,Math.floor((performance.now()-holdStart)/500)); for(let i=0;i<k;i++) addStep(); holdT=setTimeout(holdLoop,30); }
   function holdStop(){ if(holdT){clearTimeout(holdT); holdT=null;} holdN=0; }
   function resonance(){ // nächster Abstand (in Schritten) zu einer anregbaren Stufe
     let m=99; exc().forEach(i=>{ m=Math.min(m,Math.abs(Math.round(sp.lv[i].E/STEP)-steps)); }); return m;
@@ -660,7 +659,7 @@ const Bohr = (() => {
     a.dur=a.type==="up"?.9:a.type==="ion"?1.2:a.type==="coll"?.7:.6;
     if(a.type==="ion"){ a.toE=Math.max(sp.ionE,sp.top)*1.15; a.toX=a.fromX; }
     if(a.type==="down") emit(cur,a.to);
-    else if(a.type==="ion") setMsg(`${de(a.E,2)} eV erreichen die Ionisierungsenergie (${de(sp.ionE,2)} eV, ${kj(sp.ionE)} kJ/mol): Das Elektron verlässt das Atom. Für die nächsten Versuche setzen wir ein neues Atom ein. Mehr dazu auf der Seite Ionisierungsenergie.`);
+    else if(a.type==="ion") setMsg(`Die Energie erreicht die Ionisierungsenergie (${de(sp.ionE,2)} eV, ${kj(sp.ionE)} kJ/mol): Das Elektron verlässt das Atom. Für die nächsten Versuche setzen wir ein neues Atom ein. Mehr dazu auf der Seite Ionisierungsenergie.`);
     else if(a.type==="up"&&a.E!=null){ setMsg(`Treffer! ${de(sp.lv[a.to].E,2)} eV (${kj(sp.lv[a.to].E)} kJ/mol) passen genau zum Abstand zwischen ${sp.lv[0].id} und ${sp.lv[a.to].id}. Das Elektron springt auf ${sp.lv[a.to].id}.`); }
     else if(a.type==="up") setMsg(`Energie von der Flamme hebt das Elektron von ${sp.lv[cur].id} auf ${sp.lv[a.to].id}.`);
     else setMsg(`Von ${sp.lv[cur].id} gibt es keinen Sprung nach unten, der Licht aussendet. Durch Stöße mit anderen Teilchen fällt das Elektron ohne Licht zurück.`);
@@ -732,7 +731,6 @@ const Bohr = (() => {
     }
     // Stufen
     sp.lv.forEach((lv,i)=>{
-      if(i>0&&!showAll&&!found.has(i)) return;
       const y=yOf(lv.E), cx=xl+xf(lv)*(xr-xl), half=cols?Math.min(colW*.4,74):(xr-xl)/2;
       const here=i===cur&&!act;
       x.strokeStyle=here?"#ffd166":"#c9d3ea"; x.lineWidth=3; x.beginPath(); x.moveTo(cx-half,y); x.lineTo(cx+half,y); x.stroke(); x.lineWidth=1;
@@ -766,6 +764,9 @@ const Bohr = (() => {
       }
       x.stroke(); x.lineWidth=1;
     }
+    if(!act&&cur===0&&steps>0&&steps*STEP<=sp.top){
+      const yy=yOf(steps*STEP); x.strokeStyle="rgba(255,149,72,.8)"; x.setLineDash([6,4]); x.lineWidth=2; x.beginPath(); x.moveTo(xl,yy); x.lineTo(xr,yy); x.stroke(); x.setLineDash([]); x.lineWidth=1;
+    }
     let ex=xPix(Xpos), ey=yOf(Epos);
     if(!act&&cur===0&&steps>0){
       const frac=Math.min(1,steps/ionSteps()), amp=2+12*frac;
@@ -780,10 +781,10 @@ const Bohr = (() => {
   $("atombtn").addEventListener("click",()=>{setScheme(key,false); draw()});
   $("ionbtn").addEventListener("click",()=>{setScheme(key,true); draw()});
   giveE.addEventListener("contextmenu",e=>e.preventDefault());
-  giveE.addEventListener("pointerdown",e=>{ e.preventDefault(); holdStop(); holdLoop(); });
+  giveE.addEventListener("pointerdown",e=>{ e.preventDefault(); holdStop(); holdStart=performance.now(); holdLoop(); });
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>giveE.addEventListener(ev,holdStop));
   giveE.addEventListener("click",e=>{ if(e.detail===0) addStep(); });
-  $("showall3").addEventListener("click",()=>{ showAll=!showAll; $("showall3").textContent=showAll?"Stufen verbergen":"Alle Stufen zeigen"; draw(); });
+
   $("flame3").addEventListener("change",e=>{flame=e.target.checked; idle=0; if(!act&&!queue.length&&cur===0) idleMsg();});
   $("pause3").addEventListener("click",()=>{paused=!paused; $("pause3").textContent=paused?"Weiter":"Pause"});
   $("clear3").addEventListener("click",()=>{scope.bins.fill(0); irOut=0; $("read3").textContent=lastText||`${sp.title} · noch kein Sprung`; scope.draw()});
