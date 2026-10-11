@@ -689,7 +689,7 @@ const Bohr = (() => {
       else if(queue.length){ start(queue.shift()); }
       else if(cur>0){ const d=pickDown(); queue.push(d==null?{type:"coll",to:0}:{type:"down",to:d}); }
       else {
-        idle+=dt; if(flame&&idle>.7&&steps===0) excite(pickExcite());
+        idle+=dt; if(flame&&idle>.7){ steps=0; renderBar(); excite(pickExcite()); }
         const since=clock-lastIn;
         if(steps>0&&!checked&&since>.45&&!holdT){
           checked=true;
@@ -786,7 +786,7 @@ const Bohr = (() => {
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>giveE.addEventListener(ev,holdStop));
   giveE.addEventListener("click",e=>{ if(e.detail===0) addStep(); });
 
-  $("flame3").addEventListener("change",e=>{flame=e.target.checked; idle=0; if(!act&&!queue.length&&cur===0) idleMsg();});
+  $("flame3").addEventListener("change",e=>{flame=e.target.checked; idle=0; if(flame){steps=0; renderBar();} if(!act&&!queue.length&&cur===0) idleMsg();});
   $("pause3").addEventListener("click",()=>{paused=!paused; $("pause3").textContent=paused?"Weiter":"Pause"});
   $("clear3").addEventListener("click",()=>{scope.bins.fill(0); irOut=0; $("read3").textContent=lastText||`${sp.title} · noch kein Sprung`; scope.draw()});
   if(paused) $("pause3").textContent="Weiter";
