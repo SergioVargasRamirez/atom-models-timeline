@@ -388,6 +388,16 @@ function drawPse(){
   }
 }
 
+/* ---------- Kometenschweife ---------- */
+const TAIL=30, DTH=.024;
+function tail2D(x,f,ang,rgb){
+  if(!reduce) for(let k=TAIL;k>=1;k--){ const q=1-k/TAIL, p=f(ang-k*DTH); x.fillStyle=rgbs(rgb,.75*q*q); x.beginPath(); x.arc(p[0],p[1],1+4.5*q,0,7); x.fill(); }
+  const p=f(ang); sphere(x,p[0],p[1],5.5,rgb,1);
+}
+function tail3D(a,f,ang,rgb){
+  if(!reduce) for(let k=TAIL;k>=1;k--){ const q=1-k/TAIL, pt=a.proj(f(ang-k*DTH)); a.item(pt[2]/a.sc-.0005*k,0,x=>{ x.fillStyle=rgbs(rgb,.75*q*q); x.beginPath(); x.arc(pt[0],pt[1],1+4.5*q,0,7); x.fill(); }); }
+  const pt=a.proj(f(ang)); a.item(pt[2]/a.sc,0,x=>sphere(x,pt[0],pt[1],5.5,rgb,1));
+}
 /* ---------- 2D ---------- */
 function draw2D(){
   const f=fit(cv2); if(!f) return; const {x,W,H}=f;
@@ -409,7 +419,7 @@ function draw2D(){
       x.strokeStyle="rgba(201,211,234,.13)"; x.beginPath(); x.arc(cx,cy,o.R*R,0,7); x.stroke();
       if(r<.035) return; alive++;
       const a=o.ph+t*o.w/Math.max(.25,r/o.R*1)*(crash?1:1);
-      sphere(x,cx+Math.cos(a)*r*R,cy+Math.sin(a)*r*R,5,[90,200,250],1);
+      tail2D(x,aa=>[cx+Math.cos(aa)*r*R,cy+Math.sin(aa)*r*R],a,[90,200,250]);
     });
     sphere(x,cx,cy,4,[239,83,80],1);
     if(crash&&!alive){ x.fillStyle="#ffd166"; x.fillText("Alle Elektronen sind in den Kern gestürzt.",cx,H-18); }
@@ -419,7 +429,7 @@ function draw2D(){
       const n1=i+1, r=rr(n1);
       if(model==="bohr"){
         x.strokeStyle="rgba(201,211,234,.4)"; x.beginPath(); x.arc(cx,cy,r,0,7); x.stroke();
-        for(let j=0;j<k;j++){ const a=j/k*6.2832+(reduce?0:t*.9/(n1*n1)+n1); sphere(x,cx+Math.cos(a)*r,cy+Math.sin(a)*r,5,[90,200,250],1); }
+        for(let j=0;j<k;j++){ const a=j/k*6.2832+(reduce?0:t*1.5/n1+n1); tail2D(x,aa=>[cx+Math.cos(aa)*r,cy+Math.sin(aa)*r],a,[90,200,250]); }
         x.fillStyle="#7482a3"; x.fillText("n = "+n1,cx+r*Math.cos(-2.2),cy+r*Math.sin(-2.2));
       } else {
         x.strokeStyle="rgba(201,211,234,.18)"; x.setLineDash([3,4]); x.beginPath(); x.arc(cx,cy,r,0,7); x.stroke(); x.setLineDash([]);
@@ -468,8 +478,7 @@ function draw3D(){
         const frac=crash?Math.max(0,1-tt/o.T):1, r=o.R*Math.cbrt(frac);
         a.line(ringPts(o.R,o.tilt,60),"rgba(201,211,234,.13)",1);
         if(r<.035) return; alive++;
-        const ang=o.ph+t*o.w/Math.max(.25,r/o.R); const p=tiltPt(r,ang,o.tilt); const q=a.proj(p);
-        a.item(q[2]/a.sc,0,x=>sphere(x,q[0],q[1],5,[90,200,250],1));
+        const ang=o.ph+t*o.w/Math.max(.25,r/o.R); tail3D(a,aa=>tiltPt(r,aa,o.tilt),ang,[90,200,250]);
       });
       const q0=a.proj([0,0,0]); a.item(0,0,x=>sphere(x,q0[0],q0[1],4,[239,83,80],1));
     } else if(model==="bohr"||model==="debroglie"){
@@ -478,7 +487,7 @@ function draw3D(){
         const n1=i+1, tilt=[i*.9,i*.6];
         if(model==="bohr"){
           a.line(ringPts(n1,tilt,90),"rgba(201,211,234,.45)",1.2);
-          for(let j=0;j<k;j++){ const ang=j/k*6.2832+(reduce?0:t*.9/(n1*n1)+n1); const q=a.proj(tiltPt(n1,ang,tilt)); a.item(q[2]/a.sc/(N+1),0,x=>sphere(x,q[0],q[1],5,[90,200,250],1)); }
+          for(let j=0;j<k;j++){ const ang=j/k*6.2832+(reduce?0:t*1.5/n1+n1); tail3D(a,aa=>tiltPt(n1,aa,tilt),ang,[90,200,250]); }
         } else {
           a.line(ringPts(n1,tilt,90),"rgba(201,211,234,.18)",1);
           const A=.3*(reduce?1:Math.cos(t*1.6));
