@@ -175,7 +175,7 @@ sub,sup{line-height:0}
       <span class="small">Die Achsen x, y, z (oben rechts im 3D-Bild) zeigen die Richtung.</span>
     </div>
     <div class="rowc">
-      <label class="chk"><input type="checkbox" id="autorot"> 3D-Bild dreht sich langsam</label>
+      <label class="chk"><input type="checkbox" id="autorot"> 3D-Bild dreht sich langsam (auch: ins 3D-Bild klicken)</label>
       <label class="chk" id="crashrow" hidden><input type="checkbox" id="crash"> Energieverlust durch Strahlung einschalten</label>
       <span id="orbrow" hidden><span class="small">Orbitale zeigen: </span><span id="orbchecks" class="rowc" style="display:inline-flex;margin:0"></span></span>
     </div>
@@ -276,7 +276,7 @@ function Rnl(n,l,r,Z){
 const Pr = (s,r) => r*r*Math.pow(Rnl(s.n,s.l,r,s.Z),2);
 
 /* ---------- 3D-Hilfen (orthogonale Projektion) ---------- */
-let rotY=0.6, rotX=0.45, auto=!reduce, dragging=false;
+let rotY=0.6, rotX=0.45, auto=false, dragging=false, moved=0;
 function rot(p){
   const cy=Math.cos(rotY), sy=Math.sin(rotY), cx=Math.cos(rotX), sx=Math.sin(rotX);
   const x1=p[0]*cy+p[2]*sy, z1=-p[0]*sy+p[2]*cy;
@@ -383,7 +383,7 @@ function updateText(){
   const cap={dalton:"Nicht maßstäblich.",thomson:"Nicht maßstäblich. Die Anordnung der Elektronen ist nur ein Beispiel.",rutherford:"Nicht maßstäblich. Die Bahnradien sind beliebig: Das Modell sagt nichts über sie.",bohr:"Nicht maßstäblich. Elektronenkonfiguration: "+kurz(shell)+".",debroglie:"Nicht maßstäblich. Pro Bahn passt eine stehende Welle: Auf Bahn n sind es n Wellenlängen.",schroedinger:"Größen im Maßstab (genähert), Orbitale als Grenzflächen mit etwa 90 % Aufenthaltswahrscheinlichkeit."}[model];
   $("cap").textContent=cap;
   $("t2d").textContent= model==="schroedinger" ? "Radiale Verteilung der Elektronen" : "Flächenbild (2D)";
-  $("t3d").textContent="Räumliches Bild (3D, ziehen zum Drehen)";
+  $("t3d").textContent="Räumliches Bild (3D, ziehen zum Drehen, klicken zum Rotieren)";
 }
 function buildChecks(){
   const b=$("orbchecks"); b.textContent="";
@@ -541,9 +541,10 @@ function frame(now){
   draw2D(); draw3D(); requestAnimationFrame(frame);
 }
 let dx0=0, dy0=0;
-cv3.addEventListener("pointerdown",e=>{ dragging=true; dx0=e.clientX; dy0=e.clientY; cv3.setPointerCapture(e.pointerId); });
-cv3.addEventListener("pointermove",e=>{ if(!dragging) return; rotY+=(e.clientX-dx0)*.01; rotX=Math.max(-1.45,Math.min(1.45,rotX+(e.clientY-dy0)*.01)); dx0=e.clientX; dy0=e.clientY; });
-["pointerup","pointercancel"].forEach(ev=>cv3.addEventListener(ev,()=>{ dragging=false; }));
+cv3.addEventListener("pointerdown",e=>{ dragging=true; moved=0; dx0=e.clientX; dy0=e.clientY; cv3.setPointerCapture(e.pointerId); });
+cv3.addEventListener("pointermove",e=>{ if(!dragging) return; moved+=Math.abs(e.clientX-dx0)+Math.abs(e.clientY-dy0); rotY+=(e.clientX-dx0)*.01; rotX=Math.max(-1.45,Math.min(1.45,rotX+(e.clientY-dy0)*.01)); dx0=e.clientX; dy0=e.clientY; });
+cv3.addEventListener("pointerup",()=>{ const wasClick=dragging&&moved<5; dragging=false; if(wasClick&&!reduce){ auto=!auto; $("autorot").checked=auto; } });
+cv3.addEventListener("pointercancel",()=>{ dragging=false; });
 $("pse").addEventListener("click",ev=>{ const b=ev.target.closest(".el"); if(b) setEl(ELS.find(e=>e.s===b.dataset.s)); });
 document.querySelectorAll("#mchips button").forEach(b=>b.addEventListener("click",()=>setModel(b.dataset.m)));
 $("crash").addEventListener("change",e=>{ crash=e.target.checked; t=0; });
