@@ -466,9 +466,9 @@ function draw2D(){
     // Radiale Verteilung
     const L=46,B=30,Tp=18,Rr=12, pw=W-L-Rr, ph=H-Tp-B;
     const rmax=Math.max(...SUBS.map(s=>s.R))*1.15;
-    const N=260, tot=new Array(N+1).fill(0), curves=[];
-    SUBS.forEach(s=>{ const c=[]; for(let i=0;i<=N;i++){ const r=i/N*rmax, v=Pr(s,r)*s.k; c.push(v); tot[i]+=v; } curves.push({s,c}); });
-    const pm=Math.max(...tot)*1.08;
+    const N=260, tot=new Array(N+1).fill(0), totAll=new Array(N+1).fill(0), curves=[];
+    SUBS.forEach(s=>{ const c=[]; for(let i=0;i<=N;i++){ const r=i/N*rmax, v=Pr(s,r)*s.k; c.push(v); totAll[i]+=v; if(vis[s.name]) tot[i]+=v; } curves.push({s,c}); });
+    const pm=Math.max(...totAll)*1.08, anyVis=SUBS.some(s=>vis[s.name]);
     x.strokeStyle="rgba(201,211,234,.25)"; x.fillStyle="#7482a3"; x.font="10.5px ui-monospace,Consolas,monospace"; x.textAlign="center";
     const stepA=rmax*A0>6?2:rmax*A0>3?1:.5;
     for(let a=0;a<=rmax*A0;a+=stepA){ const px=L+a/A0/rmax*pw; x.beginPath(); x.moveTo(px,Tp+ph); x.lineTo(px,Tp+ph+4); x.stroke(); x.fillText(String(a).replace(".",","),px,Tp+ph+14); }
@@ -477,8 +477,8 @@ function draw2D(){
     x.save(); x.translate(12,Tp+ph/2); x.rotate(-Math.PI/2); x.fillText("Wahrscheinlichkeit pro Abstand",0,0); x.restore();
     const path=(arr,col,w,fill)=>{ x.beginPath(); arr.forEach((v,i)=>{ const px=L+i/N*pw, py=Tp+ph-v/pm*ph; if(i===0) x.moveTo(px,py); else x.lineTo(px,py); }); x.strokeStyle=col; x.lineWidth=w; x.stroke(); };
     curves.forEach(c=>{ if(vis[c.s.name]) path(c.c,rgbs(c.s.rgb,.9),1.4); });
-    path(tot,"#ffffff",2.4); x.lineWidth=1;
-    x.textAlign="left"; x.fillStyle="#c9d3ea"; x.fillText("weiß: alle Elektronen zusammen",L+8,Tp+8);
+    if(anyVis){ path(tot,"#ffffff",2.4); x.lineWidth=1; x.textAlign="left"; x.fillStyle="#c9d3ea"; x.fillText("weiß: gewählte Orbitale zusammen",L+8,Tp+8); }
+    else { x.textAlign="center"; x.fillStyle="#7482a3"; x.fillText("Kein Orbital gewählt.",L+pw/2,Tp+ph/2); }
   }
 }
 
