@@ -434,12 +434,7 @@ function draw2D(){
       } else {
         x.strokeStyle="rgba(201,211,234,.18)"; x.setLineDash([3,4]); x.beginPath(); x.arc(cx,cy,r,0,7); x.stroke(); x.setLineDash([]);
         const A0w=Math.min(16,R/(N+.4)*.34), A=A0w*(reduce?1:Math.cos(t*1.6));
-        if(!reduce) for(let k=10;k>=1;k--){
-          const amp=A0w*Math.cos(1.6*(t-k*.045)), al=.55*(1-k/11); x.strokeStyle=`rgba(30,95,160,${al.toFixed(3)})`; x.lineWidth=2.4; x.beginPath();
-          for(let s2=0;s2<=240;s2++){ const th=s2/240*6.2832, rw=r+amp*Math.sin(n1*th); const px=cx+Math.cos(th)*rw, py=cy+Math.sin(th)*rw; if(s2===0) x.moveTo(px,py); else x.lineTo(px,py); }
-          x.stroke();
-        }
-        [[-A,"rgba(90,200,250,.25)",1.2],[A,"#5ac8fa",2.2]].forEach(([amp,col,w])=>{ x.strokeStyle=col; x.lineWidth=w; x.beginPath();
+        [[-A,"rgba(59,143,214,.9)",2.2],[A,"#5ac8fa",2.4]].forEach(([amp,col,w])=>{ x.strokeStyle=col; x.lineWidth=w; x.beginPath();
           for(let s=0;s<=240;s++){ const th=s/240*6.2832, rw=r+amp*Math.sin(n1*th); const px=cx+Math.cos(th)*rw, py=cy+Math.sin(th)*rw; if(s===0) x.moveTo(px,py); else x.lineTo(px,py); }
           x.stroke(); });
         x.lineWidth=1;
@@ -496,8 +491,7 @@ function draw3D(){
         } else {
           a.line(ringPts(n1,tilt,90),"rgba(201,211,234,.18)",1);
           const A=.3*(reduce?1:Math.cos(t*1.6));
-          if(!reduce) for(let k=10;k>=1;k--){ const am=.3*Math.cos(1.6*(t-k*.045)); a.line(ringPts(n1,tilt,160,th=>am*Math.sin(n1*th)),`rgba(30,95,160,${(.55*(1-k/11)).toFixed(3)})`,2.4); }
-          a.line(ringPts(n1,tilt,240,th=>-A*Math.sin(n1*th)),"rgba(90,200,250,.25)",1.2);
+          a.line(ringPts(n1,tilt,240,th=>-A*Math.sin(n1*th)),"rgba(59,143,214,.9)",2.2);
           a.line(ringPts(n1,tilt,240,th=>A*Math.sin(n1*th)),"#5ac8fa",2.2);
         }
       });
