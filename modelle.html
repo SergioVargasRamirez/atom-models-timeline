@@ -166,6 +166,14 @@ sub,sup{line-height:0}
       <div><h3 id="t3d">Räumliches Bild (3D)</h3><canvas id="c3d" aria-label="Räumliches Bild des Atoms im gewählten Modell"></canvas></div>
     </div>
     <p class="small" id="cap" style="margin:8px 0 0"></p>
+    <div class="rowc" id="viewrow">
+      <span class="small">Ansicht (3D):</span>
+      <button class="btn" type="button" data-v="schraeg">Schräg</button>
+      <button class="btn" type="button" data-v="vorn">Von vorn</button>
+      <button class="btn" type="button" data-v="oben">Von oben</button>
+      <button class="btn" type="button" data-v="seite">Von der Seite</button>
+      <span class="small">Die Achsen x, y, z (oben rechts im 3D-Bild) zeigen die Richtung.</span>
+    </div>
     <div class="rowc">
       <label class="chk"><input type="checkbox" id="autorot"> 3D-Bild dreht sich langsam</label>
       <label class="chk" id="crashrow" hidden><input type="checkbox" id="crash"> Energieverlust durch Strahlung einschalten</label>
@@ -302,7 +310,19 @@ function scene3D(cv, build){
   build(api, base, x, W, H);
   lines.forEach(l=>{ x.strokeStyle=l.col; x.lineWidth=l.w||1.2; x.beginPath(); l.pts.forEach((p,i)=>{ const q=api.proj(p); if(i===0) x.moveTo(q[0],q[1]); else x.lineTo(q[0],q[1]); }); x.stroke(); });
   items.sort((a,b)=>a.z-b.z||b.r-a.r).forEach(it=>it.fn(x));
+  gizmo(x,W);
   return api;
+}
+function gizmo(x,W){
+  const gx=W-48, gy=48, L=31, ax=[[[1,0,0],"x","#ef5350"],[[0,1,0],"y","#8bd17c"],[[0,0,1],"z","#7d9bff"]];
+  x.fillStyle="rgba(10,14,24,.6)"; x.beginPath(); x.arc(gx,gy,44,0,7); x.fill();
+  ax.map(([u,n,c])=>({q:rot(u),n,c})).sort((a,b)=>a.q[2]-b.q[2]).forEach(o=>{
+    const ex=gx+o.q[0]*L, ey=gy-o.q[1]*L;
+    x.strokeStyle=o.c; x.lineWidth=2; x.beginPath(); x.moveTo(gx,gy); x.lineTo(ex,ey); x.stroke();
+    x.fillStyle=o.c; x.font="bold 12px ui-monospace,Consolas,monospace"; x.textAlign="center"; x.textBaseline="middle";
+    x.fillText(o.n,gx+o.q[0]*(L+9),gy-o.q[1]*(L+9));
+  });
+  x.lineWidth=1;
 }
 function ringPts(R,tilt,n=90,fn){
   const pts=[]; for(let i=0;i<=n;i++){ const th=i/n*6.2832; pts.push(tiltPt(R,th,tilt,fn?fn(th):0)); } return pts;
@@ -529,6 +549,8 @@ document.querySelectorAll("#mchips button").forEach(b=>b.addEventListener("click
 $("crash").addEventListener("change",e=>{ crash=e.target.checked; t=0; });
 $("autorot").addEventListener("change",e=>{ auto=e.target.checked; });
 $("autorot").checked=auto;
+const VIEWS={schraeg:[.6,.45],vorn:[0,0],oben:[0,1.5708],seite:[1.5708,0]};
+document.querySelectorAll("#viewrow [data-v]").forEach(b=>b.addEventListener("click",()=>{ const v=VIEWS[b.dataset.v]; rotY=v[0]; rotX=v[1]; auto=false; $("autorot").checked=false; }));
 setEl(ELS.find(e=>e.s==="C")); setModel("dalton");
 requestAnimationFrame(frame);
 
