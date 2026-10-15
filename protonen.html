@@ -51,6 +51,9 @@ canvas{display:block;width:100%}
 #stage{height:560px;touch-action:none;cursor:grab}
 #stage.dragging{cursor:grabbing}
 @media (max-width:760px){#stage{height:440px}}
+.zoombtns{position:absolute;right:10px;bottom:52px;display:flex;flex-direction:column;gap:6px}
+.zoombtns button{font:700 1.2rem/1 var(--font);width:36px;height:36px;border-radius:8px;border:1px solid #33405c;background:rgba(17,26,44,.85);color:var(--stage-fg);cursor:pointer}
+.zoombtns button:hover{border-color:#7d9bff}
 .readout{font-family:var(--mono);font-size:.82rem;color:var(--stage-fg);padding:8px 12px;border-top:1px solid #1b2338;min-height:2.4em}
 .status{color:var(--stage-fg);background:#111a2c;border-bottom:1px solid #1b2338;border-left:4px solid #7d9bff;padding:10px 14px;min-height:3.4em;font-size:1rem;line-height:1.45}
 .ctrlrow{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:12px 0}
@@ -180,10 +183,11 @@ details li{margin-bottom:6px}
 
     <div class="stagewrap">
       <div class="status" id="status" aria-live="polite"></div>
-      <canvas id="stage" tabindex="0" role="img" aria-label="Räumliches Modell der Teilchen. Zum Drehen ziehen oder Pfeiltasten benutzen."></canvas>
+      <canvas id="stage" tabindex="0" role="img" aria-label="Räumliches Modell der Teilchen. Zum Drehen ziehen oder Pfeiltasten benutzen, zum Vergrößern Plus- und Minustaste."></canvas>
+      <div class="zoombtns"><button type="button" id="zin" aria-label="Vergrößern">+</button><button type="button" id="zout" aria-label="Verkleinern">−</button></div>
       <div class="readout" id="readout"></div>
     </div>
-    <p class="small" style="text-align:center;margin-top:6px">Zum Drehen auf der Bühne ziehen (oder Pfeiltasten). Sauerstoff rot, Wasserstoff weiß, Chlor grün.</p>
+    <p class="small" style="text-align:center;margin-top:6px">Zum Drehen auf der Bühne ziehen (oder Pfeiltasten), zum Vergrößern Mausrad, zwei Finger oder + / −. Sauerstoff rot, Wasserstoff weiß, Chlor grün, zuletzt übertragenes Proton orange.</p>
 
     <div class="ctrlrow">
       <div class="task">
@@ -203,7 +207,6 @@ details li{margin-bottom:6px}
         <b>Darstellung</b>
         <label class="switch"><input type="checkbox" id="hbchk"> Wasserstoffbrücken zeigen</label>
         <label class="switch" id="fmwrap"><input type="checkbox" id="fmchk"> Formel zeigen</label>
-        <label class="switch" id="markwrap" hidden><input type="checkbox" id="markchk"> Proton aus HCl markieren</label>
       </div>
     </div>
 
@@ -217,7 +220,7 @@ details li{margin-bottom:6px}
       <ol>
         <li><i>HCl trifft H₂O:</i> Gehe Schritt für Schritt vor. Welche Bindung wird gespalten, welche gebildet? Welches Teilchen ist Protonendonator, welches Protonenakzeptor?</li>
         <li>Vergleiche die Form des Wassermoleküls mit der Form des Oxonium-Ions H₃O⁺. Drehe das Modell dazu.</li>
-        <li><i>HCl in Wasser:</i> Schalte „Proton aus HCl markieren“ ein und verfolge das H₃O⁺-Ion. Wandert immer dasselbe Proton weiter?</li>
+        <li>Das zuletzt übertragene Proton ist orange. Verfolge es in „HCl trifft H₂O“ und „HCl in Wasser“: Wandert immer dasselbe Proton weiter?</li>
         <li>Schalte die Wasserstoffbrücken ein. Auf welchem Weg springt das Proton von einem Molekül zum nächsten?</li>
         <li><i>Viele Teilchen:</i> Gib mehrmals HCl zu. Warum findet man in Salzsäure praktisch keine HCl-Moleküle?</li>
         <li>Was macht das Chlorid-Ion, nachdem es entstanden ist?</li>
@@ -291,7 +294,7 @@ let hl = [];                                                     // H-Listen je 
 
 function atom(el, p, owner = -1){
   const a = {el, w:1 / MASS[el], x:p.x, y:p.y, z:p.z, vx:0, vy:0, vz:0, qx:0, qy:0, qz:0, fx:0, fy:0, fz:0,
-             owner, tr:null, busy:false, last:-9, fade:false, mark:false, liquid:true, glow:0};
+             owner, tr:null, busy:false, last:-9, fade:false, hot:false, liquid:true, glow:0};
   A.push(a); return A.length - 1;
 }
 function water(p, rotate = (v => v), fade = false){
@@ -306,7 +309,7 @@ function water(p, rotate = (v => v), fade = false){
 }
 function hcl(p, dir){
   const c = atom("Cl", p);
-  atom("H", add(p, mul(norm(dir), R_HCL)), c);
+  A[atom("H", add(p, mul(norm(dir), R_HCL)), c)].hot = true;      // Proton, das gleich übertragen wird: orange
   return c;
 }
 function randomRot(){ const k = randDir(), ang = 2 * Math.PI * rand(); return v => rotAxis(v, k, ang); }
@@ -441,8 +444,11 @@ function step(h){
 }
 function startTransfer(i, from, to, tau){
   const h = A[i];
+  for (const a of A) if (a.el === "H" && a.owner === from) a.hot = false;   // nur das zuletzt übertragene Proton ist orange
+  h.hot = true;
   h.tr = {from, to, s:0, tau, r0:Math.hypot(h.x - A[from].x, h.y - A[from].y, h.z - A[from].z)};
   h.owner = to; h.glow = 1;
+  if (A[to].fade){ A[to].fade = false; for (const a of A) if (a.el === "H" && a.owner === to) a.fade = false; }
   A[from].busy = A[to].busy = true;
   S.flying.push(i);
   S.hops++;
@@ -490,8 +496,8 @@ function boxWalls(L, yLo, yHi){
     }
   };
 }
-function fillWater(n, L, yLo, yHi, skip = []){                  // Wassermoleküle auf ein zufällig verschobenes Gitter setzen
-  const sp = 2.75, sites = [];
+function fillWater(n, L, yLo, yHi, skip = [], sp = 2.75){                  // Wassermoleküle auf ein zufällig verschobenes Gitter setzen
+  const sites = [];
   for (let x = -L + 1.3; x <= L - 1.3; x += sp)
     for (let y = yLo + 1.3; y <= yHi - 1.3; y += sp)
       for (let z = -L + 1.3; z <= L - 1.3; z += sp) sites.push(V(x + .3 * gauss(), y + .3 * gauss(), z + .3 * gauss()));
@@ -502,67 +508,79 @@ function fillWater(n, L, yLo, yHi, skip = []){                  // Wassermolekü
 }
 
 const SCENES = {
-  // 1: Nahaufnahme HCl + H₂O, in festen Schritten
+  // 1: Nahaufnahme HCl + H₂O, in festen Schritten, danach zwei Weitergaben an Nachbarmoleküle
   1(){
-    const s = {id:1, kT:25, R:4.6, Rw:7.4, flying:[], hops:0, t:0, auto:0, phase:0, stopAt:null};
-    const PH = [0, 1.8, 2.8, 3.6, 4.8, 99];                       // Beginn der Phasen in ps
-    s.PH = PH;
+    const s = {id:1, kT:25, R:5.4, Rw:8.2, flying:[], hops:0, t:0, auto:0, phase:0, stopAt:null};
+    s.PH = [0, 1.8, 2.8, 3.6, 4.8, 5.8, 6.9, 99];                // Beginn der Schritte in ps
+    const place = (n0, p, al) => { for (const i of [n0, n0 + 1, n0 + 2]) Object.assign(A[i], add(p, al(sub(pos(A[i]), p)))); };
     // zentrales Wassermolekül, ein freies Elektronenpaar zeigt nach +x
     const O0 = water(V(0, 0, 0)); buildLists();
-    const al = aligner(lonePair(O0, 1), V(1, 0, 0));
-    for (const i of [O0, O0 + 1, O0 + 2]){ const p = al(pos(A[i])); Object.assign(A[i], p); }
+    place(O0, V(0, 0, 0), aligner(lonePair(O0, 1), V(1, 0, 0)));
     buildLists();
-    const O = pos(A[O0]);
-    const u2 = lonePair(O0, -1);
-    // drei blasse Nachbarn, über Wasserstoffbrücken gebunden
+    const O = pos(A[O0]), u2 = lonePair(O0, -1), nb = [];
+    // Nachbarn (blass), die über Wasserstoffbrücken ein H des zentralen Moleküls aufnehmen
     for (const h of hl[O0]){
       const dir = norm(sub(pos(A[h]), O)), p = add(O, mul(dir, 2.8));
       const n0 = water(p, v => v, true); buildLists();
-      const al2 = aligner(lonePair(n0, 1), mul(dir, -1));
-      for (const i of [n0, n0 + 1, n0 + 2]){ Object.assign(A[i], add(p, al2(sub(pos(A[i]), p)))); }
+      place(n0, p, aligner(lonePair(n0, 1), mul(dir, -1)));
+      nb.push([n0, h]);
     }
     { const p = add(O, mul(u2, 2.85)); const n0 = water(p, v => v, true); buildLists();
-      const al3 = aligner(sub(pos(A[n0 + 1]), p), mul(u2, -1));
-      for (const i of [n0, n0 + 1, n0 + 2]){ Object.assign(A[i], add(p, al3(sub(pos(A[i]), p)))); } }
+      place(n0, p, aligner(sub(pos(A[n0 + 1]), p), mul(u2, -1))); }
+    // zweites Glied der Kette: nimmt ein H des ersten Nachbarn auf
+    buildLists();
+    const [N1, hA] = nb[0];
+    const hB = hl[N1].reduce((m, i) => len(sub(pos(A[i]), O)) > len(sub(pos(A[m]), O)) ? i : m);
+    const d4 = norm(sub(pos(A[hB]), pos(A[N1]))), p4 = add(pos(A[N1]), mul(d4, 2.8));
+    const N4 = water(p4, v => v, true); buildLists();
+    place(N4, p4, aligner(lonePair(N4, 1), mul(d4, -1)));
     const C0 = hcl(add(O, V(6.0, 1.0, 0)), V(-1, -0.17, 0));
-    s.home = A.map(a => pos(a));
-    s.O0 = O0; s.C0 = C0; s.H0 = C0 + 1;
-    A[s.H0].mark = true;
+    buildLists();
+    s.home = A.map(a => pos(a)); s.homeOwner = A.map(a => a.owner);
+    Object.assign(s, {O0, C0, H0:C0 + 1, N1, N4, hA, hB});
     s.forces = () => {
-      for (let i = 0; i < A.length; i++) if (A[i].fade) tether(A[i], s.home[i], 400);
-      tether(A[O0], s.home[O0], 300);
-      const u = norm(sub(V(1, 0.1, 0), V(0, 0, 0)));
+      for (let i = 0; i < A.length; i++){
+        const a = A[i];
+        if (a.el === "O") tether(a, s.home[i], i === O0 ? 300 : 400);                 // Wassermoleküle bleiben am Platz
+        else if (a.el === "H" && !a.tr && a.owner === s.homeOwner[i] && i !== s.H0) tether(a, s.home[i], 120);   // und ausgerichtet
+      }
       const ph = phaseOf(s.t);
       if (ph <= 1){                                              // Annäherung: Cl–H zeigt auf das freie Elektronenpaar
-        const lp = hl[O0].length === 2 ? lonePair(O0, 1) : u;
-        const Op = pos(A[O0]);
-        const k = ph === 0 ? 300 : 700;
-        tether(A[s.H0], add(Op, mul(lp, ph === 0 ? 2.6 : 1.85)), k);
-        tether(A[C0], add(Op, mul(lp, (ph === 0 ? 2.6 : 1.85) + R_HCL)), k);
+        const lp = hl[O0].length === 2 ? lonePair(O0, 1) : V(1, 0, 0);
+        const Op = pos(A[O0]), r = ph === 0 ? 2.6 : 1.85, k = ph === 0 ? 300 : 700;
+        tether(A[s.H0], add(Op, mul(lp, r)), k);
+        tether(A[C0], add(Op, mul(lp, r + R_HCL)), k);
       } else if (ph >= 3){                                       // Cl⁻ entfernt sich etwas
         tether(A[C0], add(s.home[O0], V(4.4, -0.8, 0.6)), 200);
       }
     };
     s.onPhase = ph => {
-      if (ph === 2 && !A[s.H0].tr && A[s.H0].owner === C0){ buildLists(); startTransfer(s.H0, C0, O0, 0.75); }
+      buildLists();
+      if (ph === 2 && A[s.H0].owner === C0 && !A[s.H0].tr) startTransfer(s.H0, C0, O0, 0.75);
+      if (ph === 4 && A[hA].owner === O0 && !A[hA].tr) startTransfer(hA, O0, N1, 0.75);
+      if (ph === 5 && A[hB].owner === N1 && !A[hB].tr) startTransfer(hB, N1, N4, 0.75);
     };
     s.texts = [
       "1 · Ein HCl-Molekül nähert sich einem Wassermolekül. Die H–Cl-Bindung ist polar: Das H-Atom ist positiv teilgeladen und wird vom freien Elektronenpaar des Sauerstoffs angezogen.",
       "2 · Zwischen dem H-Atom des HCl und dem O-Atom des Wassers bildet sich eine Wasserstoffbrücke Cl–H···O.",
       "3 · Das Proton (H⁺) wechselt vom Chlor zum Sauerstoff. Das bindende Elektronenpaar der H–Cl-Bindung bleibt beim Chlor; ein freies Elektronenpaar des Sauerstoffs wird zum bindenden Elektronenpaar der neuen O–H-Bindung.",
       "4 · Entstanden sind ein Oxonium-Ion H₃O⁺ (flache Pyramide) und ein Chlorid-Ion Cl⁻. HCl war der Protonendonator, H₂O der Protonenakzeptor.",
+      "5 · Das Oxonium-Ion gibt ein Proton über eine Wasserstoffbrücke an ein benachbartes Wassermolekül weiter. Es springt aber nicht das Proton aus dem HCl, sondern ein anderes (jetzt orange). Aus H₃O⁺ wird wieder H₂O, aus dem Nachbarn ein H₃O⁺.",
+      "6 · Das neue Oxonium-Ion gibt wiederum ein Proton weiter. So wandert die positive Ladung von Molekül zu Molekül, während jedes Atom fast an seinem Platz bleibt (Grotthuss-Mechanismus).",
       "Fertig. Mit „Neu starten“ beginnt die Nahaufnahme von vorn; zum Drehen auf der Bühne ziehen.",
     ];
     return s;
   },
   // 2: ein HCl-Molekül aus der Gasphase taucht in Wasser ein
   2(){
-    const L = 6.2, yLo = -6.2, ySurf = 2.2, yHi = 7.6;
-    const s = {id:2, kT:150, R:9.6, flying:[], hops:0, t:0, auto:1, L, yLo, ySurf, yHi, dissociated:false};
-    fillWater(40, L, yLo, ySurf + 0.6);
-    const C0 = hcl(V(-0.8, 5.6, 0.4), randDir());
-    s.C0 = C0; s.H0 = C0 + 1;
-    A[C0].liquid = false; A[s.H0].liquid = false;
+    const L = 4.6, yLo = -6.2, ySurf = 2.2, yHi = 7.6;
+    const s = {id:2, kT:150, R:8.0, flying:[], hops:0, t:0, auto:1, L, yLo, ySurf, yHi, dissociated:false};
+    fillWater(20, L, yLo, ySurf + 0.6);
+    s.post = () => {                                             // erst nach dem Einschwingen: HCl ganz oben im Gasraum
+      const C0 = hcl(V(0.6 * gauss(), yHi - 1.4, 0.6 * gauss()), V(gauss(), 0.15 * gauss(), gauss()));
+      s.C0 = C0; s.H0 = C0 + 1;
+      A[C0].liquid = false; A[s.H0].liquid = false;
+    };
     s.walls = boxWalls(L, yLo, yHi);
     s.level = ySurf;
     s.forces = () => {
@@ -577,16 +595,16 @@ const SCENES = {
         a.fy -= 20 / a.w;                                        // leichte Schwerkraft hält das Wasser unten
       }
     };
-    s.onTransfer = (i, from) => { if (from === C0) s.dissociated = true; flashFormula(from === C0 ? 1 : 2); };
+    s.onTransfer = (i, from) => { if (from === s.C0) s.dissociated = true; flashFormula(from === s.C0 ? 1 : 2); };
     return s;
   },
   // 3: viele Teilchen im Kasten
   3(){
-    const L = 5.5;
-    const s = {id:3, kT:150, R:8.8, flying:[], hops:0, t:0, auto:1, L, added:0};
-    const spots = [V(-2.6, 2.2, -2.2), V(2.6, -2.2, 2.2), V(2.4, 2.6, -2.0), V(-2.4, -2.6, 2.3)];
-    fillWater(44, L, -L, L, spots);
-    for (const p of spots){ const c = hcl(p, randDir()); A[c + 1].mark = true; }
+    const L = 4.8;
+    const s = {id:3, kT:150, R:7.6, flying:[], hops:0, t:0, auto:1, L, added:0};
+    const spots = [V(-2.1, 1.9, -1.9), V(2.1, -1.9, 1.9), V(2.0, 2.1, -1.7), V(-2.0, -2.1, 2.0)];
+    fillWater(22, L, -L, L, spots, 2.3);
+    for (const p of spots) hcl(p, randDir());
     s.added = spots.length;
     s.walls = boxWalls(L, -L, L);
     s.forces = () => {};
@@ -597,7 +615,7 @@ const SCENES = {
 function phaseOf(t){ const P = S.PH; let k = 0; while (k + 1 < P.length && t >= P[k + 1]) k++; return k; }
 
 function addHCl(){                                               // Szene 3: HCl an der freiesten Stelle einsetzen
-  if (S.id !== 3 || S.added >= 10) return;
+  if (S.id !== 3 || S.added >= 8) return;
   let best = null, bd = -1;
   for (let k = 0; k < 60; k++){
     const p = V((2 * rand() - 1) * (S.L - 2), (2 * rand() - 1) * (S.L - 2), (2 * rand() - 1) * (S.L - 2));
@@ -605,9 +623,9 @@ function addHCl(){                                               // Szene 3: HCl
     for (const a of A) if (a.el !== "H") m = Math.min(m, Math.hypot(a.x - p.x, a.y - p.y, a.z - p.z));
     if (m > bd){ bd = m; best = p; }
   }
-  const c = hcl(best, randDir()); A[c + 1].mark = true; A[c].glow = 1;
+  const c = hcl(best, randDir()); A[c].glow = 1;
   S.added++;
-  $("addbtn").disabled = S.added >= 10;
+  $("addbtn").disabled = S.added >= 8;
   dirty = true;
 }
 
@@ -631,7 +649,7 @@ function proj(x, y, z){
 }
 const COL = {O:[214, 40, 40], H:[236, 236, 236], Cl:[46, 170, 70], M:[255, 150, 40]};
 const R_STICK = {O:0.36, H:0.24, Cl:0.46};
-let showHB = false, showMark = false;
+let showHB = false, zoom = 1;
 const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const mix = (c, d, t) => c.map((v, i) => Math.round(v + (d[i] - v) * t));
 function ball(X, Y, r, c, alpha){
@@ -641,7 +659,7 @@ function ball(X, Y, r, c, alpha){
   g.addColorStop(1, rgb(mix(c, [0, 0, 0], .55), alpha));
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, 2 * Math.PI); ctx.fill();
 }
-function atomColor(a){ return a.el === "H" && a.mark && showMark ? COL.M : COL[a.el]; }
+function atomColor(a){ return a.el === "H" && a.hot ? COL.M : COL[a.el]; }
 function stick(p, q, c, w, alpha){
   ctx.strokeStyle = rgb(mix(c, [0, 0, 0], .15), alpha); ctx.lineWidth = w; ctx.lineCap = "round";
   ctx.beginPath(); ctx.moveTo(p.X, p.Y); ctx.lineTo(q.X, q.Y); ctx.stroke();
@@ -665,7 +683,7 @@ function drawBox(){
 }
 function draw(){
   if (!W) return;
-  SC = Math.min(H * 0.47 / S.R, W * 0.47 / (S.Rw || S.R));   // Rw: halbe Breite der Szene
+  SC = Math.min(H * 0.47 / S.R, W * 0.47 / (S.Rw || S.R)) * zoom;   // Rw: halbe Breite der Szene
   ctx.clearRect(0, 0, W, H);
   buildLists();
   // Mittelpunkt der Szene
@@ -772,10 +790,7 @@ function rowHop(y){
 }
 function buildFormula(){
   const svg = $("fsvg");
-  if (S.id === 1){
-    svg.setAttribute("viewBox", "0 0 700 110");
-    svg.innerHTML = rowDiss(45);
-  } else {
+  {
     svg.setAttribute("viewBox", "0 0 760 250");
     svg.innerHTML = `<g class="row" id="r1"><rect class="bg" x="0" y="0" width="760" height="105" rx="8"/>${rowDiss(45)}</g>` +
       `<g class="row" id="r2"><rect class="bg" x="0" y="118" width="760" height="105" rx="8"/>${rowHop(160)}</g>` +
@@ -788,6 +803,8 @@ function updateFormula(){
     const ph = phaseOf(S.t), fl = $("fl"), fr = $("fr");
     if (!fl) return;
     fl.classList.toggle("dim", ph >= 3); fr.classList.toggle("dim", ph < 2);
+    $("r1").classList.toggle("dim", ph >= 4); $("r2").classList.toggle("dim", ph < 4);
+    $("fcnt").textContent = "";
   } else {
     const c = $("fcnt"); if (!c) return;
     c.textContent = S.id === 2 ? `Protonenübergänge zwischen Wassermolekülen: ${Math.max(0, S.hops - (S.dissociated ? 1 : 0))}` : countsText();
@@ -814,7 +831,7 @@ function setStatus(s){ if (s !== lastStatus){ $("status").textContent = s; lastS
 function updateText(){
   const n = counts();
   if (S.id === 1){
-    $("readout").textContent = `Zeit ${fmt(S.t, 2)} ps · Schritt ${Math.min(4, phaseOf(S.t) + 1)} von 4`;
+    $("readout").textContent = `Zeit ${fmt(S.t, 2)} ps · Schritt ${Math.min(S.PH.length - 2, phaseOf(S.t) + 1)} von ${S.PH.length - 2}`;
     setStatus(S.texts[phaseOf(S.t)]);
   } else if (S.id === 2){
     const hops = Math.max(0, S.hops - (S.dissociated ? 1 : 0));
@@ -838,18 +855,18 @@ function loadScene(id){
   sceneId = id; seed = 1000 + id * 7919 + Math.floor(Math.random() * 1e6);
   A = []; S = SCENES[id](); buildLists();
   if (id !== 1) equilibrate(1.2);
+  S.post && S.post();
+  zoom = 1;
   running = false;
   $("stepbtn").hidden = id !== 1;
   $("addbtn").hidden = id !== 3; $("addbtn").disabled = false;
-  $("markwrap").hidden = id === 1;
   $("fmwrap").hidden = id === 1;                                 // Nahaufnahme: Formel immer sichtbar
   $("formula").hidden = id !== 1 && !$("fmchk").checked;
-  showMark = id === 1 ? true : $("markchk").checked;
   for (const b of $("scenes").querySelectorAll("button")) b.setAttribute("aria-checked", String(+b.dataset.scene === id));
   buildFormula(); syncControls(); updateText(); dirty = true;
 }
 function syncControls(){
-  const done = S.id === 1 && phaseOf(S.t) >= 4;
+  const done = S.id === 1 && phaseOf(S.t) >= S.PH.length - 2;
   $("playbtn").textContent = running ? "Pause" : (S.t > 0 && !done ? "Weiter" : "Start");
   $("playbtn").disabled = done;
   $("stepbtn").disabled = done;
@@ -871,19 +888,33 @@ $("resetbtn").addEventListener("click", () => loadScene(sceneId));
 $("addbtn").addEventListener("click", addHCl);
 $("hbchk").addEventListener("change", e => { showHB = e.target.checked; dirty = true; });
 $("fmchk").addEventListener("change", e => { $("formula").hidden = !e.target.checked; });
-$("markchk").addEventListener("change", e => { showMark = e.target.checked; dirty = true; });
 
-// Drehen durch Ziehen oder Pfeiltasten
-let drag = null;
-cv.addEventListener("pointerdown", e => { drag = {x:e.clientX, y:e.clientY}; cv.setPointerCapture(e.pointerId); cv.classList.add("dragging"); });
+// Drehen durch Ziehen (ein Finger) oder Pfeiltasten; Vergrößern mit Mausrad, zwei Fingern oder + / −
+const setZoom = z => { zoom = Math.max(0.5, Math.min(3.5, z)); dirty = true; };
+const pts = new Map();
+let drag = null, pinch = null;
+const pinchDist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
+cv.addEventListener("pointerdown", e => {
+  pts.set(e.pointerId, {x:e.clientX, y:e.clientY}); cv.setPointerCapture(e.pointerId);
+  if (pts.size === 2){ drag = null; pinch = {d:pinchDist(), z:zoom}; }
+  else if (pts.size === 1){ drag = {x:e.clientX, y:e.clientY}; cv.classList.add("dragging"); }
+});
 cv.addEventListener("pointermove", e => {
+  if (!pts.has(e.pointerId)) return;
+  pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (pinch && pts.size === 2){ setZoom(pinch.z * pinchDist() / pinch.d); return; }
   if (!drag) return;
   rotY += (e.clientX - drag.x) * 0.01; rotX = Math.max(-1.4, Math.min(1.4, rotX + (e.clientY - drag.y) * 0.01));
   drag = {x:e.clientX, y:e.clientY}; dirty = true;
 });
-const endDrag = () => { drag = null; cv.classList.remove("dragging"); };
+const endDrag = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size){ drag = null; cv.classList.remove("dragging"); } };
 cv.addEventListener("pointerup", endDrag); cv.addEventListener("pointercancel", endDrag);
+cv.addEventListener("wheel", e => { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY * 0.0015)); }, {passive:false});
+$("zin").addEventListener("click", () => setZoom(zoom * 1.25));
+$("zout").addEventListener("click", () => setZoom(zoom / 1.25));
 cv.addEventListener("keydown", e => {
+  if (e.key === "+" || e.key === "="){ e.preventDefault(); setZoom(zoom * 1.25); return; }
+  if (e.key === "-"){ e.preventDefault(); setZoom(zoom / 1.25); return; }
   const d = {ArrowLeft:[-.1, 0], ArrowRight:[.1, 0], ArrowUp:[0, -.1], ArrowDown:[0, .1]}[e.key];
   if (!d) return;
   e.preventDefault(); rotY += d[0]; rotX = Math.max(-1.4, Math.min(1.4, rotX + d[1])); dirty = true;
@@ -901,10 +932,10 @@ function frame(ts){
       if (S.stopAt !== null && S.t + sim >= S.stopAt){ sim = Math.max(0, S.stopAt - S.t); }
       const n = Math.max(1, Math.ceil(sim / H_MAX));
       for (let k = 0; k < n && sim > 0; k++) step(sim / n);
+      if (S.stopAt !== null && S.t >= S.stopAt - 1e-6){ S.t = S.stopAt; running = false; S.stopAt = null; }   // genau auf der Schrittgrenze anhalten
       const ph1 = phaseOf(S.t);
       if (ph1 !== ph0) S.onPhase(ph1);
-      if (S.stopAt !== null && S.t >= S.stopAt - 1e-9){ running = false; S.stopAt = null; }
-      if (ph1 >= 4) running = false;
+      if (ph1 >= S.PH.length - 2) running = false;
     } else {
       const n = Math.min(12, Math.ceil(sim / H_MAX));
       for (let k = 0; k < n; k++) step(sim / n);
