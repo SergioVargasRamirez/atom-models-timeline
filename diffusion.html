@@ -424,13 +424,13 @@ function draw(){
     drawWindow(w, k, zx, zy, g.zW, g.zH);
   });
 }
-// Blinkende graue Pfeile über und unter dem Rahmen der linken Lupe: „Ich lasse mich verschieben.“
+// Blinkende weiße Pfeile über und unter dem Rahmen der linken Lupe: „Ich lasse mich verschieben.“
 const MOVER_DARK = "#2b313c", MOVER_EDGE = "#959eb0";
 const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function drawMoveArrows(cx, fy0, fy1){
   const a = reduceMotion ? 0.9 : 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(performance.now() / 1000 * 2 * Math.PI * 0.9));
   ctx.save();
-  ctx.globalAlpha = a; ctx.fillStyle = "#4a5160"; ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1;
+  ctx.globalAlpha = a; ctx.fillStyle = "#fff"; ctx.strokeStyle = "rgba(20,24,34,.45)"; ctx.lineWidth = 1;
   const tri = (yBase, dir) => {                // dir -1: nach oben, +1: nach unten
     ctx.beginPath(); ctx.moveTo(cx - 13, yBase); ctx.lineTo(cx + 13, yBase); ctx.lineTo(cx, yBase + dir * 14); ctx.closePath();
     ctx.fill(); ctx.stroke();
