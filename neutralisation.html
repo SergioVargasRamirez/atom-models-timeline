@@ -298,10 +298,10 @@ const GAMMA = 12;                                                // Dämpfung 1/
 const H_MAX = 0.004;                                             // ps je Rechenschritt
 const ITER = 4;
 const REFR = 0.4;                                                // ps Sperrzeit nach einem Übergang
-const CUT = {"O-O":3.0, "O-N":3.1, "N-O":3.1};                    // maximaler Abstand Donor–Akzeptor
+const CUT = {"O-O":3.0, "O-N":3.1, "N-O":3.3};                    // maximaler Abstand Donor–Akzeptor
 const RATES = {                                                  // Protonenübergänge je ps bei passender Geometrie
   "H3O+>H2O":0.9,  "H3O+>OH-":12, "H2O>OH-":0.9, "H3O+>NH3":12,  // Grotthuss, Neutralisation, OH⁻-Wanderung
-  "H2O>NH3":0.4, "NH4+>OH-":8,                                   // Ammoniak-Gleichgewicht (stark beschleunigt)
+  "H2O>NH3":0.2, "NH4+>OH-":25,                                  // Ammoniak-Gleichgewicht (stark beschleunigt)
 };
 const MAX_ANGLE = {"NH4+>OH-":70, "H3O+>OH-":60};               // Ionenpaare ordnen sich schnell um: weitere Winkel erlaubt
 
@@ -612,11 +612,12 @@ function gasAndWater(s){                                         // Kasten mit G
     const ys = [];
     for (const a of A) if (a.el === "O" && a.liquid) ys.push(a.y);
     ys.sort((p, q) => p - q);
-    s.level = ys[Math.floor(ys.length * 0.9)] + 0.9;            // Wasserspiegel: oberste Sauerstoffatome
+    s.level = ys[Math.max(0, ys.length - 2)] + 1.1;             // Wasserspiegel knapp über den obersten Wassermolekülen
     for (const a of A){
       if (a.el === "H") continue;
       if (!a.liquid){ if (a.y < s.level - 0.3) a.liquid = true; else { a.fy -= 70 / a.w; continue; } }
       a.fy -= 20 / a.w;                                          // leichte Schwerkraft hält das Wasser unten
+      if (a.el !== "O" && a.y > s.level - 2.8) a.fy -= 60 / a.w;  // Hydratation: gelöste Teilchen werden ganz von Wasser umgeben
     }
   };
 }

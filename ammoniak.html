@@ -234,7 +234,7 @@ details li{margin-bottom:6px}
     <ul>
       <li>Geometrie: N–H 1,01 Å und H–N–H 107° im NH₃ (Pyramide); N–H 1,03 Å und 109,5° im NH₄⁺ (Tetraeder); O–H 0,96 Å und H–O–H 104,5° im Wasser. 1 Å = 10<sup>−10</sup> m.</li>
       <li>Gleichgewicht: NH₃ + H₂O ⇌ NH₄⁺ + OH⁻ mit K<sub>B</sub> = 1,8 · 10<sup>−5</sup> mol/L (pK<sub>B</sub> = 4,75). In einer Ammoniaklösung mit 0,1 mol/L ist nur etwa 1 % des NH₃ protoniert; der pH-Wert beträgt etwa 11.</li>
-      <li>Im Modell sind Hin- und Rückreaktion stark beschleunigt und so eingestellt, dass NH₄⁺ selten, aber sichtbar vorkommt. Der Anteil in „NH₃ in Wasser“ ist deshalb deutlich größer als in Wirklichkeit; er zeigt nur, dass die meisten Teilchen NH₃ bleiben.</li>
+      <li>Im Modell sind Hin- und Rückreaktion stark beschleunigt und so eingestellt, dass NH₄⁺ selten, aber sichtbar vorkommt. In „NH₃ in Wasser“ liegt das Teilchen deshalb etwa ein Zehntel der Zeit als NH₄⁺ vor, deutlich öfter als in Wirklichkeit; in „Viele Teilchen“ sind es nur wenige Prozent. Beides zeigt: Die meisten Teilchen bleiben NH₃. Gelöstes NH₃ wird im Modell leicht unter die Oberfläche gezogen, weil es von Wassermolekülen umgeben besonders stabil ist (Hydratation); Ammoniak ist sehr gut wasserlöslich.</li>
       <li>Protonenübergänge folgen einfachen Regeln, nicht einer quantenchemischen Rechnung: Ein Proton springt nur, wenn ein passendes Teilchen über eine Wasserstoffbrücke nah genug und richtig ausgerichtet ist.</li>
       <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Während eines Sprungs läuft zusätzlich eine Zeitlupe. Die Teilchen bewegen sich zufällig (Wärmebewegung); Bindungslängen und Winkel werden fest gehalten.</li>
       <li>Universalindikator in „Viele Teilchen“: Die Farbe folgt einem Modell-pH aus dem zeitlich gemittelten Überschuss an OH⁻-Ionen, nicht dem echten pH-Wert (der Kasten ist dafür viel zu klein). Weil die meisten NH₃-Moleküle kein Proton aufnehmen, zeigt der Indikator bei Ammoniak nur schwach basisch, bei gleich viel NaOH dagegen stark basisch (Seite <a href="neutralisation.html">Neutralisation</a>).</li>
@@ -301,10 +301,10 @@ const GAMMA = 12;                                                // Dämpfung 1/
 const H_MAX = 0.004;                                             // ps je Rechenschritt
 const ITER = 4;
 const REFR = 0.4;                                                // ps Sperrzeit nach einem Übergang
-const CUT = {"O-O":3.0, "O-N":3.1, "N-O":3.1};                    // maximaler Abstand Donor–Akzeptor
+const CUT = {"O-O":3.0, "O-N":3.1, "N-O":3.3};                    // maximaler Abstand Donor–Akzeptor
 const RATES = {                                                  // Protonenübergänge je ps bei passender Geometrie
   "H3O+>H2O":0.9,  "H3O+>OH-":12, "H2O>OH-":0.9, "H3O+>NH3":12,  // Grotthuss, Neutralisation, OH⁻-Wanderung
-  "H2O>NH3":0.4, "NH4+>OH-":8,                                   // Ammoniak-Gleichgewicht (stark beschleunigt)
+  "H2O>NH3":0.2, "NH4+>OH-":25,                                  // Ammoniak-Gleichgewicht (stark beschleunigt)
 };
 const MAX_ANGLE = {"NH4+>OH-":70, "H3O+>OH-":60};               // Ionenpaare ordnen sich schnell um: weitere Winkel erlaubt
 
@@ -615,11 +615,12 @@ function gasAndWater(s){                                         // Kasten mit G
     const ys = [];
     for (const a of A) if (a.el === "O" && a.liquid) ys.push(a.y);
     ys.sort((p, q) => p - q);
-    s.level = ys[Math.floor(ys.length * 0.9)] + 0.9;            // Wasserspiegel: oberste Sauerstoffatome
+    s.level = ys[Math.max(0, ys.length - 2)] + 1.1;             // Wasserspiegel knapp über den obersten Wassermolekülen
     for (const a of A){
       if (a.el === "H") continue;
       if (!a.liquid){ if (a.y < s.level - 0.3) a.liquid = true; else { a.fy -= 70 / a.w; continue; } }
       a.fy -= 20 / a.w;                                          // leichte Schwerkraft hält das Wasser unten
+      if (a.el !== "O" && a.y > s.level - 2.8) a.fy -= 60 / a.w;  // Hydratation: gelöste Teilchen werden ganz von Wasser umgeben
     }
   };
 }
