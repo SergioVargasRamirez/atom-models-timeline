@@ -652,6 +652,27 @@ function resize(){
   if (S) draw();
 }
 let SC = 30;
+function gizmo(){                                               // Achsenkreuz zur Orientierung, unten links
+  const gx = 50, gy = H - 50, Lg = 30;
+  const cy = Math.cos(rotY), sy = Math.sin(rotY), cx = Math.cos(rotX), sx = Math.sin(rotX);
+  const rot = (x, y, z) => { const x1 = x * cy + z * sy, z1 = -x * sy + z * cy; return [x1, y * cx - z1 * sx, y * sx + z1 * cx]; };
+  ctx.fillStyle = "rgba(10,14,24,.6)"; ctx.beginPath(); ctx.arc(gx, gy, 42, 0, 2 * Math.PI); ctx.fill();
+  ctx.font = "bold 12px ui-monospace,Consolas,monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  [[[1, 0, 0], "x", "#ef5350"], [[0, 1, 0], "y", "#8bd17c"], [[0, 0, 1], "z", "#7d9bff"]]
+    .map(([u, n, c]) => ({q:rot(...u), n, c})).sort((a, b) => a.q[2] - b.q[2]).forEach(o => {
+      const ex = gx + o.q[0] * Lg, ey = gy - o.q[1] * Lg, l = Math.hypot(o.q[0], o.q[1]);
+      ctx.strokeStyle = o.c; ctx.fillStyle = o.c; ctx.lineWidth = 2;
+      if (l < 0.15){                                             // Achse zeigt auf den Betrachter (oder von ihm weg)
+        ctx.beginPath(); ctx.arc(gx, gy, 5, 0, 2 * Math.PI); ctx.stroke();
+        if (o.q[2] > 0){ ctx.beginPath(); ctx.arc(gx, gy, 1.8, 0, 2 * Math.PI); ctx.fill(); }
+        ctx.fillText(o.n, gx + 12, gy + 12);
+      } else {
+        ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.fillText(o.n, gx + o.q[0] * (Lg + 9) / Math.max(l, .5) * Math.min(l, 1), gy - o.q[1] * (Lg + 9) / Math.max(l, .5) * Math.min(l, 1));
+      }
+    });
+  ctx.lineWidth = 1; ctx.textBaseline = "alphabetic";
+}
 function proj(x, y, z){
   const cy = Math.cos(rotY), sy = Math.sin(rotY), cx = Math.cos(rotX), sx = Math.sin(rotX);
   const x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
@@ -772,6 +793,7 @@ function draw(){
     ctx.lineWidth = 3; ctx.strokeStyle = "rgba(10,14,24,.85)"; ctx.strokeText(label, p.X, y);
     ctx.fillStyle = k === "H3O+" ? "#d7b8ff" : k === "Cl-" ? "#9fe3ae" : "#e8ecf3"; ctx.fillText(label, p.X, y);
   }
+  gizmo();
   if (S.flying.length && S.id !== 1){
     ctx.font = "700 12px 'Source Sans 3',system-ui,sans-serif"; ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,220,120,.95)";
     ctx.fillText("Zeitlupe", W - 12, 20);
@@ -868,6 +890,7 @@ function loadScene(id){
   A = []; S = SCENES[id](); buildLists();
   if (id !== 1) equilibrate(1.2);
   S.post && S.post();
+  [rotY, rotX] = id === 1 ? [-0.35, 0.28] : [0, 0];              // Kästen beginnen in der Ansicht von vorn
   zoom = 1;
   running = false;
   $("stepbtn").hidden = id !== 1;
