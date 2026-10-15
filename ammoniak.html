@@ -1025,7 +1025,6 @@ function rowNH3(y){
          `<g class="side" id="fr">${LEWIS.NH4(385, y, true)}${PLUS(480, y)}${LEWIS.OHm(550, y)}</g>`;
 }
 const rowOH = y => `${LEWIS.H2O(50, y - 12, true)}${PLUS(120, y)}${LEWIS.OHm(190, y)}${ARROW(310, y)}${LEWIS.OHm(400, y, true)}${PLUS(500, y)}${LEWIS.H2O(570, y - 12)}`;
-const rowAuto = y => `${LEWIS.H2O(50, y - 10)}${PLUS(120, y)}${LEWIS.H2O(190, y - 10)}${EQ(285, y)}${LEWIS.H3O(400, y, "l")}${PLUS(500, y)}${LEWIS.OHm(570, y)}`;
 const countsText = n => `NH₃: ${n.NH3} · NH₄⁺: ${n["NH4+"]} · OH⁻: ${n["OH-"]} · H₃O⁺: ${n["H3O+"]} · H₂O: ${n.H2O}`;
 const MSG_FWD = "Ein Wassermolekül hat ein Proton an das freie Elektronenpaar des NH₃ abgegeben: Es sind ein Ammonium-Ion NH₄⁺ und ein Hydroxid-Ion OH⁻ entstanden. Wasser wirkt hier als Säure.";
 const MSG_BACK = "Rückreaktion: Das Hydroxid-Ion hat sich das Proton vom Ammonium-Ion zurückgeholt. Es sind wieder NH₃ und H₂O entstanden.";
@@ -1111,10 +1110,6 @@ const SCENES = {
     s.onTransfer = (i, from, to, kd, ka) => {
       if (kd === "H2O" && ka === "NH3"){ flashFormula("r1"); s.msg = {text:MSG_FWD, until:s.t + 2}; }
       else if (kd === "NH4+"){ flashFormula("r1"); s.msg = {text:MSG_BACK, until:s.t + 2}; }
-      else if (kd === "H2O" && ka === "H2O"){ flashFormula("r3");
-        s.msg = {text:"Autoprotolyse: Ein Wassermolekül hat ein Proton an ein benachbartes Wassermolekül abgegeben. Es sind ein Oxonium-Ion H₃O⁺ und ein Hydroxid-Ion OH⁻ entstanden.", until:s.t + 2.5}; }
-      else if (kd === "H3O+" && ka === "OH-"){ flashFormula("r3");
-        s.msg = {text:"H₃O⁺ und OH⁻ haben sich getroffen: Es entstehen wieder zwei Wassermoleküle.", until:s.t + 2.5}; }
       else if (ka === "OH-") flashFormula("r2");
     };
     return s;
