@@ -201,8 +201,9 @@ details li{margin-bottom:6px}
           <button class="btn scenebtn" id="addnh3" type="button" hidden>NH₃ zugeben</button>
         </div>
         <div class="chips" role="radiogroup" aria-label="Tempo" id="speedchips">
-          <button type="button" role="radio" aria-checked="false" data-speed="0.3">langsam</button>
+          <button type="button" role="radio" aria-checked="false" data-speed="0.5">langsam</button>
           <button type="button" role="radio" aria-checked="true" data-speed="1">normal</button>
+          <button type="button" role="radio" aria-checked="false" data-speed="2.5">schnell</button>
         </div>
       </div>
       <div class="task">
@@ -236,7 +237,7 @@ details li{margin-bottom:6px}
       <li>Gleichgewicht: NH₃ + H₂O ⇌ NH₄⁺ + OH⁻ mit K<sub>B</sub> = 1,8 · 10<sup>−5</sup> mol/L (pK<sub>B</sub> = 4,75). In einer Ammoniaklösung mit 0,1 mol/L ist nur etwa 1 % des NH₃ protoniert; der pH-Wert beträgt etwa 11.</li>
       <li>Im Modell sind Hin- und Rückreaktion stark beschleunigt und so eingestellt, dass NH₄⁺ selten, aber sichtbar vorkommt. Im Modell liegt ein NH₃-Teilchen deshalb etwa ein Fünftel der Zeit als NH₄⁺ vor, viel öfter als in Wirklichkeit; sonst sähe man den Vorgang fast nie. Auch so gilt: Die meisten Teilchen bleiben NH₃. Ein frisch gebildetes NH₄⁺ bleibt meist kurz mit seinem OH⁻ zusammen und gibt das Proton dann zurück. Gelöstes NH₃ wird im Modell leicht unter die Oberfläche gezogen, weil es von Wassermolekülen umgeben besonders stabil ist (Hydratation); Ammoniak ist sehr gut wasserlöslich.</li>
       <li>Protonenübergänge folgen einfachen Regeln, nicht einer quantenchemischen Rechnung: Ein Proton springt nur, wenn ein passendes Teilchen über eine Wasserstoffbrücke nah genug und richtig ausgerichtet ist.</li>
-      <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Während eines Sprungs läuft zusätzlich eine Zeitlupe. Die Teilchen bewegen sich zufällig (Wärmebewegung); Bindungslängen und Winkel werden fest gehalten.</li>
+      <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Ein Sprung läuft immer in Zeitlupe, unabhängig vom gewählten Tempo; das Tempo ändert nur die Wartezeit zwischen den Sprüngen. Die Teilchen bewegen sich zufällig (Wärmebewegung); Bindungslängen und Winkel werden fest gehalten.</li>
       <li>Universalindikator in „Viele Teilchen“: Die Farbe folgt einem Modell-pH aus dem zeitlich gemittelten Überschuss an OH⁻-Ionen, nicht dem echten pH-Wert (der Kasten ist dafür viel zu klein). Weil die meisten NH₃-Moleküle kein Proton aufnehmen, zeigt der Indikator bei Ammoniak nur schwach basisch, bei gleich viel NaOH dagegen stark basisch (Seite <a href="neutralisation.html">Neutralisation</a>).</li>
     </ul>
   </details>
@@ -988,8 +989,8 @@ let last = 0;
 function frame(ts){
   const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
   if (running){
-    let sim = dt * speed;
-    if (S.flying.length && !S.closeup) sim *= 0.25;              // Zeitlupe während eines Sprungs
+    let sim = dt * speed;                                        // Tempo bestimmt die Wartezeit zwischen den Sprüngen,
+    if (S.flying.length && !S.closeup) sim = dt * (speed < 1 ? 0.15 : 0.25);   // der Sprung selbst läuft immer in Zeitlupe
     if (S.PH){
       const ph0 = phaseOf(S.t);
       if (S.stopAt != null && S.t + sim >= S.stopAt) sim = Math.max(0, S.stopAt - S.t);

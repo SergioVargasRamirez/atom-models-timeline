@@ -740,8 +740,8 @@ let last = 0;
 function frame(ts){
   const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
   if (running){
-    let sim = dt * speed;
-    if (S.flying.length && !S.closeup) sim *= 0.25;              // Zeitlupe während eines Sprungs
+    let sim = dt * speed;                                        // Tempo bestimmt die Wartezeit zwischen den Sprüngen,
+    if (S.flying.length && !S.closeup) sim = dt * (speed < 1 ? 0.15 : 0.25);   // der Sprung selbst läuft immer in Zeitlupe
     if (S.PH){
       const ph0 = phaseOf(S.t);
       if (S.stopAt != null && S.t + sim >= S.stopAt) sim = Math.max(0, S.stopAt - S.t);

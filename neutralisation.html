@@ -198,8 +198,9 @@ details li{margin-bottom:6px}
           <button class="btn scenebtn" id="addnaoh" type="button" hidden>NaOH zugeben</button>
         </div>
         <div class="chips" role="radiogroup" aria-label="Tempo" id="speedchips">
-          <button type="button" role="radio" aria-checked="false" data-speed="0.3">langsam</button>
+          <button type="button" role="radio" aria-checked="false" data-speed="0.5">langsam</button>
           <button type="button" role="radio" aria-checked="true" data-speed="1">normal</button>
+          <button type="button" role="radio" aria-checked="false" data-speed="2.5">schnell</button>
         </div>
       </div>
       <div class="task">
@@ -235,7 +236,7 @@ details li{margin-bottom:6px}
       <li>Im Kugel-Stab-Modell ist Na⁺ kleiner gezeichnet als Cl⁻, wie bei den echten Ionenradien (etwa 102 pm und 181 pm); die Größen sind aber nicht maßstäblich.</li>
       <li>Universalindikator: Die Farbe folgt einem Modell-pH aus dem zeitlich gemittelten Überschuss an H₃O⁺ bzw. OH⁻, nicht dem echten pH-Wert (der Kasten ist dafür viel zu klein). Gleich viel HCl und NaOH ergeben eine neutrale Lösung (Modell-pH 7).</li>
       <li>Protonenübergänge folgen einfachen Regeln, nicht einer quantenchemischen Rechnung: Ein Proton springt nur, wenn ein passendes Teilchen über eine Wasserstoffbrücke nah genug und richtig ausgerichtet ist.</li>
-      <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Während eines Sprungs läuft zusätzlich eine Zeitlupe. Die Teilchen bewegen sich zufällig (Wärmebewegung); Bindungslängen und Winkel werden fest gehalten.</li>
+      <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Ein Sprung läuft immer in Zeitlupe, unabhängig vom gewählten Tempo; das Tempo ändert nur die Wartezeit zwischen den Sprüngen. Die Teilchen bewegen sich zufällig (Wärmebewegung); Bindungslängen und Winkel werden fest gehalten.</li>
     </ul>
   </details>
 </div>
@@ -986,8 +987,8 @@ let last = 0;
 function frame(ts){
   const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
   if (running){
-    let sim = dt * speed;
-    if (S.flying.length && !S.closeup) sim *= 0.25;              // Zeitlupe während eines Sprungs
+    let sim = dt * speed;                                        // Tempo bestimmt die Wartezeit zwischen den Sprüngen,
+    if (S.flying.length && !S.closeup) sim = dt * (speed < 1 ? 0.15 : 0.25);   // der Sprung selbst läuft immer in Zeitlupe
     if (S.PH){
       const ph0 = phaseOf(S.t);
       if (S.stopAt != null && S.t + sim >= S.stopAt) sim = Math.max(0, S.stopAt - S.t);
