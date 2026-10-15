@@ -343,11 +343,11 @@ function nh3(p, rotate = (v => v)){                              // Pyramide; da
   }
   return n;
 }
-function naoh(p, dir){                                           // Formeleinheit NaOH: Na⁺ neben OH⁻, löst sich im Wasser
+function naoh(p, dir){                                           // NaOH ist schon ionisch: Na⁺ neben OH⁻, die sich im Wasser trennen
   const u = norm(dir), na = atom("Na", p), o = atom("O", add(p, mul(u, 2.35)));
   atom("H", add(pos(A[o]), mul(u, R_OH)), o);
   A[na].pair = o; A[o].pair = na;
-  A[na].bindUntil = (S ? S.t : 0) + 0.5; A[na].relUntil = A[na].bindUntil + 0.8;
+  A[na].bindUntil = (S ? S.t : 0) + 0.25; A[na].relUntil = A[na].bindUntil + 0.45;   // Ionen trennen sich rasch
   return na;
 }
 function buildLists(){
@@ -774,7 +774,7 @@ const REACTIVE = ["H3O+", "OH-", "HCl", "NH3", "NH4+"];
 let dimOthers = false;
 function activeSet(){                                            // beteiligte Teilchen: Säure-Base-Teilchen und ihre direkten Partner
   const act = new Set();
-  for (let i = 0; i < A.length; i++) if (A[i].el !== "H" && A[i].pair < 0 && REACTIVE.includes(kind(i))) act.add(i);
+  for (let i = 0; i < A.length; i++) if (A[i].el !== "H" && REACTIVE.includes(kind(i))) act.add(i);
   for (const i of S.flying){ act.add(A[i].tr.from); act.add(A[i].tr.to); }
   const core = [...act];
   for (let j = 0; j < A.length; j++){                            // Wassermoleküle, die über eine Wasserstoffbrücke an ein solches Teilchen gebunden sind
@@ -800,7 +800,7 @@ function draw(){
   const pale = A.map((a, i) => a.fade || (act && !act.has(molOf(i))));   // blass: Hintergrund oder unbeteiligt
   drawBox();
   for (let i = 0; i < A.length; i++){                            // Leuchten um H₃O⁺ (violett) und OH⁻ (blau)
-    if (A[i].el !== "O" || hl[i].length === 2 || A[i].pair >= 0) continue;
+    if (A[i].el !== "O" || hl[i].length === 2) continue;
     const p = P[i], r = 2.4 * SC * p.f, c = hl[i].length >= 3 ? ION_COL.plus : ION_COL.minus;
     const g = ctx.createRadialGradient(p.X, p.Y, 0, p.X, p.Y, r);
     g.addColorStop(0, `rgba(${c},.55)`); g.addColorStop(1, `rgba(${c},0)`);
@@ -849,7 +849,7 @@ function draw(){
     }
   }
   for (let i = 0; i < A.length; i++){                            // leuchtender Ring um H₃O⁺ und OH⁻, über allen Atomen
-    if (A[i].el !== "O" || hl[i].length === 2 || A[i].pair >= 0 || A[i].fade) continue;
+    if (A[i].el !== "O" || hl[i].length === 2 || A[i].fade) continue;
     const p = P[i], c = hl[i].length >= 3 ? ION_COL.plus : ION_COL.minus;
     ctx.save();
     ctx.strokeStyle = `rgba(${c},.95)`; ctx.lineWidth = 2; ctx.shadowColor = `rgba(${c},1)`; ctx.shadowBlur = 12;
@@ -864,10 +864,6 @@ function draw(){
   };
   for (let i = 0; i < A.length; i++){
     const a = A[i]; if (a.el === "H" || pale[i]) continue;
-    if (a.pair >= 0){                                            // NaOH als Formeleinheit, solange Na⁺ und OH⁻ zusammenhängen
-      if (a.el === "Na"){ const o = P[a.pair], p = P[i]; label("NaOH", "#e8ecf3", {X:(p.X + o.X) / 2, Y:Math.min(p.Y, o.Y), f:p.f}, R_STICK.Na); }
-      continue;
-    }
     const k = kind(i);
     if (k === "H2O" && !S.closeup) continue;
     label(LABEL[k], LABEL_COL[k] || "#e8ecf3", P[i], R_STICK[a.el]);
