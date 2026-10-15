@@ -232,7 +232,7 @@ details li{margin-bottom:6px}
     <ul>
       <li>Geometrie: O–H 0,96 Å und H–O–H 104,5° im Wassermolekül; O–H 0,98 Å und H–O–H etwa 112° im Oxonium-Ion (flache Pyramide); H–Cl 1,27 Å. 1 Å = 10<sup>−10</sup> m.</li>
       <li>Die Teilchen bewegen sich zufällig (Wärmebewegung). Bindungslängen und Winkel werden fest gehalten; Schwingungen der Bindungen sind nicht dargestellt.</li>
-      <li>Der Protonenübergang folgt einer einfachen Regel, nicht einer quantenchemischen Rechnung: Ein Proton springt nur, wenn ein Wassermolekül über eine Wasserstoffbrücke nah genug und passend ausgerichtet ist. HCl gibt sein Proton sehr schnell ab und wird nicht zurückgebildet (starke Säure).</li>
+      <li>Der Protonenübergang folgt einer einfachen Regel, nicht einer quantenchemischen Rechnung: Ein Oxonium-Ion gibt ein Proton nur weiter, wenn ein Wassermolekül über eine Wasserstoffbrücke nah genug und passend ausgerichtet ist. HCl gibt sein Proton ab, sobald es im Wasser ist (in Wirklichkeit in weniger als 1 ps), und wird nicht zurückgebildet (starke Säure). Die Nahaufnahme „HCl trifft H₂O“ zeigt diesen Vorgang stark verlangsamt in Schritten.</li>
       <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Während eines Sprungs läuft zusätzlich eine Zeitlupe. In Wirklichkeit dauert der Sprung selbst nur einige Femtosekunden; ein H₃O⁺ gibt sein Proton nach etwa 1 bis 2 ps weiter.</li>
       <li>In Wirklichkeit ist das überschüssige Proton in Wasser meist über mehrere Moleküle verteilt (Zundel-Ion H₅O₂⁺, Eigen-Ion H₉O₄⁺). Das Modell zeigt der Einfachheit halber immer ein einzelnes H₃O⁺.</li>
       <li>Ein einzelnes Wassermolekül kann HCl nicht ionisieren; dazu braucht es mehrere Wassermoleküle, die die entstehenden Ionen umgeben. In der Nahaufnahme stehen deshalb drei weitere, blass gezeichnete Wassermoleküle daneben.</li>
@@ -456,10 +456,24 @@ function startTransfer(i, from, to, tau){
 }
 function tryTransfers(h){
   buildLists();
+  // HCl im Wasser gibt sein Proton sofort an das nächste Wassermolekül ab (starke Säure)
+  for (let d = 0; d < A.length; d++){
+    const D = A[d];
+    if (D.el !== "Cl" || hl[d].length !== 1 || D.busy || !D.liquid) continue;
+    const i = hl[d][0], H = A[i];
+    let best = -1, bd = 4.2;
+    for (let a = 0; a < A.length; a++){
+      const Ac = A[a];
+      if (Ac.el !== "O" || Ac.busy || hl[a].length !== 2) continue;
+      const dh = Math.hypot(Ac.x - H.x, Ac.y - H.y, Ac.z - H.z);
+      if (dh < bd){ bd = dh; best = a; }
+    }
+    if (best >= 0) startTransfer(i, d, best, 0.15);
+  }
   const cand = [];
   for (let d = 0; d < A.length; d++){
     const D = A[d]; if (D.el === "H" || D.busy || S.t - D.last < REFR) continue;
-    const isDonor = D.el === "Cl" ? hl[d].length === 1 : hl[d].length === 3;
+    const isDonor = D.el === "O" && hl[d].length === 3;
     if (!isDonor || (S.donorOK && !S.donorOK(d))) continue;
     for (const i of hl[d]){
       const H = A[i];
@@ -563,7 +577,7 @@ const SCENES = {
     s.texts = [
       "1 · Ein HCl-Molekül nähert sich einem Wassermolekül. Die H–Cl-Bindung ist polar: Das H-Atom ist positiv teilgeladen und wird vom freien Elektronenpaar des Sauerstoffs angezogen.",
       "2 · Zwischen dem H-Atom des HCl und dem O-Atom des Wassers bildet sich eine Wasserstoffbrücke Cl–H···O.",
-      "3 · Das Proton (H⁺) wechselt vom Chlor zum Sauerstoff. Das bindende Elektronenpaar der H–Cl-Bindung bleibt beim Chlor; ein freies Elektronenpaar des Sauerstoffs wird zum bindenden Elektronenpaar der neuen O–H-Bindung.",
+      "3 · Das Proton (H⁺) wechselt vom Chlor zum Sauerstoff. Das bindende Elektronenpaar der H–Cl-Bindung bleibt beim Chlor; ein freies Elektronenpaar des Sauerstoffs wird zum bindenden Elektronenpaar der neuen O–H-Bindung. In Wirklichkeit geht das in weniger als einer Billionstel Sekunde; hier ist es stark verlangsamt.",
       "4 · Entstanden sind ein Oxonium-Ion H₃O⁺ (flache Pyramide) und ein Chlorid-Ion Cl⁻. HCl war der Protonendonator, H₂O der Protonenakzeptor.",
       "5 · Das Oxonium-Ion gibt ein Proton über eine Wasserstoffbrücke an ein benachbartes Wassermolekül weiter. Es springt aber nicht das Proton aus dem HCl, sondern ein anderes (jetzt orange). Aus H₃O⁺ wird wieder H₂O, aus dem Nachbarn ein H₃O⁺.",
       "6 · Das neue Oxonium-Ion gibt wiederum ein Proton weiter. So wandert die positive Ladung von Molekül zu Molekül, während jedes Atom fast an seinem Platz bleibt (Grotthuss-Mechanismus).",
@@ -591,7 +605,7 @@ const SCENES = {
       for (let i = 0; i < A.length; i++){
         const a = A[i];
         if (a.el === "H") continue;
-        if (!a.liquid){ if (a.y < s.level - 0.3) a.liquid = true; else { a.fy -= 40 / a.w; continue; } }   // Gas sinkt zum Wasser
+        if (!a.liquid){ if (a.y < s.level - 0.3) a.liquid = true; else { a.fy -= 70 / a.w; continue; } }   // Gas sinkt zum Wasser
         a.fy -= 20 / a.w;                                        // leichte Schwerkraft hält das Wasser unten
       }
     };
@@ -602,10 +616,7 @@ const SCENES = {
   3(){
     const L = 4.8;
     const s = {id:3, kT:150, R:7.6, flying:[], hops:0, t:0, auto:1, L, added:0};
-    const spots = [V(-2.1, 1.9, -1.9), V(2.1, -1.9, 1.9), V(2.0, 2.1, -1.7), V(-2.0, -2.1, 2.0)];
-    fillWater(22, L, -L, L, spots, 2.3);
-    for (const p of spots) hcl(p, randDir());
-    s.added = spots.length;
+    fillWater(22, L, -L, L, [], 2.3);                           // zu Beginn nur Wasser; HCl kommt mit „HCl zugeben“
     s.walls = boxWalls(L, -L, L);
     s.forces = () => {};
     s.onTransfer = (i, from) => flashFormula(A[from].el === "Cl" ? 1 : 2);
@@ -615,7 +626,7 @@ const SCENES = {
 function phaseOf(t){ const P = S.PH; let k = 0; while (k + 1 < P.length && t >= P[k + 1]) k++; return k; }
 
 function addHCl(){                                               // Szene 3: HCl an der freiesten Stelle einsetzen
-  if (S.id !== 3 || S.added >= 8) return;
+  if (S.id !== 3 || S.added >= 6) return;
   let best = null, bd = -1;
   for (let k = 0; k < 60; k++){
     const p = V((2 * rand() - 1) * (S.L - 2), (2 * rand() - 1) * (S.L - 2), (2 * rand() - 1) * (S.L - 2));
@@ -625,7 +636,8 @@ function addHCl(){                                               // Szene 3: HCl
   }
   const c = hcl(best, randDir()); A[c].glow = 1;
   S.added++;
-  $("addbtn").disabled = S.added >= 8;
+  $("addbtn").disabled = S.added >= 6;
+  if (!running){ running = true; syncControls(); }             // gleich laufen lassen, damit man die Protolyse sieht
   dirty = true;
 }
 
@@ -837,13 +849,13 @@ function updateText(){
     const hops = Math.max(0, S.hops - (S.dissociated ? 1 : 0));
     $("readout").textContent = `Zeit ${fmt(S.t)} ps · Protonenübergänge zwischen Wassermolekülen: ${hops}`;
     if (!S.t && !running) setStatus("Ein HCl-Molekül schwebt im Gasraum über dem Wasser. Starte die Simulation.");
-    else if (!S.dissociated) setStatus(A[S.C0].liquid ? "Das HCl-Molekül ist ins Wasser eingetaucht und bildet Wasserstoffbrücken zu Wassermolekülen …" : "Das HCl-Molekül bewegt sich auf die Wasseroberfläche zu.");
-    else if (hops === 0) setStatus("HCl hat sein Proton an ein Wassermolekül abgegeben: Es sind ein Oxonium-Ion H₃O⁺ (violett leuchtend) und ein Chlorid-Ion Cl⁻ entstanden.");
+    else if (!S.dissociated) setStatus("Das HCl-Molekül bewegt sich auf die Wasseroberfläche zu.");
+    else if (hops === 0) setStatus("Sobald das HCl-Molekül das Wasser erreicht, gibt es sein Proton an ein Wassermolekül ab: Es sind ein Oxonium-Ion H₃O⁺ (violett leuchtend) und ein Chlorid-Ion Cl⁻ entstanden.");
     else setStatus(`Das H₃O⁺-Ion gibt ein Proton über eine Wasserstoffbrücke an ein benachbartes Wassermolekül weiter (bisher ${hops}-mal). So wandert die positive Ladung durch das Wasser, obwohl jedes Atom nur wenig zittert. Das Chlorid-Ion bleibt einfach im Wasser.`);
   } else {
     $("readout").textContent = `Zeit ${fmt(S.t)} ps · ${countsText()}`;
-    if (!S.t && !running) setStatus("Im Kasten sind Wassermoleküle und einige HCl-Moleküle. Starte die Simulation.");
-    else if (n.HCl) setStatus(`Noch ${n.HCl} HCl-Molekül${n.HCl > 1 ? "e" : ""} im Kasten. Jedes gibt sein Proton an ein Wassermolekül ab, sobald eine Wasserstoffbrücke passt.`);
+    if (!n["Cl-"] && !n.HCl) setStatus("Im Kasten ist nur Wasser. Gib mit „HCl zugeben“ Chlorwasserstoff dazu.");
+    else if (n.HCl) setStatus("Das HCl-Molekül gibt sein Proton sofort an ein Wassermolekül ab.");
     else setStatus(`Alle HCl-Moleküle haben ihr Proton abgegeben (vollständige Protolyse). Die ${n["H3O+"]} Oxonium-Ionen geben ihre Protonen weiter an andere Wassermoleküle. Mit „HCl zugeben“ kommt weiteres HCl dazu.`);
   }
   updateFormula();
