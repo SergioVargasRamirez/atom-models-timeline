@@ -222,7 +222,7 @@ details li{margin-bottom:6px}
         <li>Vergleiche die Form des Wassermoleküls mit der Form des Oxonium-Ions H₃O⁺. Drehe das Modell dazu.</li>
         <li>Das zuletzt übertragene Proton ist orange. Verfolge es in „HCl trifft H₂O“ und „HCl in Wasser“: Wandert immer dasselbe Proton weiter?</li>
         <li>Schalte die Wasserstoffbrücken ein. Auf welchem Weg springt das Proton von einem Molekül zum nächsten?</li>
-        <li><i>Viele Teilchen:</i> Gib mehrmals HCl zu. Warum findet man in Salzsäure praktisch keine HCl-Moleküle?</li>
+        <li><i>Viele Teilchen:</i> Gib nacheinander mehrmals HCl zu und beobachte den Universalindikator. Wie ändert sich die Farbe, und warum? Warum findet man in Salzsäure praktisch keine HCl-Moleküle?</li>
         <li>Was macht das Chlorid-Ion, nachdem es entstanden ist?</li>
         <li><i>Viele Teilchen:</i> Beobachte reines Wasser eine Weile. Was passiert bei der Autoprotolyse, und was, wenn sich H₃O⁺ und OH⁻ treffen?</li>
       </ol>
@@ -238,6 +238,7 @@ details li{margin-bottom:6px}
       <li>In Wirklichkeit ist das überschüssige Proton in Wasser meist über mehrere Moleküle verteilt (Zundel-Ion H₅O₂⁺, Eigen-Ion H₉O₄⁺). Das Modell zeigt der Einfachheit halber immer ein einzelnes H₃O⁺.</li>
       <li>Ein einzelnes Wassermolekül kann HCl nicht ionisieren; dazu braucht es mehrere Wassermoleküle, die die entstehenden Ionen umgeben. In der Nahaufnahme stehen deshalb drei weitere, blass gezeichnete Wassermoleküle daneben.</li>
       <li>Autoprotolyse: In reinem Wasser gilt bei 25 °C c(H₃O⁺) = c(OH⁻) = 10<sup>−7</sup> mol/L. Damit ist nur etwa jedes 550-millionste Wassermolekül ionisiert, und ein einzelnes Wassermolekül gibt im Mittel nur etwa alle 10 Stunden ein Proton ab. In „Viele Teilchen“ ist die Autoprotolyse deshalb enorm beschleunigt dargestellt; mit 22 Wassermolekülen würde man sie sonst nie sehen. Ist HCl im Kasten, zeigt das Modell keine Autoprotolyse mehr: Entstehende OH⁻-Ionen würden von den vielen H₃O⁺-Ionen sofort abgefangen.</li>
+      <li>Universalindikator in „Viele Teilchen“: Die Farbe folgt einem Modell-pH, nicht dem echten pH-Wert. Der Kasten ist so klein (etwa 0,9 nm³), dass schon ein einziges H₃O⁺-Ion rund 1,9 mol/L entspräche, also einem pH-Wert unter 0. Der Modell-pH sinkt deshalb einfach in Stufen mit der Zahl der überschüssigen Oxonium-Ionen (0: pH 7, 1: pH 5, 2: pH 4, 3: pH 3 …). Er zeigt nur die Richtung: mehr Säure, kleinerer pH-Wert, Farbe von Grün über Gelb und Orange nach Rot. Bei der Autoprotolyse entstehen H₃O⁺ und OH⁻ gleich oft, das Wasser bleibt neutral.</li>
       <li>Der Kasten enthält nur wenige Dutzend Teilchen. Echte Salzsäure enthält in einem Tropfen etwa 10<sup>20</sup> Teilchen, und die Ionen sind viel weiter verdünnt.</li>
     </ul>
   </details>
@@ -689,6 +690,48 @@ function resize(){
   if (S) draw();
 }
 let SC = 30;
+// Universalindikator (Szene 3): Farbe nach einem Modell-pH aus dem Überschuss an H₃O⁺
+const UI_COL = [[1, [214, 32, 44]], [2, [232, 72, 40]], [3, [244, 122, 38]], [4, [248, 166, 40]], [5, [240, 206, 48]],
+  [6, [184, 208, 58]], [7, [76, 176, 72]], [8, [36, 158, 128]], [9, [38, 116, 190]], [10, [58, 76, 172]], [11, [92, 56, 160]], [14, [112, 40, 140]]];
+const MODEL_PH = [7, 5, 4, 3, 2.4, 1.8, 1.3];                    // Modell-pH für 0, 1, 2 … überschüssige H₃O⁺
+function uiColor(ph){
+  for (let k = 1; k < UI_COL.length; k++){
+    const [p1, c1] = UI_COL[k];
+    if (ph <= p1){ const [p0, c0] = UI_COL[k - 1], u = Math.max(0, (ph - p0) / (p1 - p0)); return mix(c0, c1, u); }
+  }
+  return UI_COL[UI_COL.length - 1][1];
+}
+function modelPH(){
+  let ex = 0;
+  for (let i = 0; i < A.length; i++) if (A[i].el === "O") ex += hl[i].length === 3 ? 1 : hl[i].length === 1 ? -1 : 0;
+  return ex <= 0 ? 7 : MODEL_PH[Math.min(ex, MODEL_PH.length - 1)];
+}
+let phShown = 7, phTime = 0;
+function indicator(){
+  const target = modelPH(), now = performance.now();
+  const dt = phTime ? Math.min(0.1, (now - phTime) / 1000) : 1; phTime = now;
+  phShown += (target - phShown) * Math.min(1, dt * 2.5);         // Farbe wechselt sanft
+  if (Math.abs(target - phShown) > 0.01) dirty = true; else phShown = target;
+  const cx = W - 62, cy = 92, r = 30, c = uiColor(phShown);
+  ctx.fillStyle = "rgba(10,14,24,.6)"; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(cx - 56, cy - 70, 112, 160, 10) : ctx.rect(cx - 56, cy - 70, 112, 160); ctx.fill();
+  ctx.fillStyle = "#c9d3ea"; ctx.font = "600 12px 'Source Sans 3',system-ui,sans-serif"; ctx.textAlign = "center";
+  ctx.fillText("Universalindikator", cx, cy - 50);
+  const g = ctx.createRadialGradient(cx - r * .35, cy - r * .4, r * .1, cx, cy, r);
+  g.addColorStop(0, rgb(mix(c, [255, 255, 255], .45))); g.addColorStop(.6, rgb(c)); g.addColorStop(1, rgb(mix(c, [0, 0, 0], .3)));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = "#e8ecf3"; ctx.font = "700 13px 'Source Sans 3',system-ui,sans-serif";
+  ctx.fillText(`Modell-pH ≈ ${fmt(target, target % 1 ? 1 : 0)}`, cx, cy + r + 20);
+  const bx = cx - 48, bw = 96, by = cy + r + 32;                 // Farbskala pH 1 bis 14 mit Marke
+  const lg = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+  for (const [p, col] of UI_COL) lg.addColorStop((p - 1) / 13, rgb(col));
+  ctx.fillStyle = lg; ctx.fillRect(bx, by, bw, 7);
+  const mx = bx + (phShown - 1) / 13 * bw;
+  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(mx, by - 1); ctx.lineTo(mx - 4, by - 7); ctx.lineTo(mx + 4, by - 7); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#7482a3"; ctx.font = "10px 'Source Sans 3',system-ui,sans-serif";
+  ctx.textAlign = "left"; ctx.fillText("sauer", bx, by + 18); ctx.textAlign = "right"; ctx.fillText("basisch", bx + bw, by + 18);
+  ctx.textAlign = "center";
+}
 function gizmo(){                                               // Achsenkreuz zur Orientierung, unten links
   const gx = 50, gy = H - 50, Lg = 30;
   const cy = Math.cos(rotY), sy = Math.sin(rotY), cx = Math.cos(rotX), sx = Math.sin(rotX);
@@ -831,6 +874,7 @@ function draw(){
     ctx.fillStyle = k === "H3O+" ? "#d7b8ff" : k === "OH-" ? "#9fd8ff" : k === "Cl-" ? "#9fe3ae" : "#e8ecf3"; ctx.fillText(label, p.X, y);
   }
   gizmo();
+  if (S.id === 3) indicator();
   if (S.flying.length && S.id !== 1){
     ctx.font = "700 12px 'Source Sans 3',system-ui,sans-serif"; ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,220,120,.95)";
     ctx.fillText("Zeitlupe", W - 12, 20);
@@ -920,7 +964,7 @@ function updateText(){
     else if (hops === 0) setStatus("Sobald das HCl-Molekül das Wasser erreicht, gibt es sein Proton an ein Wassermolekül ab: Es sind ein Oxonium-Ion H₃O⁺ (violett leuchtend) und ein Chlorid-Ion Cl⁻ entstanden.");
     else setStatus(`Das H₃O⁺-Ion gibt ein Proton über eine Wasserstoffbrücke an ein benachbartes Wassermolekül weiter (bisher ${hops}-mal). So wandert die positive Ladung durch das Wasser, obwohl jedes Atom nur wenig zittert. Das Chlorid-Ion bleibt einfach im Wasser.`);
   } else {
-    $("readout").textContent = `Zeit ${fmt(S.t)} ps · ${countsText()}`;
+    $("readout").textContent = `Zeit ${fmt(S.t)} ps · ${countsText()} · Modell-pH ≈ ${fmt(modelPH(), modelPH() % 1 ? 1 : 0)}`;
     const acid = n["Cl-"] + n.HCl > 0;
     if (S.msg && S.t < S.msg.until) setStatus(S.msg.text);
     else if (!acid && n["OH-"]) setStatus("In reinem Wasser sind durch Autoprotolyse ein H₃O⁺- und ein OH⁻-Ion entstanden. Beide wandern durch Protonenübergänge. Treffen sie sich, entstehen wieder zwei Wassermoleküle. In Wirklichkeit ist das sehr selten: Nur etwa jedes 550-millionste Wassermolekül ist ionisiert; hier ist es stark beschleunigt.");
