@@ -202,7 +202,7 @@ details li{margin-bottom:6px}
       <div class="task">
         <b>Darstellung</b>
         <label class="switch"><input type="checkbox" id="hbchk"> Wasserstoffbrücken zeigen</label>
-        <label class="switch"><input type="checkbox" id="fmchk"> Formel zeigen</label>
+        <label class="switch" id="fmwrap"><input type="checkbox" id="fmchk"> Formel zeigen</label>
         <label class="switch" id="markwrap" hidden><input type="checkbox" id="markchk"> Proton aus HCl markieren</label>
       </div>
     </div>
@@ -842,6 +842,8 @@ function loadScene(id){
   $("stepbtn").hidden = id !== 1;
   $("addbtn").hidden = id !== 3; $("addbtn").disabled = false;
   $("markwrap").hidden = id === 1;
+  $("fmwrap").hidden = id === 1;                                 // Nahaufnahme: Formel immer sichtbar
+  $("formula").hidden = id !== 1 && !$("fmchk").checked;
   showMark = id === 1 ? true : $("markchk").checked;
   for (const b of $("scenes").querySelectorAll("button")) b.setAttribute("aria-checked", String(+b.dataset.scene === id));
   buildFormula(); syncControls(); updateText(); dirty = true;
