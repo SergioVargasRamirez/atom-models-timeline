@@ -481,6 +481,7 @@ function proj(x, y, z){
   return {X: W / 2 + x1 * SC * f, Y: H / 2 - y2 * SC * f, z: z2, f};
 }
 const COL = {O:[214, 40, 40], H:[236, 236, 236], Cl:[46, 170, 70], N:[52, 88, 224], Na:[171, 92, 242], M:[255, 150, 40]};
+const ION_COL = {plus:"185,120,255", minus:"60,175,255"};        // H₃O⁺ violett, OH⁻ blau
 const R_STICK = {O:0.36, H:0.24, Cl:0.46, N:0.37, Na:0.38};   // Na⁺ kleiner als Cl⁻, wie die Ionenradien
 let showHB = false, zoom = 1;
 const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
@@ -529,9 +530,9 @@ function draw(){
   drawBox();
   for (let i = 0; i < A.length; i++){                            // Leuchten um H₃O⁺ (violett) und OH⁻ (blau)
     if (A[i].el !== "O" || hl[i].length === 2 || A[i].pair >= 0) continue;
-    const p = P[i], r = 2.2 * SC * p.f, c = hl[i].length >= 3 ? "170,110,255" : "80,190,255";
+    const p = P[i], r = 2.4 * SC * p.f, c = hl[i].length >= 3 ? ION_COL.plus : ION_COL.minus;
     const g = ctx.createRadialGradient(p.X, p.Y, 0, p.X, p.Y, r);
-    g.addColorStop(0, `rgba(${c},.42)`); g.addColorStop(1, `rgba(${c},0)`);
+    g.addColorStop(0, `rgba(${c},.55)`); g.addColorStop(1, `rgba(${c},0)`);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.X, p.Y, r, 0, 2 * Math.PI); ctx.fill();
   }
   const items = [];                                              // Zeichenliste: Atome, Stäbe, Brücken, von hinten nach vorn
@@ -574,6 +575,14 @@ function draw(){
       }
       ball(p.X, p.Y, R_STICK[a.el] * SC * p.f, atomColor(a), a.fade ? .3 : 1);
     }
+  }
+  for (let i = 0; i < A.length; i++){                            // leuchtender Ring um H₃O⁺ und OH⁻, über allen Atomen
+    if (A[i].el !== "O" || hl[i].length === 2 || A[i].pair >= 0 || A[i].fade) continue;
+    const p = P[i], c = hl[i].length >= 3 ? ION_COL.plus : ION_COL.minus;
+    ctx.save();
+    ctx.strokeStyle = `rgba(${c},.95)`; ctx.lineWidth = 2; ctx.shadowColor = `rgba(${c},1)`; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(p.X, p.Y, 0.95 * SC * p.f, 0, 2 * Math.PI); ctx.stroke();
+    ctx.restore();
   }
   ctx.font = "700 13px 'Source Sans 3',system-ui,sans-serif"; ctx.textAlign = "center";   // Beschriftungen
   const label = (txt, col, p, r) => {
