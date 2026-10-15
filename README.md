@@ -16,7 +16,7 @@ Anfragen, auch Schriften sind eingebettet.
 | `pse.html` | Klickbares Periodensystem | von Hand |
 | `modelle.html` | Atommodelle im Vergleich (Dalton bis Schrödinger, H bis Ar, 2D und 3D) | von Hand |
 | `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
-| `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D, Kugel-Stab/Kalotten, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand |
+| `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand |
 | `quellen.html` | Quellen und Danksagung | von Hand |
 
 ## Seitenmenü
