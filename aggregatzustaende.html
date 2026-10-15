@@ -69,8 +69,7 @@ canvas{display:block;width:100%}
 .switch input:checked::after{transform:translateX(20px)}
 .legend{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
 .legend i{display:inline-block;width:110px;height:10px;border-radius:5px;background:linear-gradient(90deg,#3c78ff,#3cc8a0,#f0d23c,#f05a3c)}
-.labgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:860px){.labgrid{grid-template-columns:minmax(0,1fr)}}
+.labgrid{display:block}
 .obs{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .obs > b,.task > b{display:block;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .obs h2{font-size:1.5rem;margin:0 0 10px;color:var(--accent)}
@@ -172,6 +171,7 @@ details li{margin-bottom:6px}
       <ol>
         <li>Stelle 20 °C und 1 bar ein. Beschreibe Anordnung, Abstand und Bewegung der Teilchen und fülle die Tabelle aus. Vergleiche danach mit „Antworten zeigen“.</li>
         <li>Kühle langsam auf −20 °C ab. Was passiert mit den Teilchen beim Erstarren?</li>
+        <li>Vergleiche die beiden Zylinder: Was sieht man auf der Stoffebene, und wie erklärt die Teilchenebene, was man dort sieht?</li>
         <li>Erwärme auf 120 °C. Was passiert beim Sieden? Wie verhält sich der Stempel?</li>
         <li>Schalte „Geschwindigkeit farbig zeigen“ ein. Wie hängt die Temperatur mit der Bewegung der Teilchen zusammen?</li>
         <li>Stelle 150 °C ein und erhöhe den Druck langsam von 1 bar auf 10 bar. Was beobachtest du? Erkläre mit dem Teilchenmodell.</li>
@@ -205,7 +205,7 @@ details li{margin-bottom:6px}
       <div>
         <div class="stagewrap">
           <div class="status" id="status" aria-live="polite"></div>
-          <canvas id="stage" role="img" aria-label="Zylinder mit beweglichem Stempel. Darin bewegen sich die Teilchen eines Stoffs; links ein Thermometer, rechts ein Druckmesser."></canvas>
+          <canvas id="stage" role="img" aria-label="Zwei gleiche Zylinder mit beweglichem Stempel: links die Stoffebene (fest hellweiß, flüssig hellblau, gasförmig durchscheinend schieferblau), rechts die Teilchenebene mit den Teilchen. Links ein Thermometer, rechts ein Druckmesser."></canvas>
           <div class="readout" id="readout"></div>
         </div>
         <div class="ctrlrow">
@@ -237,6 +237,7 @@ details li{margin-bottom:6px}
       <li>Modellstoff: 110 Teilchen in einer Ebene (2D). Sie ziehen sich auf kurze Entfernung an und stoßen sich bei Berührung ab (Morse-Potenzial). Ihre Bewegung wird Schritt für Schritt berechnet; fest, flüssig und gasförmig werden nicht vorgegeben, sondern entstehen aus dieser Bewegung. Angezeigt wird der Zustand, den das Programm an Anordnung und Beweglichkeit der Teilchen erkennt.</li>
       <li>Temperatur und Druck sind so umgerechnet, dass der Modellstoff wie Wasser bei 0 °C schmilzt und beim eingestellten Druck dort siedet, wo Wasser siedet (berechnet mit der Clausius-Clapeyron-Gleichung und der Verdampfungsenthalpie 40,65 kJ/mol: 0,1 bar etwa 46 °C, 0,7 bar etwa 90 °C, 1 bar 100 °C, 10 bar etwa 180 °C, 20 bar etwa 212 °C). Der Modellstoff ist aber kein Wasser: Die Besonderheiten von Wasser, etwa dass Eis auf Wasser schwimmt, zeigt er nicht. Für Butan gilt dasselbe mit Schmelztemperatur −138 °C, Siedetemperatur −0,5 °C bei 1 bar und Verdampfungsenthalpie 22,4 kJ/mol: Bei 20 °C wird Butan ab etwa 2 bar flüssig.</li>
       <li>Ein echtes Gas braucht bei 1 bar etwa tausendmal so viel Platz wie die Flüssigkeit. So hoch ist der Zylinder nicht: Oben hat er einen Anschlag. Liegt der Stempel am Anschlag, ist das Gas eingesperrt.</li>
+      <li>Stoffebene: Der linke Zylinder wird aus den Teilchen im rechten berechnet. Teilchen mit mehreren nahen Nachbarn zählen zum Feststoff (fast weiß) oder zur Flüssigkeit (hellblau), frei fliegende Teilchen zum Gas (durchscheinend schieferblau, umso kräftiger, je dichter das Gas). Ein echter Stoff hat unvorstellbar viele Teilchen; deshalb sieht man auf der Stoffebene keine einzelnen Teilchen.</li>
       <li>Die Schwerkraft ist im Modell stark vergrößert, damit Flüssigkeit und Feststoff am Boden liegen. Die Teilchen sind stark vergrößert und ihre Bewegung stark verlangsamt.</li>
       <li>Die Temperatur wird direkt eingestellt (Thermostat). Deshalb sieht man keine Haltepunkte: In Wirklichkeit bleibt die Temperatur beim Schmelzen und Sieden eine Weile gleich, weil die zugeführte Wärme die Teilchen voneinander trennt.</li>
       <li>Schmelzen, Erstarren, Verdampfen und Kondensieren brauchen im Modell ein paar Sekunden. Kurz nach einer Änderung kann deshalb noch ein Gemisch zu sehen sein.</li>
@@ -324,14 +325,16 @@ function init(){
 /* ---------- Zustand erkennen ---------- */
 const snaps = [], stateHist = [];
 let fc = 1, mob = 0, state = "fluessig";
+let condTop = 0, nGas = 0;                                       // für die Stoffebene: Oberkante des kondensierten Teils, Gasteilchen
 function analyse(){
-  let cond = 0;                                                  // Teilchen mit mindestens 3 nahen Nachbarn
+  let cond = 0, lone = 0;                                        // cond: mindestens 3 nahe Nachbarn; lone: höchstens 1 (frei fliegend)
   for (let i = 0; i < N; i++){
     let n = 0;
     for (let j = 0; j < N; j++){ if (i === j) continue; const dx = x[j] - x[i], dy = y[j] - y[i]; if (dx * dx + dy * dy < 2.25 && ++n >= 3) break; }
-    if (n >= 3) cond++;
+    if (n >= 3) cond++; if (n <= 1) lone++;
   }
-  fc = cond / N;
+  fc = cond / N; nGas = lone;
+  condTop = N - lone >= 8 ? (N - lone) / (WB * 0.95) + 0.3 : 0;    // Höhe, die die nicht frei fliegenden Teilchen am Boden füllen
   snaps.push({t:simT, x:Float64Array.from(x), y:Float64Array.from(y)});
   while (snaps.length && simT - snaps[0].t > 4.2) snaps.shift();
   const s0 = snaps[0];                                           // Beweglichkeit: Verschiebung in den letzten ~4 Zeiteinheiten
@@ -365,52 +368,78 @@ function ball(X, Y, r, c){
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, 2 * Math.PI); ctx.fill();
 }
 let curC = 20, curBar = 1;
+let topShown = 0;
 function draw(){
   if (!W) return;
   ctx.clearRect(0, 0, W, H);
-  const top = 46, bottom = H - 34;
-  const s = Math.min((bottom - top) / (YMAX + 1.2), (W - 230) / (WB + 1)), cw = WB * s, cx0 = (W - cw) / 2;
-  const X = v => cx0 + v * s, Y = v => bottom - v * s;
-  // Heizplatte: Farbe nach Temperatur
-  const span = SUB.tmax - SUB.tmin, hot = Math.max(0, Math.min(1, (curC - SUB.tmin) / span)), plate = [Math.round(60 + 190 * hot), Math.round(110 - 40 * hot), Math.round(230 - 190 * hot)];
-  ctx.fillStyle = rgb(plate, .85); ctx.fillRect(cx0 - 14, bottom + 6, cw + 28, 10);
-  // Zylinder
-  ctx.strokeStyle = "rgba(220,230,255,.75)"; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(cx0 - 2, Y(YMAX + 1)); ctx.lineTo(cx0 - 2, bottom + 2); ctx.lineTo(cx0 + cw + 2, bottom + 2); ctx.lineTo(cx0 + cw + 2, Y(YMAX + 1)); ctx.stroke();
-  ctx.fillStyle = "rgba(220,230,255,.6)"; ctx.fillRect(cx0 - 8, Y(YMAX) - 4, 6, 4); ctx.fillRect(cx0 + cw + 2, Y(YMAX) - 4, 6, 4);   // Anschlag
-  // Teilchen
-  const r = 0.5 * s;
-  for (let i = 0; i < N; i++) ball(X(x[i]), Y(y[i]), r, speedCol ? speedColor(Math.hypot(vx[i], vy[i])) : [77, 141, 255]);
-  // Stempel mit Stange und Druckpfeilen
-  const py = Y(yp);
-  ctx.fillStyle = "#8d97ab"; ctx.fillRect(cx0, py - 0.9 * s, cw, 0.9 * s);
-  ctx.fillStyle = "#5d6679"; ctx.fillRect(cx0 + cw / 2 - 3, 8, 6, py - 0.9 * s - 8);
-  const nArrow = 1 + Math.round(3 * Math.log10(curBar / 0.1) / Math.log10(200));
-  ctx.strokeStyle = "#ffcf6e"; ctx.fillStyle = "#ffcf6e"; ctx.lineWidth = 2;
-  for (let k = 0; k < nArrow; k++){
-    const ax = cx0 + cw * (k + 1) / (nArrow + 1), ay = py - 0.9 * s - 4;
-    ctx.beginPath(); ctx.moveTo(ax, ay - 22); ctx.lineTo(ax, ay - 6); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ax - 5, ay - 8); ctx.lineTo(ax + 5, ay - 8); ctx.lineTo(ax, ay - 1); ctx.closePath(); ctx.fill();
+  const narrow = W < 600, top = 52, bottom = H - 34;
+  const mL = narrow ? 46 : 110, mR = narrow ? 64 : 130, gap = narrow ? 22 : 70;
+  const s = Math.min((bottom - top) / (YMAX + 1.2), (W - mL - mR - gap - 16) / (2 * WB + 2)), cw = WB * s;
+  const x0 = (W - (mL + cw + gap + cw + mR)) / 2, cxS = x0 + mL, cxP = cxS + cw + gap;
+  const Y = v => bottom - v * s, py = Y(yp);
+  const span = SUB.tmax - SUB.tmin, hot = Math.max(0, Math.min(1, (curC - SUB.tmin) / span));
+  const plate = [Math.round(60 + 190 * hot), Math.round(110 - 40 * hot), Math.round(230 - 190 * hot)];
+  // Überschriften
+  ctx.textAlign = "center";
+  for (const [cx, t1, t2] of [[cxS, "Stoffebene", "was man sieht"], [cxP, "Teilchenebene", narrow ? "Modell" : "Modell, stark vergrößert"]]){
+    ctx.fillStyle = "#c9d3ea"; ctx.font = `700 ${narrow ? 13 : 14}px 'Source Sans 3',system-ui,sans-serif`; ctx.fillText(t1, cx + cw / 2, 18);
+    ctx.fillStyle = "#7482a3"; ctx.font = "12px 'Source Sans 3',system-ui,sans-serif"; ctx.fillText(t2, cx + cw / 2, 33);
   }
-  ctx.font = "600 12px 'Source Sans 3',system-ui,sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = "#ffcf6e";
-  ctx.fillText("Druck", cx0 + cw + 12, Math.max(20, py - 0.9 * s - 12));
+  // Stoffebene: Füllung nach dem, was die Teilchen gerade tun
+  topShown += ((state === "gas" ? 0 : condTop) - topShown) * 0.25;
+  const hc = nGas < 3 && topShown > 0.3 ? yp - 0.6 : Math.min(topShown, yp - 0.6), seen = state.split("+");   // kaum Gas: Flüssigkeit/Feststoff bis zum Stempel
+  if (hc > 0.3){
+    const solid = seen.includes("fest") && !seen.includes("fluessig");
+    const g = ctx.createLinearGradient(cxS, 0, cxS + cw, 0);
+    if (solid){ g.addColorStop(0, "#f4f9ff"); g.addColorStop(.5, "#e3effc"); g.addColorStop(1, "#cfe1f6"); }
+    else { g.addColorStop(0, "#8cc8f7"); g.addColorStop(.5, "#6fb6f0"); g.addColorStop(1, "#549fe0"); }
+    ctx.fillStyle = g; ctx.fillRect(cxS, Y(hc), cw, bottom - Y(hc));
+    ctx.fillStyle = solid ? "rgba(255,255,255,.9)" : "rgba(210,236,255,.95)"; ctx.fillRect(cxS, Y(hc), cw, 2);   // Oberfläche
+    if (solid){ ctx.strokeStyle = "rgba(150,180,215,.5)"; ctx.lineWidth = 1;                                 // angedeutete Kristallflächen
+      ctx.beginPath(); ctx.moveTo(cxS + cw * .2, Y(hc)); ctx.lineTo(cxS + cw * .35, bottom); ctx.moveTo(cxS + cw * .7, Y(hc)); ctx.lineTo(cxS + cw * .55, bottom); ctx.stroke(); }
+  }
+  const gasH = yp - Math.max(hc, 0) - 0.6, dens = gasH > 0 ? nGas / (gasH * WB) : 0;
+  if (gasH > 0.3 && nGas > 0){                                   // Gas: schieferblau, umso dichter, je mehr Teilchen auf wenig Raum
+    ctx.fillStyle = `rgba(106,90,205,${(Math.min(0.55, 0.06 + dens * 1.6) * Math.min(1, nGas / 10)).toFixed(3)})`;   // wenige Gasteilchen: kaum sichtbar
+    ctx.fillRect(cxS, py, cw, Y(Math.max(hc, 0)) - py);
+  }
+  // Teilchenebene
+  const r = 0.5 * s;
+  for (let i = 0; i < N; i++) ball(cxP + x[i] * s, Y(y[i]), r, speedCol ? speedColor(Math.hypot(vx[i], vy[i])) : [77, 141, 255]);
+  // Gefäße, Heizplatten, Stempel (gleich für beide)
+  const nArrow = 1 + Math.round(3 * Math.log10(curBar / 0.1) / Math.log10(200));
+  for (const cx of [cxS, cxP]){
+    ctx.fillStyle = rgb(plate, .85); ctx.fillRect(cx - 12, bottom + 6, cw + 24, 10);
+    ctx.strokeStyle = "rgba(220,230,255,.75)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx - 2, Y(YMAX + 1)); ctx.lineTo(cx - 2, bottom + 2); ctx.lineTo(cx + cw + 2, bottom + 2); ctx.lineTo(cx + cw + 2, Y(YMAX + 1)); ctx.stroke();
+    ctx.fillStyle = "rgba(220,230,255,.6)"; ctx.fillRect(cx - 8, Y(YMAX) - 4, 6, 4); ctx.fillRect(cx + cw + 2, Y(YMAX) - 4, 6, 4);   // Anschlag
+    ctx.fillStyle = "#8d97ab"; ctx.fillRect(cx, py - 0.9 * s, cw, 0.9 * s);
+    ctx.fillStyle = "#5d6679"; ctx.fillRect(cx + cw / 2 - 3, 42, 6, Math.max(0, py - 0.9 * s - 42));
+    ctx.strokeStyle = "#ffcf6e"; ctx.fillStyle = "#ffcf6e"; ctx.lineWidth = 2;
+    for (let k = 0; k < nArrow; k++){
+      const ax = cx + cw * (k + 1) / (nArrow + 1), ay = py - 0.9 * s - 4;
+      ctx.beginPath(); ctx.moveTo(ax, ay - 20); ctx.lineTo(ax, ay - 6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ax - 5, ay - 8); ctx.lineTo(ax + 5, ay - 8); ctx.lineTo(ax, ay - 1); ctx.closePath(); ctx.fill();
+    }
+  }
   // Thermometer (links)
-  const tx = cx0 - 70, tTop = top + 20, tBot = bottom - 30, frac = (curC - SUB.tmin) / span;
+  const tx = cxS - mL / 2 - (narrow ? 2 : 8), tTop = top + 24, tBot = bottom - 30, frac = (curC - SUB.tmin) / span;
   ctx.strokeStyle = "rgba(220,230,255,.8)"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(tx - 6, tTop, 12, tBot - tTop, 6) : ctx.rect(tx - 6, tTop, 12, tBot - tTop); ctx.stroke();
   ctx.beginPath(); ctx.arc(tx, tBot + 10, 11, 0, 2 * Math.PI); ctx.fillStyle = "#e5484d"; ctx.fill(); ctx.stroke();
   ctx.fillStyle = "#e5484d"; ctx.fillRect(tx - 3, tBot - (tBot - tTop) * frac, 6, (tBot - tTop) * frac + 4);
-  ctx.fillStyle = "#c9d3ea"; ctx.font = "700 13px ui-monospace,Consolas,monospace"; ctx.textAlign = "center";
+  ctx.fillStyle = "#c9d3ea"; ctx.font = `700 ${narrow ? 11 : 13}px ui-monospace,Consolas,monospace`; ctx.textAlign = "center";
   ctx.fillText(`${String(Math.round(curC)).replace("-", "−")} °C`, tx, tTop - 10);
-  for (const c of SUB.ticks){ const lab = String(c).replace("-", "−"), yy = tBot - (tBot - tTop) * (c - SUB.tmin) / span; ctx.fillStyle = "#7482a3"; ctx.fillRect(tx + 8, yy, 6, 1.5); ctx.font = "11px ui-monospace,Consolas,monospace"; ctx.textAlign = "left"; ctx.fillText(lab, tx + 16, yy + 4); }
+  if (!narrow) for (const c of SUB.ticks){ const lab = String(c).replace("-", "−"), yy = tBot - (tBot - tTop) * (c - SUB.tmin) / span; ctx.fillStyle = "#7482a3"; ctx.fillRect(tx + 8, yy, 6, 1.5); ctx.font = "11px ui-monospace,Consolas,monospace"; ctx.textAlign = "left"; ctx.fillText(lab, tx + 16, yy + 4); }
   // Druckmesser (rechts)
-  const gx = cx0 + cw + 70, gy = bottom - 70, gr = 36, ang = Math.PI * (0.75 + 1.5 * Math.log10(curBar / 0.1) / Math.log10(200));
-  ctx.beginPath(); ctx.arc(gx, gy, gr, 0, 2 * Math.PI); ctx.fillStyle = "#111a2c"; ctx.fill(); ctx.strokeStyle = "rgba(220,230,255,.8)"; ctx.stroke();
+  const gr = narrow ? 24 : 36, gx = cxP + cw + mR / 2 + (narrow ? 2 : 0), gy = bottom - gr - 30, ang = Math.PI * (0.75 + 1.5 * Math.log10(curBar / 0.1) / Math.log10(200));
+  ctx.beginPath(); ctx.arc(gx, gy, gr, 0, 2 * Math.PI); ctx.fillStyle = "#111a2c"; ctx.fill(); ctx.strokeStyle = "rgba(220,230,255,.8)"; ctx.lineWidth = 2; ctx.stroke();
   ctx.strokeStyle = "#7482a3"; ctx.lineWidth = 1.5;
   for (let k = 0; k <= 6; k++){ const a = Math.PI * (0.75 + 1.5 * k / 6); ctx.beginPath(); ctx.moveTo(gx + Math.cos(a) * (gr - 6), gy + Math.sin(a) * (gr - 6)); ctx.lineTo(gx + Math.cos(a) * gr, gy + Math.sin(a) * gr); ctx.stroke(); }
   ctx.strokeStyle = "#ffcf6e"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + Math.cos(ang) * (gr - 8), gy + Math.sin(ang) * (gr - 8)); ctx.stroke();
-  ctx.fillStyle = "#c9d3ea"; ctx.font = "700 13px ui-monospace,Consolas,monospace"; ctx.textAlign = "center";
-  ctx.fillText(`${fmtBar(curBar)} bar`, gx, gy + gr + 18);
+  ctx.fillStyle = "#c9d3ea"; ctx.font = `700 ${narrow ? 11 : 13}px ui-monospace,Consolas,monospace`; ctx.textAlign = "center";
+  ctx.fillText(`${fmtBar(curBar)} bar`, gx, gy + gr + 16);
+  ctx.fillStyle = "#ffcf6e"; ctx.font = "600 12px 'Source Sans 3',system-ui,sans-serif"; ctx.fillText("Druck", gx, gy - gr - 8);
 }
 const fmt = (v, d) => v.toFixed(d).replace(".", ",");
 const fmtBar = b => fmt(b, b < 10 ? 1 : 0);
