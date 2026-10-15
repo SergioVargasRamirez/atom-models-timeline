@@ -189,7 +189,7 @@ details li{margin-bottom:6px}
       <div class="zoombtns"><button type="button" id="zin" aria-label="Vergrößern">+</button><button type="button" id="zout" aria-label="Verkleinern">−</button></div>
       <div class="readout" id="readout"></div>
     </div>
-    <p class="small" style="text-align:center;margin-top:6px">Zum Drehen auf der Bühne ziehen (oder Pfeiltasten), zum Vergrößern Mausrad, zwei Finger oder + / −. Sauerstoff rot, Wasserstoff weiß, Chlor grün, zuletzt übertragenes Proton orange.</p>
+    <p class="small" style="text-align:center;margin-top:6px">Zum Drehen auf der Bühne ziehen (oder Pfeiltasten), zum Vergrößern Mausrad, zwei Finger oder + / −. Sauerstoff rot, Wasserstoff weiß, Chlor grün, orange: das übertragene Proton, solange es in einem H₃O⁺ oder NH₄⁺ sitzt.</p>
 
     <div class="ctrlrow">
       <div class="task">
@@ -222,7 +222,7 @@ details li{margin-bottom:6px}
       <ol>
         <li><i>HCl trifft H₂O:</i> Gehe Schritt für Schritt vor. Welche Bindung wird gespalten, welche gebildet? Welches Teilchen ist Protonendonator, welches Protonenakzeptor?</li>
         <li>Vergleiche die Form des Wassermoleküls mit der Form des Oxonium-Ions H₃O⁺. Drehe das Modell dazu.</li>
-        <li>Das zuletzt übertragene Proton ist orange. Verfolge es in „HCl trifft H₂O“ und „HCl in Wasser“: Wandert immer dasselbe Proton weiter?</li>
+        <li>Das übertragene Proton im H₃O⁺ ist orange. Verfolge es in „HCl trifft H₂O“ und „HCl in Wasser“: Wandert immer dasselbe Proton weiter?</li>
         <li>Schalte die Wasserstoffbrücken ein. Auf welchem Weg springt das Proton von einem Molekül zum nächsten?</li>
         <li><i>Viele Teilchen:</i> Gib nacheinander mehrmals HCl zu und beobachte den Universalindikator. Wie ändert sich die Farbe, und warum? Warum findet man in Salzsäure praktisch keine HCl-Moleküle?</li>
         <li>Was macht das Chlorid-Ion, nachdem es entstanden ist?</li>
@@ -737,7 +737,8 @@ function ball(X, Y, r, c, alpha){
   g.addColorStop(1, rgb(mix(c, [0, 0, 0], .55), alpha));
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, 2 * Math.PI); ctx.fill();
 }
-function atomColor(a){ return a.el === "H" && a.hot ? COL.M : COL[a.el]; }
+const HOT_IN = ["H3O+", "NH4+", "HCl"];                          // orange nur, solange das Proton ein Ion ausmacht (oder gleich abgegeben wird)
+function atomColor(a){ return a.el === "H" && a.hot && (a.tr || HOT_IN.includes(kind(a.owner))) ? COL.M : COL[a.el]; }
 function stick(p, q, c, w, alpha){
   ctx.strokeStyle = rgb(mix(c, [0, 0, 0], .15), alpha); ctx.lineWidth = w; ctx.lineCap = "round";
   ctx.beginPath(); ctx.moveTo(p.X, p.Y); ctx.lineTo(q.X, q.Y); ctx.stroke();

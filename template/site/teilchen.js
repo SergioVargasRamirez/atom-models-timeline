@@ -485,7 +485,8 @@ function ball(X, Y, r, c, alpha){
   g.addColorStop(1, rgb(mix(c, [0, 0, 0], .55), alpha));
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, 2 * Math.PI); ctx.fill();
 }
-function atomColor(a){ return a.el === "H" && a.hot ? COL.M : COL[a.el]; }
+const HOT_IN = ["H3O+", "NH4+", "HCl"];                          // orange nur, solange das Proton ein Ion ausmacht (oder gleich abgegeben wird)
+function atomColor(a){ return a.el === "H" && a.hot && (a.tr || HOT_IN.includes(kind(a.owner))) ? COL.M : COL[a.el]; }
 function stick(p, q, c, w, alpha){
   ctx.strokeStyle = rgb(mix(c, [0, 0, 0], .15), alpha); ctx.lineWidth = w; ctx.lineCap = "round";
   ctx.beginPath(); ctx.moveTo(p.X, p.Y); ctx.lineTo(q.X, q.Y); ctx.stroke();
