@@ -224,6 +224,7 @@ details li{margin-bottom:6px}
         <li>Schalte die Wasserstoffbrücken ein. Auf welchem Weg springt das Proton von einem Molekül zum nächsten?</li>
         <li><i>Viele Teilchen:</i> Gib mehrmals HCl zu. Warum findet man in Salzsäure praktisch keine HCl-Moleküle?</li>
         <li>Was macht das Chlorid-Ion, nachdem es entstanden ist?</li>
+        <li><i>Viele Teilchen:</i> Beobachte reines Wasser eine Weile. Was passiert bei der Autoprotolyse, und was, wenn sich H₃O⁺ und OH⁻ treffen?</li>
       </ol>
     </div>
   </main>
@@ -236,6 +237,7 @@ details li{margin-bottom:6px}
       <li>Zeit: Bei „normal“ entspricht 1 Sekunde etwa 1 Pikosekunde (10<sup>−12</sup> s). Während eines Sprungs läuft zusätzlich eine Zeitlupe. In Wirklichkeit dauert der Sprung selbst nur einige Femtosekunden; ein H₃O⁺ gibt sein Proton nach etwa 1 bis 2 ps weiter.</li>
       <li>In Wirklichkeit ist das überschüssige Proton in Wasser meist über mehrere Moleküle verteilt (Zundel-Ion H₅O₂⁺, Eigen-Ion H₉O₄⁺). Das Modell zeigt der Einfachheit halber immer ein einzelnes H₃O⁺.</li>
       <li>Ein einzelnes Wassermolekül kann HCl nicht ionisieren; dazu braucht es mehrere Wassermoleküle, die die entstehenden Ionen umgeben. In der Nahaufnahme stehen deshalb drei weitere, blass gezeichnete Wassermoleküle daneben.</li>
+      <li>Autoprotolyse: In reinem Wasser gilt bei 25 °C c(H₃O⁺) = c(OH⁻) = 10<sup>−7</sup> mol/L. Damit ist nur etwa jedes 550-millionste Wassermolekül ionisiert, und ein einzelnes Wassermolekül gibt im Mittel nur etwa alle 10 Stunden ein Proton ab. In „Viele Teilchen“ ist die Autoprotolyse deshalb enorm beschleunigt dargestellt; mit 22 Wassermolekülen würde man sie sonst nie sehen. Ist HCl im Kasten, zeigt das Modell keine Autoprotolyse mehr: Entstehende OH⁻-Ionen würden von den vielen H₃O⁺-Ionen sofort abgefangen.</li>
       <li>Der Kasten enthält nur wenige Dutzend Teilchen. Echte Salzsäure enthält in einem Tropfen etwa 10<sup>20</sup> Teilchen, und die Ionen sind viel weiter verdünnt.</li>
     </ul>
   </details>
@@ -321,7 +323,7 @@ const molOf = i => A[i].el === "H" ? A[i].owner : i;
 function kind(i){                                                // Teilchenart eines Schweratoms
   const n = hl[i].length;
   if (A[i].el === "Cl") return n ? "HCl" : "Cl-";
-  return n >= 3 ? "H3O+" : "H2O";
+  return n >= 3 ? "H3O+" : n === 2 ? "H2O" : "OH-";
 }
 function lonePair(o, which = 1){                                 // Richtung eines freien Elektronenpaars am O
   const [h1, h2] = hl[o], O = pos(A[o]);
@@ -440,7 +442,8 @@ function step(h){
       S.onLanded && S.onLanded(i, t);
     }
   }
-  if (S.auto) tryTransfers(h);
+  if (S.auto){ S.nOH = 0; for (let j = 0; j < A.length; j++) if (A[j].el === "O" && hl[j].length === 1) S.nOH++; tryTransfers(h); }
+  S.autoprot && S.autoprot();
 }
 function startTransfer(i, from, to, tau){
   const h = A[i];
@@ -473,13 +476,17 @@ function tryTransfers(h){
   const cand = [];
   for (let d = 0; d < A.length; d++){
     const D = A[d]; if (D.el === "H" || D.busy || S.t - D.last < REFR) continue;
-    const isDonor = D.el === "O" && hl[d].length === 3;
-    if (!isDonor || (S.donorOK && !S.donorOK(d))) continue;
+    if (D.el !== "O") continue;
+    const nd = hl[d].length;
+    if (nd !== 3 && !(nd === 2 && S.nOH)) continue;              // Donor: H₃O⁺, oder H₂O neben einem OH⁻
     for (const i of hl[d]){
       const H = A[i];
       for (let a = 0; a < A.length; a++){
         const Ac = A[a];
-        if (Ac.el !== "O" || a === d || Ac.busy || hl[a].length !== 2 || S.t - Ac.last < REFR) continue;
+        if (Ac.el !== "O" || a === d || Ac.busy || S.t - Ac.last < REFR) continue;
+        const na = hl[a].length;
+        if (!(nd === 3 && (na === 2 || na === 1)) && !(nd === 2 && na === 1)) continue;
+        if (nd === 3 && na === 1 && S.t < (S.pairGuard || 0)) continue;   // frisch getrenntes Ionenpaar kurz schonen
         const dDA = Math.hypot(Ac.x - D.x, Ac.y - D.y, Ac.z - D.z);
         if (dDA > CUT[D.el]) continue;
         const u1 = norm(V(H.x - D.x, H.y - D.y, H.z - D.z)), u2 = norm(V(Ac.x - H.x, Ac.y - H.y, Ac.z - H.z));
@@ -490,7 +497,8 @@ function tryTransfers(h){
   }
   for (const [i, d, a] of cand){
     if (A[d].busy || A[a].busy || A[i].tr) continue;
-    if (rand() < RATE[A[d].el] * h * S.auto) startTransfer(i, d, a, 0.12);
+    const rate = hl[d].length === 3 && hl[a].length === 1 ? 12 : RATE.O;   // H₃O⁺ + OH⁻ reagieren sehr schnell
+    if (rand() < rate * h * S.auto) startTransfer(i, d, a, 0.12);
   }
 }
 function equilibrate(ps){
@@ -619,7 +627,36 @@ const SCENES = {
     fillWater(22, L, -L, L, [], 2.3);                           // zu Beginn nur Wasser; HCl kommt mit „HCl zugeben“
     s.walls = boxWalls(L, -L, L);
     s.forces = () => {};
-    s.onTransfer = (i, from) => flashFormula(A[from].el === "Cl" ? 1 : 2);
+    s.nextAuto = 1.5; s.autoEvents = 0;
+    s.autoprot = () => {                                         // stark beschleunigte Autoprotolyse in reinem Wasser
+      if (s.t < s.nextAuto || s.flying.length || A.some(a => a.el === "Cl")) return;
+      buildLists();
+      if (A.some((a, j) => a.el === "O" && hl[j].length !== 2)) return;   // nur, wenn gerade keine Ionen da sind
+      const cand = [];
+      for (let d = 0; d < A.length; d++){
+        if (A[d].el !== "O") continue;
+        for (const i of hl[d]) for (let a = 0; a < A.length; a++){
+          if (A[a].el !== "O" || a === d) continue;
+          const D = A[d], H = A[i], Ac = A[a];
+          if (Math.hypot(Ac.x - D.x, Ac.y - D.y, Ac.z - D.z) > 2.95) continue;
+          if (dot(norm(V(H.x - D.x, H.y - D.y, H.z - D.z)), norm(V(Ac.x - H.x, Ac.y - H.y, Ac.z - H.z))) < Math.cos(30 * DEG)) continue;
+          cand.push([i, d, a]);
+        }
+      }
+      if (!cand.length) return;
+      const [i, d, a] = cand[Math.floor(rand() * cand.length)];
+      s.pairGuard = s.t + 1.2;
+      startTransfer(i, d, a, 0.15);
+    };
+    s.onTransfer = (i, from, to) => {
+      if (A[from].el === "Cl"){ flashFormula(1); return; }
+      const nf = hl[from].length, nt = hl[to].length;            // Anzahl H vor dem Übergang
+      if (nf === 2 && nt === 2){ s.autoEvents++; s.nextAuto = Infinity; flashFormula(3);
+        s.msg = {text:"Autoprotolyse: Ein Wassermolekül hat ein Proton an ein benachbartes Wassermolekül abgegeben. Es sind ein Oxonium-Ion H₃O⁺ und ein Hydroxid-Ion OH⁻ entstanden.", until:s.t + 2.5}; }
+      else if (nf === 3 && nt === 1){ flashFormula(3); s.nextAuto = s.t + 3 + 4 * rand();
+        s.msg = {text:"H₃O⁺ und OH⁻ haben sich getroffen: Das Oxonium-Ion gibt sein Proton an das Hydroxid-Ion ab, es entstehen wieder zwei Wassermoleküle.", until:s.t + 2.5}; }
+      else if (nf === 3) flashFormula(2);
+    };
     return s;
   },
 };
@@ -727,12 +764,12 @@ function draw(){
   }
   const P = A.map(a => proj(a.x - cx, a.y - cy, a.z - cz));
   drawBox();
-  // Leuchten um H₃O⁺ (Ort der positiven Ladung)
+  // Leuchten um H₃O⁺ (violett, positive Ladung) und OH⁻ (blau, negative Ladung)
   for (let i = 0; i < A.length; i++){
-    if (A[i].el !== "O" || hl[i].length < 3) continue;
-    const p = P[i], r = 2.2 * SC * p.f;
+    if (A[i].el !== "O" || hl[i].length === 2) continue;
+    const p = P[i], r = 2.2 * SC * p.f, c = hl[i].length >= 3 ? "170,110,255" : "80,190,255";
     const g = ctx.createRadialGradient(p.X, p.Y, 0, p.X, p.Y, r);
-    g.addColorStop(0, "rgba(170,110,255,.42)"); g.addColorStop(1, "rgba(170,110,255,0)");
+    g.addColorStop(0, `rgba(${c},.42)`); g.addColorStop(1, `rgba(${c},0)`);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.X, p.Y, r, 0, 2 * Math.PI); ctx.fill();
   }
   // Zeichenliste: Atome und Stäbe, von hinten nach vorn
@@ -788,10 +825,10 @@ function draw(){
     const a = A[i]; if (a.el === "H" || a.fade) continue;
     const k = kind(i);
     if (k === "H2O" && S.id !== 1) continue;
-    const label = {H2O:"H₂O", "H3O+":"H₃O⁺", HCl:"HCl", "Cl-":"Cl⁻"}[k];
+    const label = {H2O:"H₂O", "H3O+":"H₃O⁺", "OH-":"OH⁻", HCl:"HCl", "Cl-":"Cl⁻"}[k];
     const p = P[i], y = p.Y - (radii[a.el] * SC * p.f + 16);
     ctx.lineWidth = 3; ctx.strokeStyle = "rgba(10,14,24,.85)"; ctx.strokeText(label, p.X, y);
-    ctx.fillStyle = k === "H3O+" ? "#d7b8ff" : k === "Cl-" ? "#9fe3ae" : "#e8ecf3"; ctx.fillText(label, p.X, y);
+    ctx.fillStyle = k === "H3O+" ? "#d7b8ff" : k === "OH-" ? "#9fd8ff" : k === "Cl-" ? "#9fe3ae" : "#e8ecf3"; ctx.fillText(label, p.X, y);
   }
   gizmo();
   if (S.flying.length && S.id !== 1){
@@ -814,6 +851,12 @@ const LEWIS = {
   Clm: (x, y) => T(x, y, "Cl") + Ln(x - 8, y - 17, x + 8, y - 17) + Ln(x - 8, y + 17, x + 8, y + 17) + Ln(x - 21, y - 8, x - 21, y + 8) + Ln(x + 21, y - 8, x + 21, y + 8) +
        `<path d="M${x - 32} ${y - 28}h-6v56h6M${x + 32} ${y - 28}h6v56h-6"/>` + T(x + 50, y - 28, "−"),
 };
+LEWIS.OHm = (x, y) => T(x, y, "O") + Ln(x - 8, y - 17, x + 8, y - 17) + Ln(x - 8, y + 17, x + 8, y + 17) + Ln(x - 17, y - 8, x - 17, y + 8) +
+  Ln(x + 11, y, x + 25, y) + T(x + 35, y, "H") + `<path d="M${x - 28} ${y - 28}h-6v56h6M${x + 50} ${y - 28}h6v56h-6"/>` + T(x + 68, y - 28, "−");
+const EQ = (x, y) => `<path d="M${x - 26} ${y - 5}h52l-9 -7M${x + 26} ${y + 5}h-52l9 7"/>`;
+function rowAuto(y){
+  return `<g>${LEWIS.H2O(50, y - 10)}${PLUS(120, y)}${LEWIS.H2O(190, y - 10)}${EQ(285, y)}${LEWIS.H3O(400, y, "l")}${PLUS(500, y)}${LEWIS.OHm(570, y)}</g>`;
+}
 const PLUS = (x, y) => T(x, y, "+"), ARROW = (x, y) => `<path d="M${x - 26} ${y}h52m-10 -7l10 7l-10 7"/>`;
 function rowDiss(y){
   return `<g class="side" id="fl">${LEWIS.HCl(40, y, true)}${PLUS(140, y)}${LEWIS.H2O(215, y)}</g>${ARROW(310, y)}` +
@@ -825,10 +868,12 @@ function rowHop(y){
 function buildFormula(){
   const svg = $("fsvg");
   {
-    svg.setAttribute("viewBox", "0 0 760 250");
+    const three = S.id === 3;
+    svg.setAttribute("viewBox", `0 0 760 ${three ? 368 : 250}`);
     svg.innerHTML = `<g class="row" id="r1"><rect class="bg" x="0" y="0" width="760" height="105" rx="8"/>${rowDiss(45)}</g>` +
       `<g class="row" id="r2"><rect class="bg" x="0" y="118" width="760" height="105" rx="8"/>${rowHop(160)}</g>` +
-      `<text class="cnt" x="10" y="242" id="fcnt"></text>`;
+      (three ? `<g class="row" id="r3"><rect class="bg" x="0" y="236" width="760" height="105" rx="8"/>${rowAuto(284)}</g>` : "") +
+      `<text class="cnt" x="10" y="${three ? 360 : 242}" id="fcnt"></text>`;
   }
   updateFormula();
 }
@@ -847,18 +892,18 @@ function updateFormula(){
 let flashT = 0;
 function flashFormula(row){
   const g = $("r" + row); if (!g) return;
-  for (const r of [1, 2]) $("r" + r).classList.remove("flash");
+  for (const r of [1, 2, 3]) $("r" + r) && $("r" + r).classList.remove("flash");
   g.classList.add("flash"); flashT = 1.2;
 }
 
 /* ---------- Anzeige ---------- */
 function counts(){
   buildLists();
-  const n = {H2O:0, "H3O+":0, HCl:0, "Cl-":0};
+  const n = {H2O:0, "H3O+":0, "OH-":0, HCl:0, "Cl-":0};
   for (let i = 0; i < A.length; i++) if (A[i].el !== "H") n[kind(i)]++;
   return n;
 }
-function countsText(){ const n = counts(); return `HCl: ${n.HCl}   H₃O⁺: ${n["H3O+"]}   Cl⁻: ${n["Cl-"]}   H₂O: ${n.H2O}`; }
+function countsText(){ const n = counts(); return `HCl: ${n.HCl} · H₃O⁺: ${n["H3O+"]} · OH⁻: ${n["OH-"]} · Cl⁻: ${n["Cl-"]} · H₂O: ${n.H2O}`; }
 const fmt = (x, d = 1) => x.toFixed(d).replace(".", ",");
 let lastStatus = "";
 function setStatus(s){ if (s !== lastStatus){ $("status").textContent = s; lastStatus = s; } }
@@ -876,8 +921,12 @@ function updateText(){
     else setStatus(`Das H₃O⁺-Ion gibt ein Proton über eine Wasserstoffbrücke an ein benachbartes Wassermolekül weiter (bisher ${hops}-mal). So wandert die positive Ladung durch das Wasser, obwohl jedes Atom nur wenig zittert. Das Chlorid-Ion bleibt einfach im Wasser.`);
   } else {
     $("readout").textContent = `Zeit ${fmt(S.t)} ps · ${countsText()}`;
-    if (!n["Cl-"] && !n.HCl) setStatus("Im Kasten ist nur Wasser. Gib mit „HCl zugeben“ Chlorwasserstoff dazu.");
+    const acid = n["Cl-"] + n.HCl > 0;
+    if (S.msg && S.t < S.msg.until) setStatus(S.msg.text);
+    else if (!acid && n["OH-"]) setStatus("In reinem Wasser sind durch Autoprotolyse ein H₃O⁺- und ein OH⁻-Ion entstanden. Beide wandern durch Protonenübergänge. Treffen sie sich, entstehen wieder zwei Wassermoleküle. In Wirklichkeit ist das sehr selten: Nur etwa jedes 550-millionste Wassermolekül ist ionisiert; hier ist es stark beschleunigt.");
+    else if (!acid) setStatus("Reines Wasser. Ab und zu gibt ein Wassermolekül ein Proton an ein anderes ab (Autoprotolyse, hier stark beschleunigt). Mit „HCl zugeben“ kommt Chlorwasserstoff dazu.");
     else if (n.HCl) setStatus("Das HCl-Molekül gibt sein Proton sofort an ein Wassermolekül ab.");
+    else if (n["OH-"]) setStatus("Die Oxonium-Ionen aus der Salzsäure fangen das Hydroxid-Ion ab: H₃O⁺ + OH⁻ → 2 H₂O.");
     else setStatus(`Alle HCl-Moleküle haben ihr Proton abgegeben (vollständige Protolyse). Die ${n["H3O+"]} Oxonium-Ionen geben ihre Protonen weiter an andere Wassermoleküle. Mit „HCl zugeben“ kommt weiteres HCl dazu.`);
   }
   updateFormula();
@@ -975,7 +1024,7 @@ function frame(ts){
       const n = Math.min(12, Math.ceil(sim / H_MAX));
       for (let k = 0; k < n; k++) step(sim / n);
     }
-    if (flashT > 0){ flashT -= dt; if (flashT <= 0) for (const r of [1, 2]) $("r" + r) && $("r" + r).classList.remove("flash"); }
+    if (flashT > 0){ flashT -= dt; if (flashT <= 0) for (const r of [1, 2, 3]) $("r" + r) && $("r" + r).classList.remove("flash"); }
     syncControls(); updateText(); dirty = true;
   }
   if (dirty){ draw(); dirty = false; }
