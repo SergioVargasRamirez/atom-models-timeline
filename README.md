@@ -10,7 +10,15 @@ Anfragen, auch Schriften sind eingebettet.
 | `timeline.html` | Zeitleiste der Atommodelle (Dalton 1808 bis Kernschalenmodell 1949/50) | **generiert** aus `content/` + `template/` |
 | `rutherford.html` | Rutherford gegen das Spektrum (Vorhersage, Experiment, Erklärung; H, Na, Sr, Ba) | von Hand |
 | `fuellen.html` | Elektronen einfüllen (Energiestufen, 2n², Atome und Ionen H bis Ca) | von Hand |
-| `ionisierung.html` | Ionisierungsenergie (Klickspiel, Na, Mg, K, Ca) | von Hand |
+| `ionisierung.html` | Ionisierungsenergie (Klickspiel, Na, Mg, Al, K, Ca) | von Hand |
+| `diagramm.html` | Energiestufendiagramm (Baukasten und Test) | von Hand |
+| `pse.html` | Klickbares Periodensystem | von Hand |
+| `modelle.html` | Atommodelle im Vergleich (Dalton bis Schrödinger, H bis Ar, 2D und 3D) | von Hand |
+| `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
+| `quellen.html` | Quellen und Danksagung | von Hand |
+
+Neue Seite: Link in die `sitenav` aller Seiten **und** in `template/index.template.html`
+eintragen (danach `python3 build.py`), außerdem eine Karte in `index.html`.
 
 **Wichtig: `timeline.html` wird nicht von Hand bearbeitet.** Sie wird aus den
 Dateien in `content/` und `template/index.template.html` von `build.py`
