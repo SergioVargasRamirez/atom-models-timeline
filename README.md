@@ -16,7 +16,9 @@ Anfragen, auch Schriften sind eingebettet.
 | `pse.html` | Klickbares Periodensystem | von Hand |
 | `modelle.html` | Atommodelle im Vergleich (Dalton bis Schrödinger, H bis Ar, 2D und 3D) | von Hand |
 | `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
-| `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand |
+| `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand + Engine |
+| `ammoniak.html` | Ammoniak in Wasser: NH₃ + H₂O (Nahaufnahme mit Rückreaktion), NH₃ in Wasser (Gleichgewicht), viele Teilchen mit Universalindikator | von Hand + Engine |
+| `neutralisation.html` | Neutralisation: HCl trifft NaOH (wenige Teilchen), viele Teilchen mit HCl- und NaOH-Knopf und Universalindikator | von Hand + Engine |
 | `quellen.html` | Quellen und Danksagung | von Hand |
 
 ## Seitenmenü
@@ -30,6 +32,16 @@ bearbeiten.
 
 Neue Seite: Eintrag in `template/site/nav.html` ergänzen, `python3 build.py`
 ausführen, außerdem eine Karte in der passenden Themengruppe von `index.html`.
+
+## Teilchen-Engine (Säuren und Basen)
+
+`protonen.html`, `ammoniak.html` und `neutralisation.html` nutzen dieselbe Simulation:
+`template/site/teilchen.js` (Teilchenmodell, Protonenübergänge, Zeichnen,
+Bedienung). `python3 build.py` kopiert sie zwischen die Marken
+`/*__TEILCHEN__*/` und `/*__/TEILCHEN__*/` in jede dieser Seiten. Änderungen an
+der Simulation also in `template/site/teilchen.js` machen, nicht in den Seiten;
+die Seiten selbst enthalten nur ihre Szenen, Formeln und Texte (nach der
+Endmarke).
 
 ## Schrift
 

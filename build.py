@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 build.py — regenerates timeline.html from template/index.template.html plus the
-content files under content/, and copies the shared side menu
-(template/site/nav.html + nav.css) into every page.
+content files under content/, copies the shared side menu
+(template/site/nav.html + nav.css) into every page, and copies the shared
+particle engine (template/site/teilchen.js) into every page that marks it.
 
 Usage:
     python3 build.py
@@ -459,7 +460,37 @@ def sync_site_nav():
     print(f"Menü: {len(targets) + 1} Seiten geprüft, aktualisiert: {', '.join(changed) if changed else 'keine'}.")
 
 
+# ---------------------------------------------------------------------------
+# Gemeinsame Teilchen-Engine (Säuren und Basen)
+# ---------------------------------------------------------------------------
+# Quelle: template/site/teilchen.js. Seiten, die zwischen /*__TEILCHEN__*/ und
+# /*__/TEILCHEN__*/ stehen haben, bekommen dort den aktuellen Inhalt eingesetzt.
+
+ENGINE_RE = re.compile(r"(/\*__TEILCHEN__\*/\n).*?(/\*__/TEILCHEN__\*/)", re.S)
+
+
+def sync_engine():
+    engine = read_file(os.path.join(SITE, "teilchen.js")).rstrip() + "\n"
+    changed, users = [], 0
+    for name in sorted(f for f in os.listdir(ROOT) if f.endswith(".html") and f != "timeline.html"):
+        path = os.path.join(ROOT, name)
+        html = read_file(path)
+        if "/*__TEILCHEN__*/" not in html:
+            continue
+        users += 1
+        new = ENGINE_RE.sub(lambda m: m.group(1) + engine + m.group(2), html)
+        if new == html and engine not in html:
+            print(f"FEHLER: {name}: Marke /*__TEILCHEN__*/ ohne passende Endmarke", file=sys.stderr)
+            sys.exit(1)
+        if new != html:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(new)
+            changed.append(name)
+    print(f"Teilchen-Engine: {users} Seiten, aktualisiert: {', '.join(changed) if changed else 'keine'}.")
+
+
 def main():
+    sync_engine()
     sync_site_nav()
     if not os.path.isdir(CONTENT):
         print(f"FEHLER: content/-Ordner fehlt unter {CONTENT}", file=sys.stderr)
