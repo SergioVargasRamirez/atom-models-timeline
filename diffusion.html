@@ -50,24 +50,21 @@ canvas{display:block;width:100%}
 .ctrlrow .task > b{text-align:center}
 .ctrlrow .controls{justify-content:center}
 .ctrlrow .clock,.ctrlrow .small{text-align:center}
-.ctrlrow .switchwrap{display:flex;justify-content:center}
 .task{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .task > b{display:block;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .btn{font:inherit;font-size:.92rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);min-width:96px;font-weight:700}
-.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-weight:700}
-.switch input{appearance:none;-webkit-appearance:none;width:50px;height:28px;border-radius:14px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .2s;flex:none}
-.switch input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .2s}
-.switch input:checked{background:var(--accent)}
-.switch input:checked::after{transform:translateX(22px)}
 .small{font-size:.85rem;color:var(--muted);margin:8px 0 0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips button{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;flex:1 1 0;min-width:84px}
 .chips button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .chips button span{display:block;font-size:.8rem;color:var(--muted)}
 .chips button:disabled{opacity:.45;cursor:default}
+.chips button.ico{display:flex;align-items:center;gap:10px}
+.chips button.ico svg{width:28px;height:28px;flex:none}
+.chips button.ico .t{display:block;font-size:inherit;color:inherit}
 .chips i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .clock{font-family:var(--mono);font-size:1.25rem;font-weight:600;margin:10px 0 0}
 .tasks ol{margin:0;padding-left:1.3em}
@@ -76,7 +73,6 @@ details{margin-top:28px;background:var(--surface);border:1px solid var(--line);b
 summary{cursor:pointer;font-weight:700}
 details ul{margin:10px 0 0;padding-left:1.2em}
 details li{margin-bottom:6px}
-@media (prefers-reduced-motion: reduce){.switch input,.switch input::after,.sitenav a{transition:none}}
 </style>
 <style id="sitenav-css">
 /* Seitenmenü: wird von build.py in alle Seiten kopiert (Quelle: template/site/nav.css) */
@@ -146,9 +142,9 @@ details li{margin-bottom:6px}
       <div class="task">
         <b>Temperatur</b>
         <div class="chips" role="radiogroup" aria-label="Temperatur" id="tempchips">
-          <button type="button" role="radio" aria-checked="false" data-temp="cold">kalt<span>5 °C</span></button>
-          <button type="button" role="radio" aria-checked="true" data-temp="room">Raum<span>20 °C</span></button>
-          <button type="button" role="radio" aria-checked="false" data-temp="hot">heiß<span>60 °C</span></button>
+          <button type="button" role="radio" aria-checked="false" data-temp="cold" class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#3f97e0"><path d="M2.5 3.5h19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4.5 5h4l-2 9zM10 5h4.4l-2.2 16zM16 5h3.5l-1.75 7.5z" fill="currentColor"/></svg><span class="t">kalt<span>5 °C</span></span></button>
+          <button type="button" role="radio" aria-checked="true" data-temp="room" class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#2f9a5c"><path d="M10 14.2V4.5a2 2 0 0 1 4 0v9.7a4 4 0 1 1-4 0z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="17.4" r="2.2" fill="currentColor"/><path d="M12 15.2v-5.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16.5 7h2M16.5 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="t">Raum<span>20 °C</span></span></button>
+          <button type="button" role="radio" aria-checked="false" data-temp="hot" class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e8590c"><path d="M12.5 2c.6 3.6 5.5 6.2 5.5 11.4A6 6 0 0 1 6 13.6c0-3 1.7-4.6 2.6-6.6.9 1.4 1.4 2.8 1.3 4.3C11.8 9.2 12.9 6 12.5 2z" fill="currentColor"/><path d="M12 21a2.6 2.6 0 0 1-2.6-2.6c0-1.7 1.3-2.6 2.1-4 .8 1.4 3.1 2.4 3.1 4A2.6 2.6 0 0 1 12 21z" fill="#ffd27a"/></svg><span class="t">heiß<span>60 °C</span></span></button>
         </div>
       </div>
     </div>
@@ -156,6 +152,7 @@ details li{margin-bottom:6px}
       <canvas id="stage" tabindex="0" role="img" aria-label="In der Mitte ein Standzylinder mit einer blauen Lösung über einer dichteren gelben Lösung (Stoffebene). Rechts drei Lupen in die obere Schicht, die Grenzschicht und die untere Schicht, links eine verschiebbare Lupe; in allen bewegen sich blaue und gelbe Teilchen (Teilchenebene). Die linke Lupe lässt sich mit den Pfeiltasten nach oben und unten verschieben."></canvas>
       <div class="readout" id="readout"></div>
     </div>
+    <p class="small" style="text-align:center">Die linke Lupe lässt sich am Standzylinder nach oben und unten ziehen (oder mit den Pfeiltasten verschieben).</p>
     <div class="ctrlrow">
       <div class="task">
         <b>Zeit</b>
@@ -171,12 +168,6 @@ details li{margin-bottom:6px}
         </div>
         <p class="clock" id="clock" aria-live="off">Laborzeit: 0 min</p>
         <p class="small">Die Lupen laufen immer ohne Zeitraffer.</p>
-      </div>
-      <div class="task">
-        <b>Teilchenebene</b>
-        <div class="switchwrap"><label class="switch"><input type="checkbox" id="waterchk"> Wasserteilchen zeigen</label></div>
-        <p class="small">Graue Kugeln stehen für Wasserteilchen. Die Farbstoffteilchen stoßen ständig mit ihnen zusammen.</p>
-        <p class="small">Die linke Lupe lässt sich am Standzylinder nach oben und unten ziehen (oder mit den Pfeiltasten verschieben).</p>
       </div>
     </div>
     <div class="task tasks" style="margin-top:16px">
@@ -224,7 +215,7 @@ const WIN_NAMES = ["obere Schicht", "Grenzschicht", "untere Schicht"];
 const HS = 0.001;                               // halbe Höhe einer Lupe auf der Stoffebene (1 mm)
 
 let c = new Float64Array(N), cNext = new Float64Array(N);   // Anteil blau, Zelle 0 = unten
-const st = {running:false, t:0, speed:3600, temp:"room", water:false, dirty:true};
+const st = {running:false, t:0, speed:3600, temp:"room", dirty:true};
 
 function initMacro(){
   for (let i = 0; i < N; i++) c[i] = i < N / 2 ? 0 : 1;   // gelb (dichter) unten, blau oben
@@ -257,19 +248,18 @@ function greenWidthMM(){
 
 /* ---------- Teilchenebene: Brownsche Bewegung in drei festen Lupen und einer verschiebbaren ---------- */
 const BW = 160, BH = 100;                       // Lupenfenster in Modelleinheiten
-const R_DYE = 4.6, R_WATER = 2.6, M_DYE = 1, M_WATER = 0.3;
-const N_DYE = 36, N_WATER = 90;
-const GAMMA = 2.5, U_DYE = 48, U_WATER = 75;     // Dämpfung 1/s, typische Geschwindigkeiten (Einheiten/s) bei 20 °C
+const R_DYE = 4.6, N_DYE = 36;
+const GAMMA = 2.5, U_DYE = 48;                   // Dämpfung 1/s, typische Geschwindigkeit (Einheiten/s) bei 20 °C
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 const windows = WIN_Y.map(y => ({y, parts:[]}));
 const mover = {y:0.065, parts:[], movable:true};   // linke Lupe, frei verschiebbar
 windows.push(mover);
 const Y_MIN = 0.004, Y_MAX = L - 0.004;
 
-function uFor(p){ return (p.kind === "w" ? U_WATER : U_DYE) * Math.sqrt(dRatio(st.temp)); }
+function uFor(){ return U_DYE * Math.sqrt(dRatio(st.temp)); }
 function edgeC(w, top){ return cAt(w.y + (top ? HS : -HS)); }
-function makePart(kind, x, y, colorBlue){
-  const p = {kind, x, y, vx:0, vy:0, r: kind === "w" ? R_WATER : R_DYE, m: kind === "w" ? M_WATER : M_DYE, blue: colorBlue};
+function makePart(x, y, colorBlue){
+  const p = {x, y, vx:0, vy:0, r:R_DYE, m:1, blue:colorBlue};
   const u = uFor(p); p.vx = gauss() * u; p.vy = gauss() * u;
   return p;
 }
@@ -280,17 +270,13 @@ function freeSpot(w, r){
   }
   return [Math.random() * BW, r + Math.random() * (BH - 2 * r)];
 }
-function addWater(w){
-  for (let i = 0; i < N_WATER; i++){ const [x, y] = freeSpot(w, R_WATER); w.parts.push(makePart("w", x, y, false)); }
-}
 function initWindow(w){
   w.parts = [];
   for (let i = 0; i < N_DYE; i++){
     const [x, y] = freeSpot(w, R_DYE);
     const b = cAt(w.y + HS - 2 * HS * (y / BH));   // Farbe nach der Höhe im Fenster (y = 0 oben)
-    w.parts.push(makePart("d", x, y, Math.random() < b));
+    w.parts.push(makePart(x, y, Math.random() < b));
   }
-  if (st.water) addWater(w);
 }
 function initMicro(){ for (const w of windows) initWindow(w); }
 function reenter(w, p, top){
@@ -300,7 +286,7 @@ function reenter(w, p, top){
   p.y = top ? p.r : BH - p.r;
   p.vx = gauss() * u;
   p.vy = Math.abs(gauss()) * u * (top ? 1 : -1);
-  if (p.kind === "d") p.blue = Math.random() < edgeC(w, top);
+  p.blue = Math.random() < edgeC(w, top);
 }
 function microStep(w, h){
   const ps = w.parts, n = ps.length, sq = Math.sqrt(h);
@@ -343,7 +329,7 @@ function resize(){
   draw();                                       // sofort neu zeichnen, sonst bleibt die Fläche bis zum nächsten Bild leer
 }
 const FG = "#c9d3ea", DIM = "#7482a3";
-const DYE_BLUE = "#4d8dff", DYE_YELLOW = "#ffd23f", WATER = "rgba(150,160,180,.75)";
+const DYE_BLUE = "#4d8dff", DYE_YELLOW = "#ffd23f";
 
 function layout(){
   const pad = 12, top = 52, bottom = H - 22, narrow = W < 560;
@@ -426,31 +412,41 @@ function draw(){
     const fx0 = g.cylX - 3, fx1 = g.cylX + g.cylW + 3;
     const zx = w.movable ? g.mx : g.zx, zy = w.movable ? moverY() : g.zy0 + k * (g.zH + g.gap);
     const ex = w.movable ? fx0 : fx1, px = w.movable ? zx + g.zW : zx;
-    ctx.fillStyle = w.movable ? "rgba(255,210,120,.10)" : "rgba(201,211,234,.08)";
+    ctx.fillStyle = w.movable ? "rgba(150,158,175,.10)" : "rgba(201,211,234,.08)";
     ctx.beginPath(); ctx.moveTo(ex, fy0); ctx.lineTo(px, zy); ctx.lineTo(px, zy + g.zH); ctx.lineTo(ex, fy1); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = w.movable ? "rgba(255,210,120,.55)" : "rgba(201,211,234,.45)"; ctx.lineWidth = 1;
+    ctx.strokeStyle = w.movable ? "rgba(150,158,175,.6)" : "rgba(201,211,234,.45)"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(ex, fy0); ctx.lineTo(px, zy); ctx.moveTo(ex, fy1); ctx.lineTo(px, zy + g.zH); ctx.stroke();
-    ctx.strokeStyle = w.movable ? "#ffd27a" : "#fff"; ctx.lineWidth = 2;
+    ctx.strokeStyle = w.movable ? MOVER_DARK : "#fff"; ctx.lineWidth = 2;
     if (w.movable) ctx.setLineDash([5, 3]);
     ctx.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
     ctx.setLineDash([]);
+    if (w.movable) drawMoveArrows(g.cylX + g.cylW / 2, fy0, fy1);
     drawWindow(w, k, zx, zy, g.zW, g.zH);
   });
+}
+// Blinkende graue Pfeile über und unter dem Rahmen der linken Lupe: „Ich lasse mich verschieben.“
+const MOVER_DARK = "#2b313c", MOVER_EDGE = "#959eb0";
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function drawMoveArrows(cx, fy0, fy1){
+  const a = reduceMotion ? 0.9 : 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(performance.now() / 1000 * 2 * Math.PI * 0.9));
+  ctx.save();
+  ctx.globalAlpha = a; ctx.fillStyle = "#4a5160"; ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1;
+  const tri = (yBase, dir) => {                // dir -1: nach oben, +1: nach unten
+    ctx.beginPath(); ctx.moveTo(cx - 13, yBase); ctx.lineTo(cx + 13, yBase); ctx.lineTo(cx, yBase + dir * 14); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  };
+  if (mover.y < Y_MAX - 1e-6) tri(fy0 - 5, -1);
+  if (mover.y > Y_MIN + 1e-6) tri(fy1 + 5, 1);
+  ctx.restore();
 }
 function drawWindow(w, k, x, y, ww, hh){
   const s = ww / BW;
   ctx.save();
   ctx.beginPath(); ctx.rect(x, y, ww, hh); ctx.clip();
   ctx.fillStyle = "#121a2b"; ctx.fillRect(x, y, ww, hh);
-  for (const p of w.parts){
-    if (p.kind !== "w") continue;
-    ctx.fillStyle = WATER;
-    ctx.beginPath(); ctx.arc(x + p.x * s, y + p.y * s, p.r * s, 0, 2 * Math.PI); ctx.fill();
-  }
   let nb = 0, ny = 0;
   ctx.lineWidth = 1; ctx.strokeStyle = "rgba(0,0,0,.45)";
   for (const p of w.parts){
-    if (p.kind !== "d") continue;
     p.blue ? nb++ : ny++;
     ctx.fillStyle = p.blue ? DYE_BLUE : DYE_YELLOW;
     for (const dx of [0, -BW, BW]){                  // Randteilchen auf beiden Seiten zeigen
@@ -471,7 +467,7 @@ function drawWindow(w, k, x, y, ww, hh){
   ctx.font = "700 11px 'Source Sans 3',system-ui,sans-serif";
   ctx.fillText(lab, x + 6, y + 13);
   ctx.restore();
-  ctx.strokeStyle = w.movable ? "#ffd27a" : "rgba(201,211,234,.6)"; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = w.movable ? MOVER_EDGE : "rgba(201,211,234,.6)"; ctx.lineWidth = 1.5;
   ctx.strokeRect(x + .5, y + .5, ww - 1, hh - 1);
 }
 
@@ -509,14 +505,6 @@ bindRadio("tempchips", "temp", v => { st.temp = v; updateText(); st.dirty = true
 bindRadio("speedchips", "speed", v => { st.speed = +v; });
 $("playbtn").addEventListener("click", () => { st.running = !st.running; syncControls(); });
 $("resetbtn").addEventListener("click", reset);
-$("waterchk").addEventListener("change", e => {
-  st.water = e.target.checked;
-  for (const w of windows){
-    w.parts = w.parts.filter(p => p.kind !== "w");
-    if (st.water) addWater(w);
-  }
-  st.dirty = true;
-});
 
 // Linke Lupe verschieben: am Standzylinder oder an der Lupe ziehen, oder Pfeiltasten
 function moveTo(y){
@@ -564,6 +552,7 @@ function frame(ts){
     updateText();
     st.dirty = true;
   }
+  if (!reduceMotion) st.dirty = true;         // blinkende Pfeile
   if (st.dirty && W > 0){ draw(); st.dirty = false; }
   requestAnimationFrame(frame);
 }
