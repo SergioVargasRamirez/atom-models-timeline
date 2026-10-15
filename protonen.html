@@ -52,7 +52,7 @@ canvas{display:block;width:100%}
 #stage.dragging{cursor:grabbing}
 @media (max-width:760px){#stage{height:440px}}
 .readout{font-family:var(--mono);font-size:.82rem;color:var(--stage-fg);padding:8px 12px;border-top:1px solid #1b2338;min-height:2.4em}
-.status{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:10px 12px;margin:12px 0;min-height:3.2em}
+.status{color:var(--stage-fg);background:#111a2c;border-bottom:1px solid #1b2338;border-left:4px solid #7d9bff;padding:10px 14px;min-height:3.4em;font-size:1rem;line-height:1.45}
 .ctrlrow{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:12px 0}
 .task{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .ctrlrow .task{flex:1 1 300px;min-width:0}
@@ -179,11 +179,11 @@ details li{margin-bottom:6px}
     </div>
 
     <div class="stagewrap">
+      <div class="status" id="status" aria-live="polite"></div>
       <canvas id="stage" tabindex="0" role="img" aria-label="Räumliches Modell der Teilchen. Zum Drehen ziehen oder Pfeiltasten benutzen."></canvas>
       <div class="readout" id="readout"></div>
     </div>
     <p class="small" style="text-align:center;margin-top:6px">Zum Drehen auf der Bühne ziehen (oder Pfeiltasten). Sauerstoff rot, Wasserstoff weiß, Chlor grün.</p>
-    <div class="status" id="status" aria-live="polite"></div>
 
     <div class="ctrlrow">
       <div class="task">
@@ -504,7 +504,7 @@ function fillWater(n, L, yLo, yHi, skip = []){                  // Wassermolekü
 const SCENES = {
   // 1: Nahaufnahme HCl + H₂O, in festen Schritten
   1(){
-    const s = {id:1, kT:25, R:4.6, flying:[], hops:0, t:0, auto:0, phase:0, stopAt:null};
+    const s = {id:1, kT:25, R:4.6, Rw:7.4, flying:[], hops:0, t:0, auto:0, phase:0, stopAt:null};
     const PH = [0, 1.8, 2.8, 3.6, 4.8, 99];                       // Beginn der Phasen in ps
     s.PH = PH;
     // zentrales Wassermolekül, ein freies Elektronenpaar zeigt nach +x
@@ -665,7 +665,7 @@ function drawBox(){
 }
 function draw(){
   if (!W) return;
-  SC = Math.min(W, H) * 0.47 / S.R;
+  SC = Math.min(H * 0.47 / S.R, W * 0.47 / (S.Rw || S.R));   // Rw: halbe Breite der Szene
   ctx.clearRect(0, 0, W, H);
   buildLists();
   // Mittelpunkt der Szene
