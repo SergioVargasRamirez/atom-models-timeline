@@ -1,0 +1,27 @@
+<nav class="sidenav" id="sidenav" aria-label="Seiten">
+  <div class="sidenav-head">
+    <a class="sidenav-brand" href="./">Chemie-Werkzeuge<span>für den Unterricht</span></a>
+    <button class="sidenav-toggle" type="button" aria-expanded="false" aria-controls="sidenav-list">Menü</button>
+  </div>
+  <div class="sidenav-list" id="sidenav-list">
+    <p class="sidenav-group">Teilchenmodell</p>
+    <a href="diffusion.html">Diffusion</a>
+    <p class="sidenav-group">Atommodelle</p>
+    <a href="timeline.html">Zeitleiste</a>
+    <a href="modelle.html">Atommodelle im Vergleich</a>
+    <a href="rutherford.html">Rutherford gegen das Spektrum</a>
+    <p class="sidenav-group">Elektronen und Energiestufen</p>
+    <a href="fuellen.html">Elektronen einfüllen</a>
+    <a href="diagramm.html">Energiestufendiagramm</a>
+    <a href="ionisierung.html">Ionisierungsenergie</a>
+    <a href="pse.html">Periodensystem</a>
+    <p class="sidenav-group">Über die Seiten</p>
+    <a href="quellen.html">Quellen und Danksagung</a>
+  </div>
+</nav>
+<script>
+(() => {
+  const nav = document.getElementById("sidenav"), btn = nav.querySelector(".sidenav-toggle");
+  btn.addEventListener("click", () => btn.setAttribute("aria-expanded", String(nav.classList.toggle("open"))));
+})();
+</script>

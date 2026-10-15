@@ -1,6 +1,7 @@
-# Atommodelle im Wissensstand ihrer Zeit
+# Chemie-Werkzeuge für den Unterricht
 
-Interaktive Seiten für den Chemie-/NTG-Unterricht zu Atommodellen. Jede Seite
+Interaktive Seiten für den Chemie-/NTG-Unterricht: Teilchenmodell, Geschichte der
+Atommodelle, Elektronen und Energiestufen. Jede Seite
 ist eine einzelne, selbstständige HTML-Datei auf GitHub Pages — keine externen
 Anfragen, auch Schriften sind eingebettet.
 
@@ -17,8 +18,22 @@ Anfragen, auch Schriften sind eingebettet.
 | `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
 | `quellen.html` | Quellen und Danksagung | von Hand |
 
-Neue Seite: Link in die `sitenav` aller Seiten **und** in `template/index.template.html`
-eintragen (danach `python3 build.py`), außerdem eine Karte in `index.html`.
+## Seitenmenü
+
+Das Menü (links, auf dem Handy oben mit „Menü“-Knopf) steht **an einer Stelle**:
+`template/site/nav.html` (Einträge, nach Themen gruppiert) und
+`template/site/nav.css` (Aussehen). `python3 build.py` kopiert beides in jede
+Seite und ins Timeline-Template und markiert dort die eigene Seite. Den
+Menüblock in den Seiten (`<!--SITENAV-->…<!--/SITENAV-->`) nicht von Hand
+bearbeiten.
+
+Neue Seite: Eintrag in `template/site/nav.html` ergänzen, `python3 build.py`
+ausführen, außerdem eine Karte in der passenden Themengruppe von `index.html`.
+
+## Schrift
+
+Alle Seiten nutzen Source Sans 3 (SIL Open Font License), als variable
+woff2-Schrift (normal und kursiv) direkt im `<style>` eingebettet.
 
 **Wichtig: `timeline.html` wird nicht von Hand bearbeitet.** Sie wird aus den
 Dateien in `content/` und `template/index.template.html` von `build.py`
@@ -27,7 +42,7 @@ verloren.
 
 ## Workflow
 
-1. Eine Datei unter `content/` bearbeiten (siehe unten, welche Datei was
+1. Eine Datei unter `content/` (oder das Menü unter `template/site/`) bearbeiten (siehe unten, welche Datei was
    enthält).
 2. `python3 build.py` ausführen.
 3. Bei Fehlern: Die Meldung nennt genau die Datei und das Feld. Beheben,

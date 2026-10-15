@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 build.py — regenerates timeline.html from template/index.template.html plus the
-content files under content/.
+content files under content/, and copies the shared side menu
+(template/site/nav.html + nav.css) into every page.
 
 Usage:
     python3 build.py
@@ -27,6 +28,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 CONTENT = os.path.join(ROOT, "content")
 TEMPLATE = os.path.join(ROOT, "template", "index.template.html")
 OUT = os.path.join(ROOT, "timeline.html")
+SITE = os.path.join(ROOT, "template", "site")
 
 MIN_YEAR, MAX_YEAR = 1785, 1950
 ERRORS = []
@@ -417,7 +419,48 @@ def check_cross_refs(events, event_ids, questions, question_ids, models):
             pass  # chain rows are free text + year, no id cross-ref to check
 
 
+# ---------------------------------------------------------------------------
+# Gemeinsames Seitenmenü
+# ---------------------------------------------------------------------------
+# Quelle: template/site/nav.html (Markup) und template/site/nav.css (Stil).
+# Beide werden in jede Seite (und ins Timeline-Template) kopiert, damit jede
+# Seite eine einzelne, selbstständige Datei bleibt. Der Menüpunkt der eigenen
+# Seite bekommt aria-current="page".
+
+OLD_NAV_RE = re.compile(r'[ \t]*(?:<!--REPO-->)?<nav class="sitenav".*?</nav>(?:<!--/REPO-->)?\n?', re.S)
+NAV_BLOCK_RE = re.compile(r'<!--SITENAV-->.*?<!--/SITENAV-->\n?', re.S)
+NAV_CSS_RE = re.compile(r'<style id="sitenav-css">.*?</style>\n?', re.S)
+OLD_NAV_CSS_LINE_RE = re.compile(r'^\.sitenav[^\n]*\n', re.M)
+
+
+def sync_site_nav():
+    nav = read_file(os.path.join(SITE, "nav.html")).strip()
+    css = read_file(os.path.join(SITE, "nav.css")).strip()
+    targets = sorted(f for f in os.listdir(ROOT) if f.endswith(".html") and f != "timeline.html")
+    changed = []
+    for name in targets + [TEMPLATE]:
+        path = name if os.path.isabs(name) else os.path.join(ROOT, name)
+        page = "timeline.html" if path == TEMPLATE else name
+        html = read_file(path)
+        href = "./" if page == "index.html" else page
+        own = nav.replace(f'href="{href}"', f'href="{href}" aria-current="page"', 1)
+        block = f"<!--SITENAV--><!--REPO-->\n{own}\n<!--/REPO--><!--/SITENAV-->\n"
+        new = NAV_BLOCK_RE.sub("", OLD_NAV_RE.sub("", html))
+        new, n = re.subn(r"(<body[^>]*>\n?)", lambda m: m.group(1) + block, new, count=1)
+        if not n:
+            print(f"FEHLER: {os.path.relpath(path, ROOT)}: kein <body> gefunden", file=sys.stderr)
+            sys.exit(1)
+        new = OLD_NAV_CSS_LINE_RE.sub("", NAV_CSS_RE.sub("", new))
+        new = new.replace("</head>", f'<style id="sitenav-css">\n{css}\n</style>\n</head>', 1)
+        if new != html:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(new)
+            changed.append(os.path.relpath(path, ROOT))
+    print(f"Menü: {len(targets) + 1} Seiten geprüft, aktualisiert: {', '.join(changed) if changed else 'keine'}.")
+
+
 def main():
+    sync_site_nav()
     if not os.path.isdir(CONTENT):
         print(f"FEHLER: content/-Ordner fehlt unter {CONTENT}", file=sys.stderr)
         sys.exit(1)

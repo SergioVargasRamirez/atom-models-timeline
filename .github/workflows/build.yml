@@ -18,17 +18,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build timeline.html
+      - name: Build timeline.html und Menü
         run: python3 build.py
 
       - name: Commit rebuilt timeline.html
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- timeline.html; then
-            echo "timeline.html unverändert, nichts zu committen."
+          if git diff --quiet; then
+            echo "Seiten unverändert, nichts zu committen."
           else
-            git add timeline.html
-            git commit -m "Automatischer Build: timeline.html aus content/ aktualisiert"
+            git add -A -- '*.html'
+            git commit -m "Automatischer Build: timeline.html und Seitenmenü aktualisiert"
             git push
           fi
