@@ -15,6 +15,7 @@ Anfragen, auch Schriften sind eingebettet.
 | `diagramm.html` | Energiestufendiagramm (Baukasten und Test) | von Hand |
 | `pse.html` | Klickbares Periodensystem | von Hand |
 | `modelle.html` | Atommodelle im Vergleich (Dalton bis Schrödinger, H bis Ar, 2D und 3D) | von Hand |
+| `aggregatzustaende.html` | Aggregatzustände: 2D-Teilchenmodell im Zylinder mit Stempel, Schieberegler für Temperatur (°C) und Druck (bar), erkannter Zustand und Beobachtungstabelle, Geschwindigkeitsfarben | von Hand |
 | `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
 | `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand + Engine |
 | `ammoniak.html` | Ammoniak in Wasser: NH₃ + H₂O (Nahaufnahme mit Rückreaktion), NH₃ in Wasser (Gleichgewicht), viele Teilchen mit Universalindikator | von Hand + Engine |
