@@ -48,7 +48,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .slider .info{font-size:.9rem;color:var(--muted);margin:6px 0 0}
 .stagewrap{background:var(--stage);border-radius:10px;overflow:hidden;position:relative}
 canvas{display:block;width:100%}
-#stage{height:560px}
+#stage{height:600px}
 @media (max-width:760px){#stage{height:480px}}
 .status{color:var(--stage-fg);background:#111a2c;border-bottom:1px solid #1b2338;border-left:4px solid #7d9bff;padding:10px 14px;min-height:3.2em;font-size:1rem;line-height:1.45}
 .readout{font-family:var(--mono);font-size:.82rem;color:var(--stage-fg);padding:8px 12px;border-top:1px solid #1b2338;min-height:2.4em}
@@ -63,14 +63,20 @@ canvas{display:block;width:100%}
 .switch input:checked::after{transform:translateX(20px)}
 .legend{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
 .legend i{display:inline-block;width:110px;height:10px;border-radius:5px;background:linear-gradient(90deg,#3c78ff,#3cc8a0,#f0d23c,#f05a3c)}
-.obs{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0;overflow-x:auto}
-.obs > b,.task > b{display:block;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.obs table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem}
-.obs th,.obs td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
-.obs thead th{font-size:1rem}
-.obs th[scope=row]{width:16%;color:var(--muted);font-weight:600}
-.obs .on{background:var(--hl);box-shadow:inset 0 0 0 2px var(--accent)}
-.obs thead .on{color:var(--accent)}
+.labgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.labgrid{grid-template-columns:minmax(0,1fr)}}
+.obs{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.obs > b,.task > b{display:block;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.obs h2{font-size:1.5rem;margin:0 0 10px;color:var(--accent)}
+.obs table{border-collapse:collapse;width:100%;font-size:.98rem}
+.obs th,.obs td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+.obs th{width:32%;color:var(--muted);font-weight:600}
+.obs td{height:3.4em}
+.obs td .ans{display:none}
+.obs.show td .ans{display:block}
+.obs td .ans + .ans{margin-top:6px}
+.obs td .ans i{font-style:normal;font-weight:700;color:var(--accent)}
+.obs .switch{margin-top:12px}
 .task{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0}
 .tasks ol{margin:0;padding-left:1.3em}
 .tasks li{margin-bottom:6px}
@@ -155,6 +161,18 @@ details li{margin-bottom:6px}
     <p class="lede">Vorwissen: Teilchenmodell. Was unterscheidet einen festen, flüssigen und gasförmigen Stoff auf der Teilchenebene? Und was bewirken Temperatur und Druck?</p>
   </header>
   <main>
+    <div class="task tasks" style="margin:16px 0">
+      <b>Beobachten und deuten</b>
+      <ol>
+        <li>Stelle 20 °C und 1 bar ein. Beschreibe Anordnung, Abstand und Bewegung der Teilchen und fülle die Tabelle aus. Vergleiche danach mit „Antworten zeigen“.</li>
+        <li>Kühle langsam auf −20 °C ab. Was passiert mit den Teilchen beim Erstarren?</li>
+        <li>Erwärme auf 120 °C. Was passiert beim Sieden? Wie verhält sich der Stempel?</li>
+        <li>Schalte „Geschwindigkeit farbig zeigen“ ein. Wie hängt die Temperatur mit der Bewegung der Teilchen zusammen?</li>
+        <li>Stelle 150 °C ein und erhöhe den Druck langsam von 1 bar auf 10 bar. Was beobachtest du? Erkläre mit dem Teilchenmodell.</li>
+        <li>Warum lässt sich ein Gas zusammendrücken, eine Flüssigkeit oder ein Feststoff aber kaum?</li>
+        <li>Auf der Zugspitze beträgt der Luftdruck etwa 0,7 bar. Bei welcher Temperatur siedet Wasser dort? Probiere es mit dem Druckregler aus.</li>
+      </ol>
+    </div>
     <div class="sliders">
       <div class="slider">
         <label for="tslider">Temperatur <output id="tout">20 °C</output></label>
@@ -169,44 +187,35 @@ details li{margin-bottom:6px}
       </div>
     </div>
 
-    <div class="stagewrap">
-      <div class="status" id="status" aria-live="polite"></div>
-      <canvas id="stage" role="img" aria-label="Zylinder mit beweglichem Stempel. Darin bewegen sich die Teilchen eines Stoffs; links ein Thermometer, rechts ein Druckmesser."></canvas>
-      <div class="readout" id="readout"></div>
+    <div class="labgrid">
+      <div>
+        <div class="stagewrap">
+          <div class="status" id="status" aria-live="polite"></div>
+          <canvas id="stage" role="img" aria-label="Zylinder mit beweglichem Stempel. Darin bewegen sich die Teilchen eines Stoffs; links ein Thermometer, rechts ein Druckmesser."></canvas>
+          <div class="readout" id="readout"></div>
+        </div>
+        <div class="ctrlrow">
+          <button class="btn primary" id="playbtn" type="button">Pause</button>
+          <button class="btn" id="resetbtn" type="button">Neu starten</button>
+          <label class="switch"><input type="checkbox" id="speedchk"> Geschwindigkeit farbig zeigen</label>
+          <span class="legend" id="legend" hidden>langsam <i></i> schnell</span>
+        </div>
+      </div>
+      <div class="obs" id="obs">
+        <b>Beobachtung auf der Teilchenebene</b>
+        <h2 id="obsstate">flüssig</h2>
+        <table>
+          <tbody>
+            <tr><th scope="row">Anordnung</th><td data-row="anordnung"></td></tr>
+            <tr><th scope="row">Abstand</th><td data-row="abstand"></td></tr>
+            <tr><th scope="row">Bewegung</th><td data-row="bewegung"></td></tr>
+            <tr><th scope="row">Form und Volumen</th><td data-row="form"></td></tr>
+          </tbody>
+        </table>
+        <label class="switch"><input type="checkbox" id="anschk"> Antworten zeigen</label>
+      </div>
     </div>
 
-    <div class="ctrlrow">
-      <button class="btn primary" id="playbtn" type="button">Pause</button>
-      <button class="btn" id="resetbtn" type="button">Neu starten</button>
-      <label class="switch"><input type="checkbox" id="speedchk"> Geschwindigkeit farbig zeigen</label>
-      <span class="legend" id="legend" hidden>langsam <i></i> schnell</span>
-    </div>
-
-    <div class="obs">
-      <b>Beobachtung auf der Teilchenebene</b>
-      <table>
-        <thead><tr><th></th><th data-s="fest">fest</th><th data-s="fluessig">flüssig</th><th data-s="gas">gasförmig</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Anordnung</th><td data-s="fest">regelmäßig, dicht gepackt (Gitter)</td><td data-s="fluessig">unregelmäßig, dicht beieinander</td><td data-s="gas">ungeordnet, im ganzen Raum verteilt</td></tr>
-          <tr><th scope="row">Abstand</th><td data-s="fest">sehr klein: die Teilchen berühren sich fast</td><td data-s="fluessig">klein</td><td data-s="gas">groß: viel leerer Raum dazwischen</td></tr>
-          <tr><th scope="row">Bewegung</th><td data-s="fest">schwingen nur an ihrem Platz hin und her</td><td data-s="fluessig">bewegen sich aneinander vorbei, bleiben aber zusammen</td><td data-s="gas">fliegen schnell und frei umher, stoßen aneinander und an die Wände</td></tr>
-          <tr><th scope="row">Form und Volumen</th><td data-s="fest">feste Form, festes Volumen</td><td data-s="fluessig">passt sich dem Gefäß an, festes Volumen</td><td data-s="gas">füllt jeden Raum, lässt sich zusammendrücken</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="task tasks">
-      <b>Beobachten und deuten</b>
-      <ol>
-        <li>Stelle 20 °C und 1 bar ein. Beschreibe Anordnung, Abstand und Bewegung der Teilchen.</li>
-        <li>Kühle langsam auf −20 °C ab. Was passiert mit den Teilchen beim Erstarren?</li>
-        <li>Erwärme auf 120 °C. Was passiert beim Sieden? Wie verhält sich der Stempel?</li>
-        <li>Schalte „Geschwindigkeit farbig zeigen“ ein. Wie hängt die Temperatur mit der Bewegung der Teilchen zusammen?</li>
-        <li>Stelle 150 °C ein und erhöhe den Druck langsam von 1 bar auf 10 bar. Was beobachtest du? Erkläre mit dem Teilchenmodell.</li>
-        <li>Warum lässt sich ein Gas zusammendrücken, eine Flüssigkeit oder ein Feststoff aber kaum?</li>
-        <li>Auf der Zugspitze beträgt der Luftdruck etwa 0,7 bar. Bei welcher Temperatur siedet Wasser dort? Probiere es mit dem Druckregler aus.</li>
-      </ol>
-    </div>
   </main>
   <details>
     <summary>Zahlen im Hintergrund und Grenzen des Modells</summary>
@@ -391,19 +400,47 @@ const STATE_TEXT = {
   fest:"Der Stoff ist fest. Die Teilchen sitzen dicht und regelmäßig angeordnet und schwingen nur an ihrem Platz.",
   fluessig:"Der Stoff ist flüssig. Die Teilchen sind dicht beieinander, aber ungeordnet, und bewegen sich aneinander vorbei.",
   gas:"Der Stoff ist gasförmig. Die Teilchen fliegen frei und schnell durch den ganzen Zylinder; zwischen ihnen ist viel leerer Raum.",
-  "fluessig+gas":"Flüssig und gasförmig zugleich: Teilchen lösen sich aus der Flüssigkeit und fliegen als Gas umher (Verdampfen), oder Gasteilchen bleiben an der Flüssigkeit hängen (Kondensieren).",
+  "fluessig+gas":"Der Stoff siedet: Teilchen lösen sich aus der Flüssigkeit und fliegen als Gas umher (Verdampfen), andere bleiben wieder an der Flüssigkeit hängen (Kondensieren).",
+  "fest+fluessig":"Der Stoff ist an seinem Schmelzpunkt: Ein Teil der Teilchen löst sich aus dem Gitter und bewegt sich aneinander vorbei.",
   "fest+gas":"Fest und gasförmig zugleich: Einzelne Teilchen lösen sich direkt aus dem Feststoff (Sublimieren) oder lagern sich an ihn an (Resublimieren).",
 };
-let lastStatus = "";
+const ANSWERS = {
+  fest:{anordnung:"regelmäßig, dicht gepackt (Gitter)", abstand:"sehr klein: die Teilchen berühren sich fast", bewegung:"schwingen nur an ihrem Platz hin und her", form:"feste Form, festes Volumen"},
+  fluessig:{anordnung:"unregelmäßig, dicht beieinander", abstand:"klein", bewegung:"bewegen sich aneinander vorbei, bleiben aber zusammen", form:"passt sich dem Gefäß an, festes Volumen"},
+  gas:{anordnung:"ungeordnet, im ganzen Raum verteilt", abstand:"groß: viel leerer Raum dazwischen", bewegung:"fliegen schnell und frei umher, stoßen aneinander und an die Wände", form:"füllt jeden Raum, lässt sich zusammendrücken"},
+};
+const NAME = {fest:"fest", fluessig:"flüssig", gas:"gasförmig"};
+function expected(C, bar){                                       // Zustand, der zu Temperatur und Druck gehört
+  const b = boilC(bar);
+  if (C < MELT_C - 1) return ["fest"];
+  if (C <= MELT_C + 1) return ["fest", "fluessig"];
+  if (C < b - 2) return ["fluessig"];
+  if (C <= b + 2) return ["fluessig", "gas"];
+  return ["gas"];
+}
+const PROCESS = {"fest>fluessig":"schmilzt", "fluessig>fest":"erstarrt", "fluessig>gas":"verdampft", "gas>fluessig":"kondensiert",
+                 "fest>gas":"sublimiert", "gas>fest":"resublimiert"};
+let lastStatus = "", lastExp = "";
+function updateObs(){
+  const ex = expected(curC, curBar), key = ex.join("+");
+  if (key === lastExp) return; lastExp = key;
+  $("obsstate").textContent = ex.length === 2 ? `${NAME[ex[0]]} und ${NAME[ex[1]]}` + (ex[1] === "gas" ? " (siedet)" : " (schmilzt bzw. erstarrt)") : NAME[ex[0]];
+  for (const td of document.querySelectorAll("#obs td[data-row]"))
+    td.innerHTML = ex.map(k => `<span class="ans">${ex.length === 2 ? `<i>${NAME[k]}:</i> ` : ""}${ANSWERS[k][td.dataset.row]}</span>`).join("");
+}
 function updateText(){
   $("tout").textContent = `${Math.round(curC)} °C`;
   $("pout").textContent = `${fmtBar(curBar)} bar`;
   $("pinfo").textContent = `Bei diesem Druck schmilzt der Stoff bei 0 °C und siedet bei ${Math.round(boilC(curBar))} °C.`;
-  const st = STATE_TEXT[state];
+  updateObs();
+  const ex = expected(curC, curBar), seen = state.split("+");
+  let st = STATE_TEXT[ex.join("+")];
+  if (ex.length === 1 && (seen.length > 1 || seen[0] !== ex[0])){   // die Teilchen stellen sich noch um
+    const from = seen.find(k => k !== ex[0]) || seen[0], proc = PROCESS[from + ">" + ex[0]];
+    if (proc) st = `Der Stoff ${proc} gerade. ` + st;
+  }
   if (st !== lastStatus){ $("status").textContent = st; lastStatus = st; }
   $("readout").textContent = `Temperatur ${Math.round(curC)} °C · Druck ${fmtBar(curBar)} bar · Volumen ${Math.round(yp * WB)} (Teilchendurchmesser²)${yp >= YMAX - 0.01 ? " · Stempel am Anschlag" : ""}`;
-  const on = state.split("+");
-  for (const el of document.querySelectorAll(".obs [data-s]")) el.classList.toggle("on", on.includes(el.dataset.s));
 }
 
 /* ---------- Bedienung ---------- */
@@ -417,6 +454,7 @@ $("tslider").addEventListener("input", readSliders);
 $("pslider").addEventListener("input", readSliders);
 $("playbtn").addEventListener("click", () => { running = !running; $("playbtn").textContent = running ? "Pause" : "Weiter"; });
 $("resetbtn").addEventListener("click", () => { init(); for (let k = 0; k < 2000; k++) step(); for (let k = 0; k < 10; k++){ for (let j = 0; j < 100; j++) step(); analyse(); } updateText(); dirty = true; });
+$("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
 $("speedchk").addEventListener("change", e => { speedCol = e.target.checked; $("legend").hidden = !speedCol; dirty = true; });
 
 /* ---------- Schleife ---------- */
