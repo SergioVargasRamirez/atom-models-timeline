@@ -302,8 +302,9 @@ const REFR = 0.4;                                                // ps Sperrzeit
 const CUT = {"O-O":3.0, "O-N":3.1, "N-O":3.3};                    // maximaler Abstand Donor–Akzeptor
 const RATES = {                                                  // Protonenübergänge je ps bei passender Geometrie
   "H3O+>H2O":0.9,  "H3O+>OH-":12, "H2O>OH-":0.9, "H3O+>NH3":12,  // Grotthuss, Neutralisation, OH⁻-Wanderung
-  "H2O>NH3":0.4, "NH4+>OH-":25,                                  // Ammoniak-Gleichgewicht (stark beschleunigt)
+  "H2O>NH3":0.2, "NH4+>OH-":25,                                  // Ammoniak-Gleichgewicht (stark beschleunigt)
 };
+const SEP_NH4 = 0.3;                                             // Anteil der Protonierungen, bei denen OH⁻ wegwandert
 const MAX_ANGLE = {"NH4+>OH-":70, "H3O+>OH-":60};               // Ionenpaare ordnen sich schnell um: weitere Winkel erlaubt
 
 let A = [];                                                      // alle Atome
@@ -400,6 +401,7 @@ function forces(){
     else if (a.el === "O" && n === 1 && a.pair < 0) minus.push(a);
   }
   for (const a of plus) for (const b of minus){
+    if (S.t < (a.sepUntil || 0)) continue;
     const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, d = Math.hypot(dx, dy, dz);
     if (d < 3.2 || d > 10) continue;
     const f = F_ION / d;                                         // gleich große Kraft, unabhängig vom Abstand
@@ -514,7 +516,9 @@ function startTransfer(i, from, to, tau){
   A[from].busy = A[to].busy = true;
   S.flying.push(i);
   S.hops++;
-  if ((kd === "H2O" && ka === "H2O") || (kd === "H2O" && ka === "NH3")){   // frisch getrenntes Ionenpaar kurz schonen
+  if (kd === "H2O" && ka === "NH3" && rand() < SEP_NH4){      // OH⁻ entkommt: NH₄⁺ bleibt eine Weile stabil
+    A[to].sepUntil = S.t + 4 + 4 * rand();
+  } else if ((kd === "H2O" && ka === "H2O") || (kd === "H2O" && ka === "NH3")){   // Kontakt-Ionenpaar: kurz zusammen, dann zurück
     A[from].guard = to; A[to].guard = from; A[from].guardUntil = A[to].guardUntil = S.t + (ka === "NH3" ? 1.2 : 1.0);
   }
   if (kd === "H2O" && ka === "H2O") S.nextAuto = Infinity;        // Autoprotolyse: bis zur Rückreaktion keine neue
@@ -548,6 +552,7 @@ function tryTransfers(h){
         const rule = kd + ">" + kind(a), rate = rates[rule]; if (!rate) continue;
         if ((D.guard === a || Ac.guard === d) && S.t < Math.max(D.guardUntil, Ac.guardUntil)) continue;
         if (rule === "H2O>OH-" && S.t < Ac.guardUntil) continue;  // frisches Ionenpaar bleibt kurz zusammen (Kontakt-Ionenpaar)
+        if (rule === "NH4+>OH-" && S.t < (D.sepUntil || 0)) continue;   // getrenntes NH₄⁺ bleibt eine Weile stabil
         if (dist(D, Ac) > CUT[D.el + "-" + Ac.el]) continue;
         if (dot(u1, norm(V(Ac.x - H.x, Ac.y - H.y, Ac.z - H.z))) < Math.cos((MAX_ANGLE[rule] || 40) * DEG)) continue;
         cand.push([i, d, a, rate]);
