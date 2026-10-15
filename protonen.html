@@ -307,7 +307,7 @@ const REFR = 0.4;                                                // ps Sperrzeit
 const CUT = {"O-O":3.0, "O-N":3.1, "N-O":3.3};                    // maximaler Abstand Donor–Akzeptor
 const RATES = {                                                  // Protonenübergänge je ps bei passender Geometrie
   "H3O+>H2O":0.9,  "H3O+>OH-":12, "H2O>OH-":0.9, "H3O+>NH3":12,  // Grotthuss, Neutralisation, OH⁻-Wanderung
-  "H2O>NH3":0.2, "NH4+>OH-":25,                                  // Ammoniak-Gleichgewicht (stark beschleunigt)
+  "H2O>NH3":0.4, "NH4+>OH-":25,                                  // Ammoniak-Gleichgewicht (stark beschleunigt)
 };
 const MAX_ANGLE = {"NH4+>OH-":70, "H3O+>OH-":60};               // Ionenpaare ordnen sich schnell um: weitere Winkel erlaubt
 
@@ -520,7 +520,7 @@ function startTransfer(i, from, to, tau){
   S.flying.push(i);
   S.hops++;
   if ((kd === "H2O" && ka === "H2O") || (kd === "H2O" && ka === "NH3")){   // frisch getrenntes Ionenpaar kurz schonen
-    A[from].guard = to; A[to].guard = from; A[from].guardUntil = A[to].guardUntil = S.t + (ka === "NH3" ? 0.5 : 1.0);
+    A[from].guard = to; A[to].guard = from; A[from].guardUntil = A[to].guardUntil = S.t + (ka === "NH3" ? 1.2 : 1.0);
   }
   if (kd === "H2O" && ka === "H2O") S.nextAuto = Infinity;        // Autoprotolyse: bis zur Rückreaktion keine neue
   if (kd === "H3O+" && ka === "OH-") S.nextAuto = S.t + 3 + 4 * rand();
@@ -552,6 +552,7 @@ function tryTransfers(h){
         if (a === d || (Ac.el !== "O" && Ac.el !== "N") || Ac.busy || Ac.pair >= 0 || S.t - Ac.last < REFR) continue;
         const rule = kd + ">" + kind(a), rate = rates[rule]; if (!rate) continue;
         if ((D.guard === a || Ac.guard === d) && S.t < Math.max(D.guardUntil, Ac.guardUntil)) continue;
+        if (rule === "H2O>OH-" && S.t < Ac.guardUntil) continue;  // frisches Ionenpaar bleibt kurz zusammen (Kontakt-Ionenpaar)
         if (dist(D, Ac) > CUT[D.el + "-" + Ac.el]) continue;
         if (dot(u1, norm(V(Ac.x - H.x, Ac.y - H.y, Ac.z - H.z))) < Math.cos((MAX_ANGLE[rule] || 40) * DEG)) continue;
         cand.push([i, d, a, rate]);
