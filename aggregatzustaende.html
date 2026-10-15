@@ -39,6 +39,12 @@ h1{font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.15;margin:0 0 6px;text-wra
 p{margin:0 0 10px}
 .lede{color:var(--muted);max-width:70ch}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stoffwahl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:4px 0 0}
+.stoffwahl > b{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:inherit;font-size:.98rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:7px 14px;cursor:pointer;text-align:left}
+.chips button span{display:block;font-size:.8rem;color:var(--muted)}
+.chips button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:16px 0 12px}
 .slider{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .slider label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700}
@@ -171,13 +177,21 @@ details li{margin-bottom:6px}
         <li>Stelle 150 °C ein und erhöhe den Druck langsam von 1 bar auf 10 bar. Was beobachtest du? Erkläre mit dem Teilchenmodell.</li>
         <li>Warum lässt sich ein Gas zusammendrücken, eine Flüssigkeit oder ein Feststoff aber kaum?</li>
         <li>Auf der Zugspitze beträgt der Luftdruck etwa 0,7 bar. Bei welcher Temperatur siedet Wasser dort? Probiere es mit dem Druckregler aus.</li>
+        <li>Wähle Butan. Bei 20 °C und 1 bar ist Butan gasförmig. Erhöhe den Druck langsam. Ab welchem Druck wird Butan flüssig? Erkläre, warum ein Feuerzeug flüssiges Butan enthält, obwohl Butan bei Raumtemperatur ein Gas ist.</li>
       </ol>
+    </div>
+    <div class="stoffwahl">
+      <b>Stoff</b>
+      <div class="chips" role="radiogroup" aria-label="Stoff" id="stoffchips">
+        <button type="button" role="radio" aria-checked="true" data-stoff="wasser">Wasser<span>schmilzt bei 0 °C, siedet bei 100 °C</span></button>
+        <button type="button" role="radio" aria-checked="false" data-stoff="butan">Butan (Feuerzeuggas)<span>schmilzt bei −138 °C, siedet bei −0,5 °C</span></button>
+      </div>
     </div>
     <div class="sliders">
       <div class="slider">
         <label for="tslider">Temperatur <output id="tout">20 °C</output></label>
         <input type="range" id="tslider" min="-50" max="250" step="1" value="20">
-        <div class="ends"><span>−50 °C</span><span>250 °C</span></div>
+        <div class="ends"><span id="tmin">−50 °C</span><span id="tmax">250 °C</span></div>
       </div>
       <div class="slider">
         <label for="pslider">Druck <output id="pout">1,0 bar</output></label>
@@ -221,7 +235,7 @@ details li{margin-bottom:6px}
     <summary>Zahlen im Hintergrund und Grenzen des Modells</summary>
     <ul>
       <li>Modellstoff: 110 Teilchen in einer Ebene (2D). Sie ziehen sich auf kurze Entfernung an und stoßen sich bei Berührung ab (Morse-Potenzial). Ihre Bewegung wird Schritt für Schritt berechnet; fest, flüssig und gasförmig werden nicht vorgegeben, sondern entstehen aus dieser Bewegung. Angezeigt wird der Zustand, den das Programm an Anordnung und Beweglichkeit der Teilchen erkennt.</li>
-      <li>Temperatur und Druck sind so umgerechnet, dass der Modellstoff wie Wasser bei 0 °C schmilzt und beim eingestellten Druck dort siedet, wo Wasser siedet (berechnet mit der Clausius-Clapeyron-Gleichung und der Verdampfungsenthalpie 40,65 kJ/mol: 0,1 bar etwa 46 °C, 0,7 bar etwa 90 °C, 1 bar 100 °C, 10 bar etwa 180 °C, 20 bar etwa 212 °C). Der Modellstoff ist aber kein Wasser: Die Besonderheiten von Wasser, etwa dass Eis auf Wasser schwimmt, zeigt er nicht.</li>
+      <li>Temperatur und Druck sind so umgerechnet, dass der Modellstoff wie Wasser bei 0 °C schmilzt und beim eingestellten Druck dort siedet, wo Wasser siedet (berechnet mit der Clausius-Clapeyron-Gleichung und der Verdampfungsenthalpie 40,65 kJ/mol: 0,1 bar etwa 46 °C, 0,7 bar etwa 90 °C, 1 bar 100 °C, 10 bar etwa 180 °C, 20 bar etwa 212 °C). Der Modellstoff ist aber kein Wasser: Die Besonderheiten von Wasser, etwa dass Eis auf Wasser schwimmt, zeigt er nicht. Für Butan gilt dasselbe mit Schmelztemperatur −138 °C, Siedetemperatur −0,5 °C bei 1 bar und Verdampfungsenthalpie 22,4 kJ/mol: Bei 20 °C wird Butan ab etwa 2 bar flüssig.</li>
       <li>Ein echtes Gas braucht bei 1 bar etwa tausendmal so viel Platz wie die Flüssigkeit. So hoch ist der Zylinder nicht: Oben hat er einen Anschlag. Liegt der Stempel am Anschlag, ist das Gas eingesperrt.</li>
       <li>Die Schwerkraft ist im Modell stark vergrößert, damit Flüssigkeit und Feststoff am Boden liegen. Die Teilchen sind stark vergrößert und ihre Bewegung stark verlangsamt.</li>
       <li>Die Temperatur wird direkt eingestellt (Thermostat). Deshalb sieht man keine Haltepunkte: In Wirklichkeit bleibt die Temperatur beim Schmelzen und Sieden eine Weile gleich, weil die zugeführte Wärme die Teilchen voneinander trennt.</li>
@@ -239,18 +253,22 @@ const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-mo
 
 /* ---------- Umrechnung Schieberegler → Modell ---------- */
 // Siedetemperatur von Wasser nach Clausius-Clapeyron (L = 40,65 kJ/mol), Schmelztemperatur 0 °C
-const boilC = bar => 1 / (1 / 373.15 - 8.314 / 40650 * Math.log(bar / 1.01325)) - 273.15;
-const MELT_C = 0;
+const STOFFE = {                                                 // Schmelztemperatur, Siedetemperatur bei 1,013 bar, Verdampfungsenthalpie
+  wasser:{name:"Wasser", melt:0, tb:100, L:40650, tmin:-50, tmax:250, ticks:[0, 100]},
+  butan:{name:"Butan", melt:-138, tb:-0.5, L:22400, tmin:-160, tmax:120, ticks:[-100, 0, 100]},
+};
+let SUB = STOFFE.wasser, MELT_C = SUB.melt;
+const boilC = bar => 1 / (1 / (SUB.tb + 273.15) - 8.314 / SUB.L * Math.log(bar / 1.01325)) - 273.15;   // Clausius-Clapeyron
 const barOf = v => 0.1 * Math.pow(200, v / 100);                 // Druckregler: logarithmisch 0,1 … 20 bar
 const modelP = bar => 0.008 * Math.pow(0.1 / 0.008, Math.log10(bar / 0.1) / Math.log10(200));
 const lerp = (a, b, u) => a + (b - a) * Math.max(0, Math.min(1, u));
 function modelT(C, bar){                                         // Modelltemperatur: fest, schmelzen, flüssig, sieden, gasförmig
   const b = boilC(bar), tg = 2.5 + 4 * modelP(bar);           // Gas braucht bei höherem Druck mehr Bewegung
-  if (C < MELT_C - 3) return lerp(0.10, 0.27, (C + 50) / (MELT_C - 3 + 50));
+  if (C < MELT_C - 3) return lerp(0.10, 0.27, (C - SUB.tmin) / (MELT_C - 3 - SUB.tmin));
   if (C < MELT_C + 3) return lerp(0.27, 0.82, (C - (MELT_C - 3)) / 6);
   if (C < b - 5)      return lerp(0.82, 1.15, (C - (MELT_C + 3)) / (b - 5 - (MELT_C + 3)));
   if (C < b + 5)      return lerp(1.15, tg, (C - (b - 5)) / 10);
-  return lerp(tg, tg + 0.7, (C - (b + 5)) / (250 - (b + 5)));
+  return lerp(tg, tg + 0.7, (C - (b + 5)) / (SUB.tmax - (b + 5)));
 }
 
 /* ---------- Teilchenmodell (2D, Morse-Potenzial, Stempel, Schwerkraft, Thermostat) ---------- */
@@ -354,7 +372,7 @@ function draw(){
   const s = Math.min((bottom - top) / (YMAX + 1.2), (W - 230) / (WB + 1)), cw = WB * s, cx0 = (W - cw) / 2;
   const X = v => cx0 + v * s, Y = v => bottom - v * s;
   // Heizplatte: Farbe nach Temperatur
-  const hot = Math.max(0, Math.min(1, (curC + 50) / 300)), plate = [Math.round(60 + 190 * hot), Math.round(110 - 40 * hot), Math.round(230 - 190 * hot)];
+  const span = SUB.tmax - SUB.tmin, hot = Math.max(0, Math.min(1, (curC - SUB.tmin) / span)), plate = [Math.round(60 + 190 * hot), Math.round(110 - 40 * hot), Math.round(230 - 190 * hot)];
   ctx.fillStyle = rgb(plate, .85); ctx.fillRect(cx0 - 14, bottom + 6, cw + 28, 10);
   // Zylinder
   ctx.strokeStyle = "rgba(220,230,255,.75)"; ctx.lineWidth = 2;
@@ -377,14 +395,14 @@ function draw(){
   ctx.font = "600 12px 'Source Sans 3',system-ui,sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = "#ffcf6e";
   ctx.fillText("Druck", cx0 + cw + 12, Math.max(20, py - 0.9 * s - 12));
   // Thermometer (links)
-  const tx = cx0 - 70, tTop = top + 20, tBot = bottom - 30, frac = (curC + 50) / 300;
+  const tx = cx0 - 70, tTop = top + 20, tBot = bottom - 30, frac = (curC - SUB.tmin) / span;
   ctx.strokeStyle = "rgba(220,230,255,.8)"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(tx - 6, tTop, 12, tBot - tTop, 6) : ctx.rect(tx - 6, tTop, 12, tBot - tTop); ctx.stroke();
   ctx.beginPath(); ctx.arc(tx, tBot + 10, 11, 0, 2 * Math.PI); ctx.fillStyle = "#e5484d"; ctx.fill(); ctx.stroke();
   ctx.fillStyle = "#e5484d"; ctx.fillRect(tx - 3, tBot - (tBot - tTop) * frac, 6, (tBot - tTop) * frac + 4);
   ctx.fillStyle = "#c9d3ea"; ctx.font = "700 13px ui-monospace,Consolas,monospace"; ctx.textAlign = "center";
-  ctx.fillText(`${Math.round(curC)} °C`, tx, tTop - 10);
-  for (const [c, lab] of [[0, "0"], [100, "100"]]){ const yy = tBot - (tBot - tTop) * (c + 50) / 300; ctx.fillStyle = "#7482a3"; ctx.fillRect(tx + 8, yy, 6, 1.5); ctx.font = "11px ui-monospace,Consolas,monospace"; ctx.textAlign = "left"; ctx.fillText(lab, tx + 16, yy + 4); }
+  ctx.fillText(`${String(Math.round(curC)).replace("-", "−")} °C`, tx, tTop - 10);
+  for (const c of SUB.ticks){ const lab = String(c).replace("-", "−"), yy = tBot - (tBot - tTop) * (c - SUB.tmin) / span; ctx.fillStyle = "#7482a3"; ctx.fillRect(tx + 8, yy, 6, 1.5); ctx.font = "11px ui-monospace,Consolas,monospace"; ctx.textAlign = "left"; ctx.fillText(lab, tx + 16, yy + 4); }
   // Druckmesser (rechts)
   const gx = cx0 + cw + 70, gy = bottom - 70, gr = 36, ang = Math.PI * (0.75 + 1.5 * Math.log10(curBar / 0.1) / Math.log10(200));
   ctx.beginPath(); ctx.arc(gx, gy, gr, 0, 2 * Math.PI); ctx.fillStyle = "#111a2c"; ctx.fill(); ctx.strokeStyle = "rgba(220,230,255,.8)"; ctx.stroke();
@@ -431,7 +449,7 @@ function updateObs(){
 function updateText(){
   $("tout").textContent = `${Math.round(curC)} °C`;
   $("pout").textContent = `${fmtBar(curBar)} bar`;
-  $("pinfo").textContent = `Bei diesem Druck schmilzt der Stoff bei 0 °C und siedet bei ${Math.round(boilC(curBar))} °C.`;
+  $("pinfo").textContent = `Bei diesem Druck schmilzt ${SUB.name} bei ${String(MELT_C).replace("-", "−")} °C und siedet bei ${String(Math.round(boilC(curBar))).replace("-", "−")} °C.`;
   updateObs();
   const ex = expected(curC, curBar), seen = state.split("+");
   let st = STATE_TEXT[ex.join("+")];
@@ -451,6 +469,14 @@ function readSliders(){
   updateText(); dirty = true;
 }
 $("tslider").addEventListener("input", readSliders);
+$("stoffchips").addEventListener("click", e => {                 // Stoff wechseln: 20 °C und 1 bar einstellen
+  const b = e.target.closest("button"); if (!b) return;
+  for (const x of $("stoffchips").querySelectorAll("button")) x.setAttribute("aria-checked", String(x === b));
+  SUB = STOFFE[b.dataset.stoff]; MELT_C = SUB.melt;
+  const t = $("tslider"); t.min = SUB.tmin; t.max = SUB.tmax; t.value = 20; $("pslider").value = 43;
+  $("tmin").textContent = `${String(SUB.tmin).replace("-", "−")} °C`; $("tmax").textContent = `${SUB.tmax} °C`;
+  lastExp = ""; readSliders();
+});
 $("pslider").addEventListener("input", readSliders);
 $("playbtn").addEventListener("click", () => { running = !running; $("playbtn").textContent = running ? "Pause" : "Weiter"; });
 $("resetbtn").addEventListener("click", () => { init(); for (let k = 0; k < 2000; k++) step(); for (let k = 0; k < 10; k++){ for (let j = 0; j < 100; j++) step(); analyse(); } updateText(); dirty = true; });
