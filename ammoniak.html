@@ -209,6 +209,7 @@ details li{margin-bottom:6px}
       <div class="task">
         <b>Darstellung</b>
         <label class="switch"><input type="checkbox" id="hbchk"> Wasserstoffbrücken zeigen</label>
+        <label class="switch" id="dimwrap"><input type="checkbox" id="dimchk"> Unbeteiligte Teilchen blass</label>
         <label class="switch" id="fmwrap"><input type="checkbox" id="fmchk"> Formel zeigen</label>
       </div>
     </div>
@@ -766,6 +767,21 @@ function drawBox(){
     ctx.fillText("Gasraum", g.X + 6, g.Y + 4); ctx.fillText("Wasser", w.X + 6, w.Y + 4);
   }
 }
+const REACTIVE = ["H3O+", "OH-", "HCl", "NH3", "NH4+"];
+let dimOthers = false;
+function activeSet(){                                            // beteiligte Teilchen: Säure-Base-Teilchen und ihre direkten Partner
+  const act = new Set();
+  for (let i = 0; i < A.length; i++) if (A[i].el !== "H" && A[i].pair < 0 && REACTIVE.includes(kind(i))) act.add(i);
+  for (const i of S.flying){ act.add(A[i].tr.from); act.add(A[i].tr.to); }
+  const core = [...act];
+  for (let j = 0; j < A.length; j++){                            // Wassermoleküle, die über eine Wasserstoffbrücke an ein solches Teilchen gebunden sind
+    if (A[j].el !== "O" || act.has(j)) continue;
+    const hb = c => [...hl[j].map(h => [h, c]), ...hl[c].map(h => [h, j])]
+      .some(([h, acc]) => dist(A[h], A[acc]) < (A[acc].el === "Cl" ? 2.7 : 2.4));
+    if (core.some(c => A[c].el !== "Cl" && hb(c))) act.add(j);
+  }
+  return act;
+}
 function draw(){
   if (!W) return;
   SC = Math.min(H * 0.47 / S.R, W * 0.47 / (S.Rw || S.R)) * zoom;   // Rw: halbe Breite der Szene
@@ -777,6 +793,8 @@ function draw(){
     ({x:cx, y:cy, z:cz} = S.center);
   }
   const P = A.map(a => proj(a.x - cx, a.y - cy, a.z - cz));
+  const act = dimOthers && !S.closeup ? activeSet() : null;
+  const pale = A.map((a, i) => a.fade || (act && !act.has(molOf(i))));   // blass: Hintergrund oder unbeteiligt
   drawBox();
   for (let i = 0; i < A.length; i++){                            // Leuchten um H₃O⁺ (violett) und OH⁻ (blau)
     if (A[i].el !== "O" || hl[i].length === 2 || A[i].pair >= 0) continue;
@@ -793,8 +811,8 @@ function draw(){
     for (const [o, al] of bonds){
       if (al < 0.05) continue;
       const m = {X:(P[i].X + P[o].X) / 2, Y:(P[i].Y + P[o].Y) / 2};
-      items.push({z:(P[i].z * 3 + P[o].z) / 4 - 0.01, t:1, a:P[i], b:m, c:atomColor(h), al, fade:h.fade});
-      items.push({z:(P[o].z * 3 + P[i].z) / 4 - 0.01, t:1, a:P[o], b:m, c:COL[A[o].el], al, fade:A[o].fade});
+      items.push({z:(P[i].z * 3 + P[o].z) / 4 - 0.01, t:1, a:P[i], b:m, c:atomColor(h), al, fade:pale[i]});
+      items.push({z:(P[o].z * 3 + P[i].z) / 4 - 0.01, t:1, a:P[o], b:m, c:COL[A[o].el], al, fade:pale[o]});
     }
   }
   if (showHB){                                                   // Wasserstoffbrücken
@@ -805,7 +823,8 @@ function draw(){
         const b = A[j]; if (b.el === "H" || b.el === "Na" || j === h.owner) continue;
         if (dist(b, h) > (b.el === "Cl" ? 2.7 : 2.4)) continue;
         if (dot(norm(V(h.x - D.x, h.y - D.y, h.z - D.z)), norm(V(b.x - h.x, b.y - h.y, b.z - h.z))) < Math.cos(45 * DEG)) continue;
-        items.push({z:(P[i].z + P[j].z) / 2, t:2, a:P[i], b:P[j], fade:h.fade || b.fade});
+        if (act && (pale[i] || pale[j])) continue;
+        items.push({z:(P[i].z + P[j].z) / 2, t:2, a:P[i], b:P[j], fade:pale[i] || pale[j]});
       }
     }
   }
@@ -815,7 +834,7 @@ function draw(){
       ctx.setLineDash([4, 4]); ctx.lineWidth = 1.6; ctx.strokeStyle = `rgba(140,200,255,${it.fade ? .4 : .9})`;
       ctx.beginPath(); ctx.moveTo(it.a.X, it.a.Y); ctx.lineTo(it.b.X, it.b.Y); ctx.stroke(); ctx.setLineDash([]);
     } else if (it.t === 1){
-      stick(it.a, it.b, it.c, 0.15 * SC * (it.a.f + 1) / 2, it.al * (it.fade ? .3 : 1));
+      stick(it.a, it.b, it.c, 0.15 * SC * (it.a.f + 1) / 2, it.al * (it.fade ? (act ? .18 : .3) : 1));
     } else {
       const a = A[it.i], p = P[it.i];
       if (a.glow > 0){
@@ -823,7 +842,7 @@ function draw(){
         g.addColorStop(0, `rgba(255,220,120,${.75 * a.glow})`); g.addColorStop(1, "rgba(255,220,120,0)");
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.X, p.Y, r, 0, 2 * Math.PI); ctx.fill();
       }
-      ball(p.X, p.Y, R_STICK[a.el] * SC * p.f, atomColor(a), a.fade ? .3 : 1);
+      ball(p.X, p.Y, R_STICK[a.el] * SC * p.f, pale[it.i] && act ? mix(atomColor(a), [120, 128, 145], .6) : atomColor(a), pale[it.i] ? (act ? .22 : .3) : 1);
     }
   }
   for (let i = 0; i < A.length; i++){                            // leuchtender Ring um H₃O⁺ und OH⁻, über allen Atomen
@@ -841,7 +860,7 @@ function draw(){
     ctx.fillStyle = col; ctx.fillText(txt, p.X, y);
   };
   for (let i = 0; i < A.length; i++){
-    const a = A[i]; if (a.el === "H" || a.fade) continue;
+    const a = A[i]; if (a.el === "H" || pale[i]) continue;
     if (a.pair >= 0){                                            // NaOH als Formeleinheit, solange Na⁺ und OH⁻ zusammenhängen
       if (a.el === "Na"){ const o = P[a.pair], p = P[i]; label("NaOH", "#e8ecf3", {X:(p.X + o.X) / 2, Y:Math.min(p.Y, o.Y), f:p.f}, R_STICK.Na); }
       continue;
@@ -929,6 +948,7 @@ function loadScene(id){
   zoom = 1; running = false;
   $("stepbtn").hidden = !S.PH;
   $("fmwrap").hidden = !!S.closeup;                               // Nahaufnahme: Formel immer sichtbar
+  if ($("dimwrap")) $("dimwrap").hidden = !!S.closeup;            // Nahaufnahme hat schon blasse Nachbarn
   $("formula").hidden = !S.closeup && !$("fmchk").checked;
   for (const b of $("scenes").querySelectorAll("button")) b.setAttribute("aria-checked", String(+b.dataset.scene === id));
   PAGE.formula(S); syncButtons(); syncControls(); updateText(); dirty = true;
@@ -967,6 +987,7 @@ function bindControls(){
     if (cfg && (S.added[cfg.key] || 0) < cfg.max) cfg.add();
   });
   $("hbchk").addEventListener("change", e => { showHB = e.target.checked; dirty = true; });
+  $("dimchk") && $("dimchk").addEventListener("change", e => { dimOthers = e.target.checked; dirty = true; });
   $("fmchk").addEventListener("change", e => { $("formula").hidden = !e.target.checked; });
   // Drehen durch Ziehen (ein Finger) oder Pfeiltasten; Vergrößern mit Mausrad, zwei Fingern oder + / −
   const pts = new Map();
