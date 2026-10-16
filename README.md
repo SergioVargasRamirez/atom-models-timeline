@@ -19,6 +19,7 @@ Anfragen, auch Schriften sind eingebettet.
 | `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
 | `polaritaet.html` | Moleküle im elektrischen Feld: Kasten mit geladenen Platten links und rechts, neun Stoffe (H₂O, HCl, NH₃, CO₂, CH₄, H₂, Cl₂, N₂, O₂), Dipolpfeile, Teilladungen, Anziehung zwischen den Molekülen | von Hand |
 | `elektronenwolken.html` | Elektronenwolken der neun Stoffe aus „Moleküle im elektrischen Feld“ in 3D (WebGL): Hülle mit Ladungsfarben oder Punktwolke, Größe der Wolke, Atome, δ+/δ−, Dipolpfeil | von Hand + Daten |
+| `wasser.html` | Wasser: Tropfen und Eis. 2D-Wassermodell (Mercedes-Benz-Modell): Tropfen mit Oberflächenspannung, Gefrieren an einer kalten Fläche mit Kolben (Eis braucht mehr Platz) | von Hand |
 | `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand + Engine |
 | `ammoniak.html` | Ammoniak in Wasser: NH₃ + H₂O (Nahaufnahme mit Rückreaktion), NH₃ in Wasser (Gleichgewicht), viele Teilchen mit Universalindikator | von Hand + Engine |
 | `neutralisation.html` | Neutralisation: HCl trifft NaOH (wenige Teilchen), viele Teilchen mit HCl- und NaOH-Knopf und Universalindikator | von Hand + Engine |
