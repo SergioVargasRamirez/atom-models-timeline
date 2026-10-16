@@ -29,6 +29,8 @@ override it.
 | `acetic_acid.xyz` | optimized | rough start geometry, the optimizer fixes it |
 | `acetate.xyz` | charge −1, 6-31+G(d), optimized | diffuse functions for the anion |
 | `ethanol.xyz` | optimized | new start geometry (anti conformer) |
+| `ammonia.xyz`, `carbon_dioxide.xyz`, `methane.xyz`, `nitrogen.xyz` | optimized | for elektronenwolken.html |
+| `oxygen.xyz` | multiplicity 3, optimized | O₂ is a triplet (two unpaired electrons) |
 
 Default method: B3LYP/6-31G(d).
 
@@ -58,6 +60,20 @@ python clip_esp.py results/*/ --common --iso 0.002     # writes ESP_clipped.cube
 
 `--iso` takes the range from the ESP values on the surface. Without it, the
 percentiles of the whole grid are dominated by the large values near the nuclei.
+
+### Data for the page elektronenwolken.html
+
+```
+cd scripts/esp
+for m in water hydrogen chlorine hydrochloric_acid ammonia carbon_dioxide \
+         methane nitrogen oxygen; do python esp.py molecules/$m.xyz --overage 5; done
+python export_web.py          # -> template/site/wolken-data.js
+cd ../.. && python3 build.py  # copies the data into elektronenwolken.html
+```
+
+`export_web.py` resamples the grids to 0.3 bohr, stores the density as
+log-scaled bytes and the ESP on one shared range (from the surface at 0.002),
+and adds the share of electrons inside the surface for a range of isovalues.
 
 ## dipole_interactions/ — clusters with OpenMM
 

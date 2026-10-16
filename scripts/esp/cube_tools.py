@@ -26,6 +26,18 @@ def write_cube(path, header, atoms, values, shape):
                 f.write(" ".join(f"{v:13.6e}" for v in row[i:i + 6]) + "\n")
 
 
+def read_grid(path):
+    """Cube file as a 3D grid: dict with origin and step (bohr, axis-aligned grids only),
+    values with shape (nx, ny, nz) and atoms as (Z, x, y, z) in bohr."""
+    header, atom_lines, values, shape = read_cube(path)
+    origin = np.array(header[2].split()[1:4], dtype=float)
+    axes = np.array([header[i].split()[1:4] for i in (3, 4, 5)], dtype=float)
+    if np.abs(axes - np.diag(np.diag(axes))).max() > 1e-8:
+        raise ValueError(f"{path}: grid axes are not aligned with x, y, z")
+    atoms = [(int(l.split()[0]), *map(float, l.split()[2:5])) for l in atom_lines]
+    return {"origin": origin, "step": np.diag(axes).copy(), "values": values.reshape(shape), "atoms": atoms}
+
+
 def surface_values(esp, density, iso, tol=0.25):
     """ESP values on the density isosurface: grid points with density within ±tol·iso of iso."""
     mask = np.abs(density - iso) <= tol * iso
