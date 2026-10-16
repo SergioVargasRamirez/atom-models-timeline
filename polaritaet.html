@@ -221,7 +221,7 @@ details li{margin-bottom:6px}
           <button type="button" role="radio" aria-checked="false" data-focus="2">2</button>
         </div>
       </div>
-      <p class="hint" id="focushint" hidden>Die übrigen Moleküle sind grau. Tippe auf ein Molekül, um es hervorzuheben.</p>
+      <p class="hint" id="focushint" hidden>Die übrigen Moleküle sind blass. Tippe auf ein Molekül, um es hervorzuheben.</p>
       <label class="switch"><input type="checkbox" id="deltachk"> δ+ und δ− zeigen</label>
       <label class="switch"><input type="checkbox" id="dipolchk"> Dipolpfeile</label>
       <label class="switch"><input type="checkbox" id="fieldchk"> Feldrichtung zeigen</label>
@@ -511,13 +511,16 @@ function draw(){
   ctx.save(); ctx.beginPath(); ctx.rect(X(0), Y(0), S * BW, S * BH); ctx.clip();
   const shown = focusN ? focus.map(k => ms[k]) : ms;   // Moleküle mit Farben, Pfeilen und Beschriftung
   ctx.lineCap = "round"; ctx.lineWidth = Math.max(2, S * 0.28);
-  if (focusN){        // alle anderen flach und grau
-    ctx.strokeStyle = ctx.fillStyle = "#2c3446";
+  if (focusN){        // alle anderen blass (durchscheinend), wie auf den Säure-Base-Seiten
+    ctx.strokeStyle = "#c9d3ea";
     ms.forEach((m, k) => {
       if (focus.includes(k)) return;
+      ctx.globalAlpha = 0.18;
       for (const [i, j] of mol.bonds){ ctx.beginPath(); ctx.moveTo(X(m.ax[i]), Y(m.ay[i])); ctx.lineTo(X(m.ax[j]), Y(m.ay[j])); ctx.stroke(); }
-      for (let i = 0; i < at.length; i++){ ctx.beginPath(); ctx.arc(X(m.ax[i]), Y(m.ay[i]), S * at[i].r, 0, 2 * Math.PI); ctx.fill(); }
+      ctx.globalAlpha = 0.22;
+      for (let i = 0; i < at.length; i++) ball(X(m.ax[i]), Y(m.ay[i]), S * at[i].r, at[i].col);
     });
+    ctx.globalAlpha = 1;
   }
   for (const m of shown){
     ctx.strokeStyle = "#c9d3ea";
