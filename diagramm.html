@@ -115,12 +115,13 @@ sub,sup{line-height:0}
 .bstage{background:var(--stage);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .lvrow{display:flex;align-items:flex-end;gap:8px;min-height:50px;cursor:pointer}
 .bld .lvrow:hover .eadd{border-color:var(--accent)}
+.erm:disabled{opacity:.35;cursor:default}
 .lvlab{flex:0 0 46px;color:#7482a3;font:11.5px ui-monospace,Consolas,monospace;padding-bottom:6px}
 .lvline{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:5px;align-items:flex-end;border-bottom:3px solid #c9d3ea;min-height:36px;padding:0 4px 6px}
 .edot{width:20px;height:20px;border-radius:50%;background:#5ac8fa;border:0;padding:0;display:inline-block;cursor:pointer;touch-action:manipulation}
 span.edot{cursor:default}
 .edot.over{background:#ef5350}
-.eadd{flex:0 0 34px;height:34px;border-radius:8px;border:1px solid #3a4666;background:transparent;color:#c9d3ea;font:700 1.1rem var(--mono,monospace);cursor:pointer;margin-bottom:2px;touch-action:manipulation}
+.eadd,.erm{flex:0 0 34px;height:34px;border-radius:8px;border:1px solid #3a4666;background:transparent;color:#c9d3ea;font:700 1.1rem var(--mono,monospace);cursor:pointer;margin-bottom:2px;touch-action:manipulation}
 .res{margin:0;padding-left:1.1em;font-size:.93rem}
 .res li.ok{color:var(--ok)} .res li.bad{color:var(--bad)}
 .kz{font-family:var(--mono,ui-monospace,monospace);font-weight:700}
@@ -290,7 +291,7 @@ function makeBuilder(host, opt) {
   host.classList.add("bld");
   host.innerHTML = '<div class="bstage" role="group" aria-label="Energiestufendiagramm"></div>' + (opt.readonly ? "" :
     '<div class="controls" style="margin-top:10px"><button type="button" class="btn" data-a="add">Energiestufe hinzufügen</button><button type="button" class="btn" data-a="rm">Energiestufe entfernen</button><button type="button" class="btn" data-a="clr">Leeren</button></div>' +
-    '<p class="small" style="margin:6px 0 0">Tippe auf eine Energiestufe, um ein Elektron hinzuzufügen. Tippe auf ein Elektron, um es zu entfernen.</p>');
+    '<p class="small" style="margin:6px 0 0">Mit + oder einem Tipp auf die Energiestufe kommt ein Elektron dazu. Mit − oder einem Tipp auf ein Elektron wird eines entfernt.</p>');
   const stage = host.querySelector(".bstage");
   function render() {
     stage.textContent = "";
@@ -306,6 +307,7 @@ function makeBuilder(host, opt) {
         line.appendChild(d);
       }
       row.append(lab, line);
+      if (!opt.readonly) { const m = el("button", "erm"); m.type = "button"; m.textContent = "−"; m.disabled = cfg[i] === 0; m.setAttribute("aria-label", `Elektron von Energiestufe ${i + 1} entfernen`); row.appendChild(m); }
       if (!opt.readonly) { const p = el("button", "eadd"); p.type = "button"; p.textContent = "+"; p.setAttribute("aria-label", `Elektron zu Energiestufe ${i + 1} hinzufügen`); row.appendChild(p); }
       stage.appendChild(row);
     }
@@ -314,7 +316,7 @@ function makeBuilder(host, opt) {
   if (!opt.readonly) {
     stage.addEventListener("click", e => {
       const row = e.target.closest(".lvrow"); if (!row) return; const i = +row.dataset.lv;
-      if (e.target.closest(".edot")) { if (cfg[i] > 0) cfg[i]--; }
+      if (e.target.closest(".edot, .erm")) { if (cfg[i] > 0) cfg[i]--; }
       else if (cfg[i] < 20) cfg[i]++;
       render();
     });
