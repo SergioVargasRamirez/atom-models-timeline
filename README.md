@@ -26,6 +26,8 @@ Anfragen, auch Schriften sind eingebettet.
 | `ammoniak.html` | Ammoniak in Wasser: NH₃ + H₂O (Nahaufnahme mit Rückreaktion), NH₃ in Wasser (Gleichgewicht), viele Teilchen mit Universalindikator | von Hand + Engine |
 | `neutralisation.html` | Neutralisation: HCl trifft NaOH (wenige Teilchen), viele Teilchen mit HCl- und NaOH-Knopf und Universalindikator | von Hand + Engine |
 | `quellen.html` | Quellen und Danksagung | von Hand |
+| `impressum.html` | Impressum, Haftungsausschluss, Lizenz, Einbetten | von Hand |
+| `datenschutz.html` | Datenschutz (keine Cookies, kein Tracking, Hosting GitHub Pages) | von Hand |
 
 ## Seitenmenü
 
@@ -213,3 +215,25 @@ bleibt online, bis der Fehler behoben ist.
   die es benutzen) ist angedacht, aber noch nicht umgesetzt.
 - `geprüft` ist für alle Inhalte aktuell `null` — die Review-Arbeit selbst
   steht noch aus.
+
+## Lizenz
+
+© 2026 Dr. Sergio Vargas, biodatum.io. Seiten, Texte, Abbildungen, Quellcode
+und Daten stehen unter [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de)
+(Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen),
+vollständiger Text in `LICENSE`. Kommerzielle Nutzung nur mit gesonderter
+Lizenz: info@biodatum.io. Ausgenommen ist die eingebettete Schrift Source
+Sans 3 (SIL Open Font License 1.1). Die Inhalte werden ohne Gewähr
+bereitgestellt; siehe `impressum.html` (Haftungsausschluss) und
+`datenschutz.html`.
+
+## Mitmachen
+
+Fehler und Wünsche bitte als Issue melden:
+https://github.com/SergioVargasRamirez/atoms/issues. Verbesserungen gern als
+Pull Request. Ohne GitHub-Konto: info@biodatum.io.
+
+Die Seiten dürfen nicht in andere Webseiten eingebettet werden. GitHub Pages
+kann keine HTTP-Header wie `X-Frame-Options` setzen; deshalb blendet ein
+Skript im Seitenmenü (`template/site/nav.html`) die Seite in fremden Rahmen
+aus und zeigt nur einen Link.

@@ -297,6 +297,11 @@ footer{color:var(--muted);font-size:14px;padding:0 0 40px}
 }
 @media (prefers-reduced-motion:reduce){.sidenav-list a{transition:none}}
 @media print{.sidenav{display:none}body{padding-left:0}}
+.sidenav-legal{margin:14px 10px 0;font-size:.78rem;line-height:1.35;color:var(--muted)}
+.sidenav-legal a{display:inline;padding:0;margin:0;color:inherit;text-decoration:underline;font-size:inherit}
+.sidenav-legal a:hover{background:none}
+html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
+.eingebettet-hinweis{font:600 18px/1.5 system-ui,sans-serif;padding:32px 20px;text-align:center}
 </style>
 </head>
 <body>
@@ -332,10 +337,25 @@ footer{color:var(--muted);font-size:14px;padding:0 0 40px}
     <a href="neutralisation.html">Neutralisation</a>
     <p class="sidenav-group">Über die Seiten</p>
     <a href="quellen.html">Quellen und Danksagung</a>
+    <a href="quellen.html#mitmachen">Mitmachen</a>
+    <a href="impressum.html">Impressum</a>
+    <a href="datenschutz.html">Datenschutz</a>
+    <p class="sidenav-legal">© 2026 Dr. Sergio Vargas · <a href="impressum.html#lizenz">CC BY-NC-SA 4.0</a></p>
   </div>
 </nav>
 <script>
 (() => {
+  // Nicht einbetten: In einem fremden Rahmen (iframe) nur einen Hinweis mit Link zeigen.
+  // GitHub Pages kann dafür keine HTTP-Header (X-Frame-Options, frame-ancestors) senden.
+  if (window.self !== window.top){
+    document.documentElement.classList.add("eingebettet");
+    const note = () => {
+      const d = document.createElement("div"); d.className = "eingebettet-hinweis";
+      d.innerHTML = 'Diese Seite darf nicht eingebettet werden.<br><a href="' + location.href + '" target="_top" rel="noopener">Seite direkt öffnen: ' + (location.hostname || 'atoms.biodatum.io') + '</a>';
+      document.body.appendChild(d);
+    };
+    if (document.body) note(); else document.addEventListener("DOMContentLoaded", note);
+  }
   const nav = document.getElementById("sidenav"), btn = nav.querySelector(".sidenav-toggle");
   btn.addEventListener("click", () => btn.setAttribute("aria-expanded", String(nav.classList.toggle("open"))));
 })();

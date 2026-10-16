@@ -143,6 +143,11 @@ sub,sup{line-height:0}
 }
 @media (prefers-reduced-motion:reduce){.sidenav-list a{transition:none}}
 @media print{.sidenav{display:none}body{padding-left:0}}
+.sidenav-legal{margin:14px 10px 0;font-size:.78rem;line-height:1.35;color:var(--muted)}
+.sidenav-legal a{display:inline;padding:0;margin:0;color:inherit;text-decoration:underline;font-size:inherit}
+.sidenav-legal a:hover{background:none}
+html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
+.eingebettet-hinweis{font:600 18px/1.5 system-ui,sans-serif;padding:32px 20px;text-align:center}
 </style>
 </head>
 <body>
@@ -178,10 +183,25 @@ sub,sup{line-height:0}
     <a href="neutralisation.html">Neutralisation</a>
     <p class="sidenav-group">Über die Seiten</p>
     <a href="quellen.html" aria-current="page">Quellen und Danksagung</a>
+    <a href="quellen.html#mitmachen">Mitmachen</a>
+    <a href="impressum.html">Impressum</a>
+    <a href="datenschutz.html">Datenschutz</a>
+    <p class="sidenav-legal">© 2026 Dr. Sergio Vargas · <a href="impressum.html#lizenz">CC BY-NC-SA 4.0</a></p>
   </div>
 </nav>
 <script>
 (() => {
+  // Nicht einbetten: In einem fremden Rahmen (iframe) nur einen Hinweis mit Link zeigen.
+  // GitHub Pages kann dafür keine HTTP-Header (X-Frame-Options, frame-ancestors) senden.
+  if (window.self !== window.top){
+    document.documentElement.classList.add("eingebettet");
+    const note = () => {
+      const d = document.createElement("div"); d.className = "eingebettet-hinweis";
+      d.innerHTML = 'Diese Seite darf nicht eingebettet werden.<br><a href="' + location.href + '" target="_top" rel="noopener">Seite direkt öffnen: ' + (location.hostname || 'atoms.biodatum.io') + '</a>';
+      document.body.appendChild(d);
+    };
+    if (document.body) note(); else document.addEventListener("DOMContentLoaded", note);
+  }
   const nav = document.getElementById("sidenav"), btn = nav.querySelector(".sidenav-toggle");
   btn.addEventListener("click", () => btn.setAttribute("aria-expanded", String(nav.classList.toggle("open"))));
 })();
@@ -212,6 +232,14 @@ sub,sup{line-height:0}
       <li><b>Autoprotolyse:</b> Ionenprodukt des Wassers K<sub>W</sub> = 10<sup>−14</sup> mol²/L² bei 25 °C; mittlere Zeit bis zur Ionisierung eines Wassermoleküls etwa 10 Stunden nach P. L. Geissler, C. Dellago, D. Chandler, J. Hutter, M. Parrinello, Science 291 (2001) 2121.</li>
       <li><b>Diffusion:</b> Stoffebene als eindimensionale Diffusionsgleichung (Fick, 1855), Temperaturabhängigkeit nach der Stokes-Einstein-Beziehung D ∝ T/η (A. Einstein, 1905). Die Teilchen in den Lupen bewegen sich als gedämpfte Zufallsbewegung (Brownsche Bewegung, Langevin-Ansatz) mit elastischen Stößen.</li>
     </ul>
+    <h2>Wechselwirkungen und Wasser</h2>
+    <ul>
+      <li><b>Elektronenwolken:</b> Elektronendichte und elektrostatisches Potential, berechnet mit Psi4 (D. G. A. Smith et al., J. Chem. Phys. 152 (2020) 184108; Dichtefunktional B3LYP, Basis 6-31G(d)). Skripte im Projekt unter <code>scripts/esp</code>.</li>
+      <li><b>Moleküle im elektrischen Feld:</b> Dipolmomente H₂O 1,85 D, NH₃ 1,47 D, HCl 1,08 D, gerundete Literaturwerte (CRC Handbook of Chemistry and Physics).</li>
+      <li><b>London-Kräfte:</b> Drude-Modell schwankender Elektronenwolken (nach P. Drude; London-Kraft nach F. London, Z. Phys. 63 (1930) 245). Polarisierbarkeiten, Teilchendurchmesser und Siedetemperaturen der Edelgase und Alkane: gerundete Literaturwerte (CRC Handbook of Chemistry and Physics).</li>
+      <li><b>Wasser: Tropfen und Eis:</b> zweidimensionales Mercedes-Benz-Wassermodell nach A. Ben-Naim, J. Chem. Phys. 54 (1971) 3682, und K. A. T. Silverstein, A. D. J. Haymet, K. A. Dill, J. Am. Chem. Soc. 120 (1998) 3166.</li>
+      <li><b>Eis und Wasser in 3D:</b> hexagonales Eis mit Gitterkonstanten a = 4,497 Å und c = 7,322 Å, Protonen nach den Eisregeln von J. D. Bernal und R. H. Fowler (J. Chem. Phys. 1 (1933) 515). Flüssiges Wasser aus einer Rechnung mit OpenMM (P. Eastman et al., PLoS Comput. Biol. 13 (2017) e1005659) und dem Wassermodell TIP4P-Ew (H. W. Horn et al., J. Chem. Phys. 120 (2004) 9665). Skripte unter <code>scripts/ice</code>.</li>
+    </ul>
     <h2>Schulbuch</h2>
     <ul>
       <li>Die Aufgabenlisten beziehen sich auf Galvani Chemie 9 (Seitenzahlen, Aufgabennummern und Begriffe wie Energiestufe, Valenzelektronen und Edelgasregel). Texte und Abbildungen aus dem Buch sind nicht übernommen.</li>
@@ -224,7 +252,18 @@ sub,sup{line-height:0}
     </ul>
     <h2>Konzept und Umsetzung</h2>
     <ul>
-      <li>Konzept, Didaktik und fachliche Prüfung: Sergio Vargas. Technische Umsetzung mit Unterstützung von Claude (Anthropic).</li>
+      <li>Konzept, Didaktik und fachliche Prüfung: Dr. Sergio Vargas. Technische Umsetzung mit Unterstützung von Claude (Anthropic).</li>
+    </ul>
+    <h2 id="mitmachen">Mitmachen</h2>
+    <ul>
+      <li><b>Fehler gefunden oder einen Wunsch?</b> Melden Sie ihn bitte als „Issue“ im Projekt auf GitHub: <a href="https://github.com/SergioVargasRamirez/atoms/issues">github.com/SergioVargasRamirez/atoms/issues</a>. Hilfreich sind die Seite, der Browser und eine kurze Beschreibung, was passiert ist und was Sie erwartet hätten.</li>
+      <li><b>Ideen für neue Seiten</b> aus dem eigenen Unterricht sind willkommen, ebenfalls als Issue.</li>
+      <li><b>Selbst verbessern:</b> Der Quellcode liegt offen auf GitHub. Änderungen können Sie als „Pull Request“ vorschlagen.</li>
+      <li>Ohne GitHub-Konto geht es auch per E-Mail an <a href="mailto:info@biodatum.io">info@biodatum.io</a>.</li>
+    </ul>
+    <h2>Lizenz</h2>
+    <ul>
+      <li>Die Seiten stehen unter CC BY-NC-SA 4.0: nicht kommerziell nutzen, weitergeben und bearbeiten mit Namensnennung und unter gleichen Bedingungen. Kommerzielle Nutzung nur mit gesonderter Lizenz. Einzelheiten im <a href="impressum.html#lizenz">Impressum</a>.</li>
     </ul>
   </main>
 </div>
