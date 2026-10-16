@@ -47,9 +47,20 @@ canvas{display:block;width:100%}
 #stage{aspect-ratio:44/30;touch-action:manipulation}
 .status{color:var(--stage-fg);background:#111a2c;border-bottom:1px solid #1b2338;border-left:4px solid #7d9bff;padding:10px 14px;min-height:3.2em;font-size:1rem;line-height:1.45}
 .readout{font-family:var(--mono);font-size:.82rem;color:var(--stage-fg);padding:8px 12px;border-top:1px solid #1b2338;min-height:2.4em}
-.ctrlrow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:center;margin:12px 0}
-.fieldrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:12px 0 0}
-#fieldbtn{min-width:12em;font-weight:700}
+/* Bühne links, Bedienfeld rechts; schmal: Bedienfeld unter der Bühne */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.panel > b{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.panel .btn{width:100%}
+.panel .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.panel hr{border:0;border-top:1px solid var(--line);margin:2px 0}
+.panel .switch{font-weight:600;line-height:1.25}
+@media (max-width:900px){
+  .lab{grid-template-columns:minmax(0,1fr)}
+  .panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:center}
+  .panel > b,.panel hr{display:none}
+}
+#fieldbtn{font-weight:700}
 #fieldbtn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .btn:disabled{opacity:.45;cursor:default}
 .btn:disabled:hover{border-color:var(--line)}
@@ -184,22 +195,30 @@ details li{margin-bottom:6px}
       </select>
     </div>
 
+    <div class="lab">
     <div class="stagewrap">
       <div class="status" id="status" aria-live="polite"></div>
       <canvas id="stage" role="img" aria-label="Kasten mit Molekülen des gewählten Stoffes. Die linke und die rechte Wand sind Platten, die sich mit dem Knopf „Feld einschalten“ entgegengesetzt aufladen lassen."></canvas>
       <div class="readout" id="readout"></div>
     </div>
-    <div class="fieldrow">
+    <div class="panel">
+      <b>Feld</b>
       <button class="btn" type="button" id="fieldbtn" aria-pressed="false">Feld einschalten</button>
       <button class="btn" type="button" id="flipbtn" disabled>Polung umkehren</button>
-    </div>
-    <div class="ctrlrow">
-      <button class="btn primary" id="playbtn" type="button">Pause</button>
-      <button class="btn" id="resetbtn" type="button">Neu verteilen</button>
+      <hr>
+      <b>Anzeige</b>
       <label class="switch"><input type="checkbox" id="deltachk"> δ+ und δ− zeigen</label>
       <label class="switch"><input type="checkbox" id="dipolchk"> Dipolpfeile</label>
       <label class="switch"><input type="checkbox" id="fieldchk"> Feldrichtung zeigen</label>
+      <hr>
+      <b>Modell</b>
       <label class="switch"><input type="checkbox" id="attrchk"> Anziehung zwischen den Molekülen</label>
+      <hr>
+      <div class="pair">
+        <button class="btn primary" id="playbtn" type="button">Pause</button>
+        <button class="btn" id="resetbtn" type="button">Neu</button>
+      </div>
+    </div>
     </div>
 
     <div class="obs" id="obs">
