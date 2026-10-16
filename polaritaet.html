@@ -42,6 +42,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .stoffwahl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:4px 0 12px}
 .stoffwahl label{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .stoffwahl select{font:inherit;font-size:1.02rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;min-width:260px;max-width:100%;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:6px 12px;cursor:pointer}
+.chips button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .stagewrap{background:var(--stage);border-radius:10px;overflow:hidden;position:relative}
 canvas{display:block;width:100%}
 #stage{aspect-ratio:44/30;touch-action:manipulation}
@@ -182,6 +185,12 @@ details li{margin-bottom:6px}
         <option value="N2">Stickstoff (N₂)</option>
         <option value="O2">Sauerstoff (O₂)</option>
       </select>
+      <label id="viewlab">Ansicht</label>
+      <div class="chips" role="radiogroup" aria-labelledby="viewlab" id="viewchips">
+        <button type="button" role="radio" aria-checked="false" data-view="nah">nah</button>
+        <button type="button" role="radio" aria-checked="false" data-view="mittel">mittel</button>
+        <button type="button" role="radio" aria-checked="false" data-view="weit">weit</button>
+      </div>
     </div>
 
     <div class="stagewrap">
@@ -288,8 +297,9 @@ for (const k in MOLS){
 }
 
 /* ---------- Kasten und Wände ---------- */
-const BW = 40, BH = 26;          // Kasten in Å
-const N = 24;                     // Moleküle
+// Ansicht: größerer Ausschnitt mit mehr Molekülen bei gleicher Dichte (kleinere Moleküle auf dem Bildschirm)
+const VIEWS = {nah:{BW:40, BH:26, N:24}, mittel:{BW:56, BH:36.4, N:47}, weit:{BW:76, BH:49.4, N:87}};
+let BW = 40, BH = 26, N = 24;     // Kasten in Å, Zahl der Moleküle
 const WALLS = ["links", "oben", "rechts", "unten"];
 const plates = [0, 0, 0, 0];      // −1, 0, +1
 const E_CENTER = 5;               // μ(Wasser)·E in der Mitte bei zwei gegenüberliegenden Platten, in kT
@@ -308,9 +318,10 @@ function rawField(x, y, pl){
   if (pl[3]){ const [a, p] = stripField(-x, BW - x, db); ey -= pl[3] * p; ex += pl[3] * a; }
   return [ex, ey];
 }
-// Maßstab: links − und rechts + ergeben in der Mitte die Feldstärke E_CENTER
-const KF1 = 1 / Math.hypot(...rawField(BW / 2, BH / 2, [1, 0, -1, 0]));
-let KF = E_CENTER * KF1;
+// Maßstab: links − und rechts + ergeben in der Mitte die Feldstärke E_CENTER (in jeder Ansicht)
+let eScale = E_CENTER, KF1 = 1, KF = 1;
+function scaleField(){ KF1 = 1 / Math.hypot(...rawField(BW / 2, BH / 2, [1, 0, -1, 0])); KF = eScale * KF1; }
+scaleField();
 const field = (x, y) => { const [ex, ey] = rawField(x, y, plates); return [KF * ex, KF * ey]; };
 const anyPlate = () => plates.some(q => q !== 0);
 
@@ -328,7 +339,7 @@ function gauss(){
 }
 function init(){
   ms = [];
-  const cols = 6, rows = 4, gx = BW / cols, gy = BH / rows, cells = [];
+  const cols = Math.round(Math.sqrt(N * BW / BH)), rows = Math.ceil(N / cols), gx = BW / cols, gy = BH / rows, cells = [];
   for (let i = 0; i < cols * rows; i++) cells.push(i);
   for (let i = cells.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
   for (let k = 0; k < N; k++){
@@ -447,7 +458,7 @@ function drawPlates(){
 }
 function arrow(x1, y1, x2, y2, col, lw, cross){   // Dipolpfeil: von δ+ nach δ−, Querstrich am Pfeilende bei δ+
   const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy); if (L < 2) return;
-  const ux = dx / L, uy = dy / L, hs = Math.min(9, L * 0.35) * lw / 2;
+  const ux = dx / L, uy = dy / L, hs = Math.min(4.5 * lw, L * 0.2);   // Spitze wächst mit der Pfeillänge
   ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = lw; ctx.lineCap = "round";
   ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * hs, y2 - uy * hs); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - ux * hs * 1.8 - uy * hs, y2 - uy * hs * 1.8 + ux * hs); ctx.lineTo(x2 - ux * hs * 1.8 + uy * hs, y2 - uy * hs * 1.8 - ux * hs); ctx.closePath(); ctx.fill();
@@ -490,14 +501,14 @@ function draw(){
       const [mx, my] = dipole(m), mu = Math.hypot(mx, my);
       if (mu > 0.05){       // Gesamtdipol, Pfeil zeigt zum negativen Ende (δ−)
         const L = S * (1.0 + 1.6 * mu), ux = -mx / mu, uy = -my / mu, cx = X(m.x), cy = Y(m.y);
-        arrow(cx - ux * L / 2, cy - uy * L / 2, cx + ux * L / 2, cy + uy * L / 2, "#ffd166", 2.5, true);
+        arrow(cx - ux * L / 2, cy - uy * L / 2, cx + ux * L / 2, cy + uy * L / 2, "#ffd166", Math.max(1.4, Math.min(2.5, S * 0.14)), true);
       } else if (mol.delta > 0){   // polare Bindungen, die sich aufheben
         for (const [i, j] of mol.bonds){
           const [p, n] = at[i].q > 0 ? [i, j] : [j, i];
           // neben der Bindung, außerhalb der Atomkugeln, über die ganze Bindungslänge
           const x1 = m.ax[p], y1 = m.ay[p], x2 = m.ax[n], y2 = m.ay[n], L = Math.hypot(x2 - x1, y2 - y1);
           const off = Math.max(at[p].r, at[n].r) + 0.18, ox = -(y2 - y1) / L * off, oy = (x2 - x1) / L * off;
-          arrow(X(x1 + ox - (x2 - x1) * 0.1), Y(y1 + oy - (y2 - y1) * 0.1), X(x2 + ox + (x2 - x1) * 0.1), Y(y2 + oy + (y2 - y1) * 0.1), "#ffd166", 1 + 0.9 * Math.min(1.5, at[p].q - at[n].q), true);   // dicker = polarer
+          arrow(X(x1 + ox - (x2 - x1) * 0.1), Y(y1 + oy - (y2 - y1) * 0.1), X(x2 + ox + (x2 - x1) * 0.1), Y(y2 + oy + (y2 - y1) * 0.1), "#ffd166", (1 + 0.9 * Math.min(1.5, at[p].q - at[n].q)) * Math.min(1, S / 18), true);   // dicker = polarer
         }
       }
     }
@@ -573,6 +584,12 @@ $("dipolchk").addEventListener("change", e => { showDipole = e.target.checked; u
 $("fieldchk").addEventListener("change", e => { showField = e.target.checked; draw(); });
 $("attrchk").addEventListener("change", e => { attract = e.target.checked; });
 $("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
+function setView(v){
+  ({BW, BH, N} = VIEWS[v]);
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.view === v)));
+  scaleField(); restart(); resize();
+}
+document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
 function restart(){ init(); for (let k = 0; k < 200; k++) step(); alignAvg = null; updateStatus(); updateReadout(); draw(); }
 
 /* ---------- Schleife ---------- */
@@ -588,7 +605,7 @@ function frame(){
 }
 // Für automatische Tests
 window.__polaritaet = {plates, step, alignment, neighbours, setAttract:b => { attract = b; }, select:k => { $("stoff").value = k; mol = MOLS[k]; restart(); },
-  spreadLeft:() => ms.filter(m => m.x < BW / 4).length / ms.length, setKC:k => { K_C = k; }, setGamma:(g, gr) => { GAMMA = g; GAMMA_ROT = gr; }, setE:e => { KF = e * KF1; }, field:(x, y) => field(x, y),
+  spreadLeft:() => ms.filter(m => m.x < BW / 4).length / ms.length, setKC:k => { K_C = k; }, setGamma:(g, gr) => { GAMMA = g; GAMMA_ROT = gr; }, setE:e => { eScale = e; KF = e * KF1; }, view:v => setView(v), field:(x, y) => field(x, y),
   nearWall:d => ms.filter(m => m.x < d).length / ms.length};
 
 $("playbtn").textContent = running ? "Pause" : "Start";
@@ -596,7 +613,7 @@ $("playbtn").textContent = running ? "Pause" : "Start";
 mol = MOLS[$("stoff").value] || MOLS.H2O;
 showDelta = $("deltachk").checked; showDipole = $("dipolchk").checked; showField = $("fieldchk").checked; attract = $("attrchk").checked;
 $("obs").classList.toggle("show", $("anschk").checked);
-restart();
+setView(cv.clientWidth >= 600 ? "mittel" : "nah");   // auf dem Handy wären die Moleküle sonst sehr klein
 new ResizeObserver(resize).observe(cv);
 resize();
 requestAnimationFrame(frame);
