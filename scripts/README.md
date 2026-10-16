@@ -122,6 +122,16 @@ H₂O: two H, C2v; `geometry.py`). `lmo.py` also writes, for every electron pair
 the distance of its centroid from the central atom, its spread and spread ÷
 distance (how much angle it takes up around the central atom).
 
+## sugar/ — 3D structures for zucker.html
+
+```
+cd scripts/sugar
+python make_sugars.py > sugars.json   # rdkit env; checks every stereocentre against the IUPAC name
+```
+
+The JSON is pasted into `zucker.html` (`ZUCKER`). L-forms are not stored: the
+page mirrors the D-form.
+
 ## proton_transfer/ — acetic acid gives a proton to water
 
 `proton_trajectory.py` moves the acidic proton along the O···O hydrogen bond
