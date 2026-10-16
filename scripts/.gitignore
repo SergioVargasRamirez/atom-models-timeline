@@ -1,0 +1,6 @@
+# computed results (large; recreate with the scripts)
+results/
+*.cube
+*.dcd
+timer.dat
+__pycache__/

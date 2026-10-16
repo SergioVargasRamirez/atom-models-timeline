@@ -44,6 +44,13 @@ der Simulation also in `template/site/teilchen.js` machen, nicht in den Seiten;
 die Seiten selbst enthalten nur ihre Szenen, Formeln und Texte (nach der
 Endmarke).
 
+## Rechenskripte
+
+`scripts/` enthält Psi4- und OpenMM-Skripte für Unterrichtsmaterial
+(Elektronendichte und elektrostatisches Potential, Dipol-Dipol-Anziehung,
+Protonenübergang). Sie gehören nicht zu den Seiten; Ergebnisse landen in
+`results/` und werden nicht eingecheckt. Details in `scripts/README.md`.
+
 ## Schrift
 
 Alle Seiten nutzen Source Sans 3 (SIL Open Font License), als variable
