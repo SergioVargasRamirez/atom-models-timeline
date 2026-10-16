@@ -18,6 +18,7 @@ Anfragen, auch Schriften sind eingebettet.
 | `aggregatzustaende.html` | Aggregatzustände: 2D-Teilchenmodell im Zylinder mit Stempel, Schieberegler für Temperatur (°C) und Druck (bar), erkannter Zustand und Beobachtungstabelle, Geschwindigkeitsfarben | von Hand |
 | `diffusion.html` | Diffusion: blaue und gelbe Lösung im Standzylinder (Stoffebene) und drei Lupen mit Brownscher Teilchenbewegung (Teilchenebene), drei Temperaturen, Zeitraffer | von Hand |
 | `vanthoff.html` | Van ’t Hoff: Isomere zählen. H durch Cl, Br, F ersetzen an Quadrat, Pyramide und Tetraeder; erkennt gleiche (gedrehte) Moleküle und Spiegelbilder; Tabelle mit dem Experiment | von Hand |
+| `vsepr.html` | Elektronenpaarabstoßung: CH₄, NH₃, H₂O, Winkel einstellen, berechnete Energie (Psi4 MP2/aug-cc-pVTZ), lokalisierte Elektronenpaare beim stabilsten Winkel | von Hand + Daten |
 | `polaritaet.html` | Moleküle im elektrischen Feld: Kasten mit geladenen Platten links und rechts, neun Stoffe (H₂O, HCl, NH₃, CO₂, CH₄, H₂, Cl₂, N₂, O₂), Dipolpfeile, Teilladungen, Anziehung zwischen den Molekülen | von Hand |
 | `elektronenwolken.html` | Elektronenwolken der neun Stoffe aus „Moleküle im elektrischen Feld“ in 3D (WebGL): Hülle mit Ladungsfarben oder Punktwolke, Größe der Wolke, Atome, δ+/δ−, Dipolpfeil | von Hand + Daten |
 | `london.html` | London-Kräfte: Drude-Modell schwankender Elektronenwolken (zwei Teilchen, Gleichtakt) und viele Teilchen von Edelgasen und Alkanen bei wählbarer Temperatur | von Hand |

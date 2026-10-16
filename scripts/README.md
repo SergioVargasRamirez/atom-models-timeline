@@ -105,6 +105,23 @@ H-bond along an Euler circuit of the periodic 4-connected network, so each
 molecule has exactly two H atoms and every O···O link carries one H.
 The JSON of both is pasted into `eis.html` (`EISDATEN`).
 
+## vsepr/ — angle scans and electron pairs for vsepr.html
+
+```
+cd scripts/vsepr
+for m in CH4 NH3 H2O; do
+  python scan.py $m results/${m}_scan.json        # MP2/aug-cc-pVTZ, bond length relaxed at every angle
+  python lmo.py results/${m}_scan.json results/${m}_lmo   # Boys orbitals at the most stable angle
+done
+python export_vsepr.py                            # -> template/site/vsepr-data.js
+cd ../.. && python3 build.py
+```
+
+The angle is the angle between the lower H atoms (CH₄ and NH₃: three H, C3v;
+H₂O: two H, C2v; `geometry.py`). `lmo.py` also writes, for every electron pair,
+the distance of its centroid from the central atom, its spread and spread ÷
+distance (how much angle it takes up around the central atom).
+
 ## proton_transfer/ — acetic acid gives a proton to water
 
 `proton_trajectory.py` moves the acidic proton along the O···O hydrogen bond

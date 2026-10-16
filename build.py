@@ -467,8 +467,10 @@ def sync_site_nav():
 # dort den aktuellen Inhalt der Quelldatei eingesetzt:
 #   TEILCHEN: template/site/teilchen.js     Teilchen-Engine (Säuren und Basen)
 #   WOLKEN:   template/site/wolken-data.js  Elektronendichte und ESP (erzeugt von scripts/esp/export_web.py)
+#   VSEPR:    template/site/vsepr-data.js   Winkelscans und Elektronenpaare (erzeugt von scripts/vsepr/export_vsepr.py)
 
-SNIPPETS = [("TEILCHEN", "teilchen.js", "Teilchen-Engine"), ("WOLKEN", "wolken-data.js", "Elektronenwolken-Daten")]
+SNIPPETS = [("TEILCHEN", "teilchen.js", "Teilchen-Engine"), ("WOLKEN", "wolken-data.js", "Elektronenwolken-Daten"),
+            ("VSEPR", "vsepr-data.js", "Elektronenpaar-Daten")]
 
 
 def sync_snippet(tag, source, label):
