@@ -220,7 +220,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
     <div class="task tasks">
       <b>Isomere zählen</b>
       <ol>
-        <li>Wähle die Form „Quadrat“. Ersetze ein H durch Cl (auf ein Atom tippen). Lies das Dipolmoment ab und drehe den Analysator des Polarimeters, bis der Schirm am hellsten ist. Notiere die Messwerte. Probiere einen anderen Platz für das Cl: Ändern sich die Messwerte?</li>
+        <li>Wähle die Form „Quadrat“. Ersetze ein H durch Cl (auf ein Atom tippen). Lies das Dipolmoment ab und drehe den Analysator des Polarimeters, bis der Schirm am hellsten ist. Die Pfeile am Probenrohr zeigen, in welche Richtung das Licht vor und nach der Probe schwingt. Viele Stoffe drehen das Licht überhaupt nicht – dann ist der Schirm bei 0° am hellsten. Notiere die Messwerte. Probiere einen anderen Platz für das Cl: Ändern sich die Messwerte?</li>
         <li>Baue CH₂Cl₂ auf alle möglichen Arten (Cl auf Platz 1 und 2, 1 und 3, 2 und 3 …) und miss jedes Mal. Moleküle mit gleichen Messwerten sind derselbe Stoff, nur anders gedreht. Wie viele verschiedene CH₂Cl₂ gibt es beim Quadrat? Trage die Zahl in die Tabelle ein, ebenso für CH₃Cl und CHCl₃.</li>
         <li>Wiederhole das für die Pyramide und das Tetraeder.</li>
         <li>Vergleiche mit dem Experiment: Von CH₂Cl₂ (Dichlormethan) ist nur eine einzige Form bekannt. Welche Form des Methans bleibt übrig?</li>
@@ -485,9 +485,20 @@ function drawPol(){
   pctx.beginPath();
   for (let x = xA; x <= xS; x += 2){ const s = A * amp * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, beta * d2r); x === xA ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy); }
   pctx.stroke();
-  // Probenrohr
-  pctx.fillStyle = "rgba(140,170,220,.12)"; pctx.strokeStyle = "#4b5a80"; pctx.lineWidth = 1.5;
+  // Probenrohr: getönt, sobald ein Stoff darin ist
+  const filled = formula(sub) !== "CH₄";
+  pctx.fillStyle = filled ? "rgba(120,200,140,.18)" : "rgba(140,170,220,.08)"; pctx.strokeStyle = "#4b5a80"; pctx.lineWidth = 1.5;
   pctx.beginPath(); pctx.rect(x0, cy - A * 1.35, x1 - x0, A * 2.7); pctx.fill(); pctx.stroke();
+  // Schwingungsrichtung vor und nach der Probe als Doppelpfeil
+  const dir = (x, th, label) => {
+    const [dx, dy] = off(A * 1.05, th * d2r), y0 = cy;
+    pctx.strokeStyle = pctx.fillStyle = "#8fd3ff"; pctx.lineWidth = 2.5;
+    pctx.beginPath(); pctx.moveTo(x - dx, y0 - dy); pctx.lineTo(x + dx, y0 + dy); pctx.stroke();
+    for (const sg of [1, -1]){ const ex = x + sg * dx, ey = y0 + sg * dy, L = Math.hypot(dx, dy) || 1, ux = sg * dx / L, uy = sg * dy / L;
+      pctx.beginPath(); pctx.moveTo(ex, ey); pctx.lineTo(ex - ux * 8 - uy * 4, ey - uy * 8 + ux * 4); pctx.lineTo(ex - ux * 8 + uy * 4, ey - uy * 8 - ux * 4); pctx.closePath(); pctx.fill(); }
+    pctx.font = `700 12px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "bottom"; pctx.fillText(label, x, cy - A * 1.4);
+  };
+  dir(x0 + 14, 0, "vorher"); dir(x1 - 14, alpha, "nachher");   // ohne Zahl: den Winkel misst man mit dem Analysator
   // Polarisator und Analysator: Scheiben mit Durchlassrichtung
   const disc = (x, th, label) => {
     pctx.fillStyle = "rgba(201,211,234,.10)"; pctx.strokeStyle = "#c9d3ea"; pctx.lineWidth = 1.5;
