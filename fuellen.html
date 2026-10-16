@@ -77,7 +77,8 @@ canvas{display:block;width:100%}
 .chips button span{display:block;font-size:.8rem;color:var(--muted)}
 .fill{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
 @media (max-width:760px){.fill{grid-template-columns:minmax(0,1fr)}}
-.rackrow{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.rackrow{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.rackrow:hover .btns .btn[data-d="1"]:not(:disabled){border-color:var(--accent)}
 .rackrow .nm{font-weight:700;font-size:.95rem}
 .rackrow .cap{display:block;font-weight:400;font-size:.76rem;color:var(--muted)}
 .dots{display:flex;flex-wrap:wrap;gap:5px;min-height:18px}
@@ -288,7 +289,7 @@ const Fill = (() => {
   function build(){
     rack.textContent="";
     target.forEach((_,i)=>{
-      const row=document.createElement("div"); row.className="rackrow";
+      const row=document.createElement("div"); row.className="rackrow"; row.dataset.i=i;
       row.innerHTML=`<div class="nm">Energiestufe<span class="cap">${NAMES[i]}</span></div>
         <div class="dots" id="dots${i}"></div>
         <div class="btns"><button type="button" class="btn" data-i="${i}" data-d="-1" aria-label="Ein Elektron von der Energiestufe ${NAMES[i]} entfernen">−</button><button type="button" class="btn" data-i="${i}" data-d="1" aria-label="Ein Elektron auf die Energiestufe ${NAMES[i]} setzen">+</button></div>`;
@@ -367,8 +368,9 @@ const Fill = (() => {
     x.fillStyle="#fff"; x.font='bold 11px monospace'; x.textAlign="center"; x.textBaseline="middle"; x.fillText(`${ZS[key]}+`,cx,cy+1);
   }
   rack.addEventListener("click",e=>{
-    const b=e.target.closest("button[data-i]"); if(!b||b.disabled) return;
-    const i=+b.dataset.i, d=+b.dataset.d;
+    const b=e.target.closest("button[data-i]"), row=e.target.closest(".rackrow");
+    if(b&&b.disabled) return; if(!b&&!row) return;
+    const i=+(b||row).dataset.i, d=b?+b.dataset.d:1;
     if(d>0&&remaining()<=0) return; if(d<0&&cnt[i]<=0) return;
     cnt[i]+=d; solved=false; ; render();
     if(remaining()===0&&tries===0) setMsg("Alle Elektronen sind verteilt. Prüfe jetzt deine Verteilung.");
