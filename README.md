@@ -221,7 +221,10 @@ bleibt online, bis der Fehler behoben ist.
 © 2026 Dr. Sergio Vargas, biodatum.io. Seiten, Texte, Abbildungen, Quellcode
 und Daten stehen unter [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de)
 (Namensnennung – Nicht kommerziell – Weitergabe unter gleichen Bedingungen),
-vollständiger Text in `LICENSE`. Kommerzielle Nutzung nur mit gesonderter
+vollständiger Text in `LICENSE`. Zur Namensnennung gehört verbindlich der
+Verweis auf https://atoms.biodatum.io: „Chemie-Werkzeuge für den Unterricht“,
+Dr. Sergio Vargas, biodatum.io, https://atoms.biodatum.io, CC BY-NC-SA 4.0.
+Kommerzielle Nutzung nur mit gesonderter
 Lizenz: info@biodatum.io. Ausgenommen ist die eingebettete Schrift Source
 Sans 3 (SIL Open Font License 1.1). Die Inhalte werden ohne Gewähr
 bereitgestellt; siehe `impressum.html` (Haftungsausschluss) und
