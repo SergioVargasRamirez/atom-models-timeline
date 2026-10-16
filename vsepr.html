@@ -107,6 +107,7 @@ details li{margin-bottom:6px}
 .obs.show td .ans{display:block}
 .obs .switch{margin-top:12px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+#sliderwrap.off{opacity:.45}
 </style>
 <style id="sitenav-css">
 /* Seitenmenü: wird von build.py in alle Seiten kopiert (Quelle: template/site/nav.css) */
@@ -215,10 +216,9 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
     <div class="task tasks">
       <b>Beobachten und deuten</b>
       <ol>
-        <li>Wähle Methan. Verändere den Winkel zwischen den unteren H-Atomen und beobachte die Energie. Bei welchem Winkel ist sie am kleinsten, das Molekül also am stabilsten?</li>
-        <li>Finde den stabilsten Winkel auch für Ammoniak und Wasser. Trage die drei Winkel in die Tabelle ein.</li>
-        <li>Wie viele freie Elektronenpaare hat jedes Zentralatom? Wie hängt der Winkel damit zusammen?</li>
-        <li>Schalte „Elektronenpaare zeigen“ ein (geht beim stabilsten Winkel). Vergleiche ein freies Elektronenpaar mit einem bindenden: Wo sitzt es, wie groß ist es?</li>
+        <li>Die Moleküle erscheinen in ihrer stabilsten Form mit den Elektronenpaaren (blau: bindend, rosa: frei). Wie viele bindende und freie Elektronenpaare hat das Zentralatom von Methan, Ammoniak und Wasser? Lies jeweils den Winkel ab.</li>
+        <li>Vergleiche ein freies Elektronenpaar mit einem bindenden: Wo sitzt es, wie groß ist es? Nutze auch die Tabelle unten.</li>
+        <li>Schalte „Winkel verändern“ ein und verändere den Winkel in beide Richtungen. Was passiert mit der Energie? Warum ist der Winkel der stabilsten Form der richtige? Trage den Winkel mit der kleinsten Energie in die Tabelle ein.</li>
         <li>Erkläre mit dem Elektronenpaarabstoßungsmodell, warum der Winkel von Methan über Ammoniak zu Wasser kleiner wird.</li>
       </ol>
     </div>
@@ -236,7 +236,9 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
       <div class="panel">
         <b>Molekül</b>
         <div class="seg" role="radiogroup" aria-label="Molekül" id="molseg"></div>
-        <div class="slider">
+        <label class="switch"><input type="checkbox" id="modechk"> Winkel verändern</label>
+        <p class="hint" id="modehint">Aus: stabilste Form mit Elektronenpaaren. An: Winkel frei einstellen.</p>
+        <div class="slider" id="sliderwrap">
           <label for="angle">Winkel H–X–H <output id="aout"></output></label>
           <input type="range" id="angle" min="90" max="120" step="0.5" value="95">
           <div class="ends"><span id="amin"></span><span id="amax"></span></div>
@@ -244,9 +246,6 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
         <label class="switch"><input type="checkbox" id="curvechk"> Ganze Kurve zeigen</label>
         <hr>
         <b>Elektronenpaare</b>
-        <label class="switch"><input type="checkbox" id="pairchk"> Elektronenpaare zeigen</label>
-        <p class="hint" id="pairhint">Berechnet für den stabilsten Winkel.</p>
-        <button class="btn" type="button" id="tominbtn">Zum stabilsten Winkel</button>
         <div class="legend" id="pairlegend"><span><i style="background:#6ea8ff"></i>bindendes Elektronenpaar</span><span><i style="background:#ff7eb6"></i>freies Elektronenpaar</span></div>
         <hr>
         <b>Ansicht</b>
@@ -494,14 +493,13 @@ async function pairMesh(m){
 }
 
 /* ---------- Zustand ---------- */
-let mol = MOLS[0], angle = 95, showPairs = false, showCurve = false, auto = false;
+let mol = MOLS[0], angle = 95, changeMode = false, showCurve = false, auto = false;   // changeMode aus: stabilste Form mit Elektronenpaaren
 let rotY = 0.6, rotX = 0.25, zoom = 1, dirty = true, W = 0, H = 0, DPR = 1, curPairs = null;
 const visited = {};   // je Molekül: besuchte Winkel (ganzzahlig), für die Kurve
 const best = {};      // je Molekül: kleinste gefundene Energie und ihr Winkel
 const RANGE = {CH4:[90, 120], NH3:[90, 120], H2O:[60, 180]};
 const energyAt = a => interp(mol.scan.angle, mol.scan.dE, a);
 const rAt = a => interp(mol.scan.angle, mol.scan.r, a);
-const atMin = () => Math.abs(angle - mol.min.angle) < 0.6;
 const fmt = (x, d = 1) => x.toFixed(d).replace(".", ",");
 
 /* ---------- Zeichnen ---------- */
@@ -526,7 +524,7 @@ function render(){
   gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0.039, 0.055, 0.094, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true); gl.disable(gl.BLEND);
   drawMesh(am, mvp, rot, 1, 1);
-  if (showPairs && atMin() && curPairs){
+  if (!changeMode && curPairs){
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.colorMask(false, false, false, false); drawMesh(curPairs, mvp, rot, 1, 1);
     gl.colorMask(true, true, true, true); gl.depthMask(false); drawMesh(curPairs, mvp, rot, 0.55, 1); gl.depthMask(true);
@@ -565,12 +563,12 @@ function plot(){
 function updateText(){
   const e = energyAt(angle), b = best[mol.key];
   $("aout").textContent = `${fmt(angle)}°`;
-  $("readout").textContent = `Winkel ${fmt(angle)}° · Energie ${e < 0.05 ? "0,0" : "+" + fmt(e)} kJ/mol über dem stabilsten Winkel` + (b ? ` · bisher am stabilsten: ${fmt(b.a)}°` : "");
+  $("readout").textContent = !changeMode ? `Stabilste Form: Winkel ${fmt(mol.min.angle)}°. Schalte „Winkel verändern“ ein, um andere Winkel auszuprobieren.`
+    : `Winkel ${fmt(angle)}° · Energie ${e < 0.05 ? "0,0" : "+" + fmt(e)} kJ/mol über der stabilsten Form` + (b ? ` · bisher am stabilsten: ${fmt(b.a)}°` : "");
   const lone = mol.pairs.filter(p => p.kind === "lone").length;
   let s = `<b>${mol.name} (${mol.formula})</b>: ${4 - lone} bindende und ${lone} freie Elektronenpaare am ${mol.central}-Atom (dazu die inneren Elektronen).`;
-  if (showPairs && !atMin()) s += " Die Elektronenpaare sind für den stabilsten Winkel berechnet; stelle ihn ein, um sie zu sehen.";
+  s += changeMode ? " Winkel verändern: Die Elektronenpaare sind nur für die stabilste Form berechnet und deshalb ausgeblendet." : " Stabilste Form mit den Elektronenpaaren.";
   $("status").innerHTML = s;
-  $("pairhint").hidden = !(showPairs && !atMin());
 }
 function fillTables(){
   const rt = $("restable"); rt.textContent = "";
@@ -595,20 +593,25 @@ function setMol(k){
   document.querySelectorAll("[data-mol]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.mol === k)));
   const [a0, a1] = RANGE[k], sl = $("angle"); sl.min = a0; sl.max = a1;
   $("amin").textContent = `${a0}°`; $("amax").textContent = `${a1}°` + (k === "H2O" ? " (gestreckt)" : " (eben)");
-  setAngle(k === "H2O" ? 140 : 96);
+  setAngle(mol.min.angle, changeMode);
   curPairs = null; if (gl) pairMesh(mol).then(m => { if (mol.pairs && pairMeshes[mol.key] === m){ curPairs = m; dirty = true; } });
 }
-function setAngle(a){
-  angle = Math.round(a * 2) / 2; $("angle").value = angle;
-  (visited[mol.key] || (visited[mol.key] = {}))[Math.round(angle)] = true;
-  const e = energyAt(angle), b = best[mol.key]; if (!b || e < b.e) best[mol.key] = {e, a:angle};
+function setAngle(a, record = true){   // record: nur selbst ausprobierte Winkel zählen für Kurve und Tabelle
+  angle = record ? Math.round(a * 2) / 2 : a; $("angle").value = angle;
+  if (record){
+    (visited[mol.key] || (visited[mol.key] = {}))[Math.round(angle)] = true;
+    const e = energyAt(angle), b = best[mol.key]; if (!b || e < b.e) best[mol.key] = {e, a:angle};
+  }
   updateText(); fillTables(); plot(); dirty = true;
 }
 MOLS.forEach(m => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "radio"); b.dataset.mol = m.key; b.textContent = m.formula; b.addEventListener("click", () => setMol(m.key)); $("molseg").appendChild(b); });
 $("angle").addEventListener("input", e => setAngle(+e.target.value));
 $("curvechk").addEventListener("change", e => { showCurve = e.target.checked; plot(); });
-$("pairchk").addEventListener("change", e => { showPairs = e.target.checked; updateText(); dirty = true; });
-$("tominbtn").addEventListener("click", () => { setAngle(mol.min.angle); showPairs = true; $("pairchk").checked = true; updateText(); });
+function setMode(on){   // an: Winkel frei; aus: zurück zur stabilsten Form mit Elektronenpaaren
+  changeMode = on; $("modechk").checked = on; $("angle").disabled = !on; $("sliderwrap").classList.toggle("off", !on);
+  setAngle(mol.min.angle, false);
+}
+$("modechk").addEventListener("change", e => setMode(e.target.checked));
 $("autochk").addEventListener("change", e => { auto = e.target.checked; });
 $("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
 const setZoom = z => { zoom = Math.min(3, Math.max(0.5, z)); dirty = true; };
@@ -632,10 +635,10 @@ cv.addEventListener("keydown", e => {
 function resize(){ DPR = window.devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; for (const c of [cv, ov]){ c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); } dirty = true; plot(); }
 let last = performance.now();
 function frame(now){ const dt = Math.min(0.1, (now - last) / 1000); last = now; if (auto && !reduceMotion && ptrs.size === 0){ rotY += dt * 0.35; dirty = true; } if (dirty){ dirty = false; render(); } requestAnimationFrame(frame); }
-window.__vsepr = {setMol, setAngle, pairsReady:() => !!curPairs, energy:a => energyAt(a), min:() => mol.min.angle};
-showCurve = $("curvechk").checked; showPairs = $("pairchk").checked; auto = $("autochk").checked; $("obs").classList.toggle("show", $("anschk").checked);
+window.__vsepr = {setMol, setAngle, setMode, mode:() => changeMode, pairsReady:() => !!curPairs, energy:a => energyAt(a), min:() => mol.min.angle};
+showCurve = $("curvechk").checked; auto = $("autochk").checked; $("obs").classList.toggle("show", $("anschk").checked);
 if (!gl) $("nogl").hidden = false;
-setMol("CH4");
+setMol("CH4"); setMode($("modechk").checked);
 new ResizeObserver(resize).observe(cv); resize();
 requestAnimationFrame(frame);
 })();
