@@ -53,6 +53,13 @@ canvas{display:block;width:100%}
 .panel > b{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .panel .btn{width:100%}
 .panel .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg{display:flex;align-items:center;gap:8px;font-weight:600}
+.seg > span{flex:1}
+.seg div{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:.92rem;border:0;border-left:1px solid var(--line);background:var(--surface);color:var(--fg);padding:5px 11px;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-checked="true"]{background:var(--accent);color:var(--accent-fg);font-weight:700}
+.panel .hint{font-size:.85rem;color:var(--muted);margin:-4px 0 0}
 .panel hr{border:0;border-top:1px solid var(--line);margin:2px 0}
 .panel .switch{font-weight:600;line-height:1.25}
 @media (max-width:900px){
@@ -207,6 +214,14 @@ details li{margin-bottom:6px}
       <button class="btn" type="button" id="flipbtn" disabled>Polung umkehren</button>
       <hr>
       <b>Anzeige</b>
+      <div class="seg"><span id="focuslab">Hervorheben</span>
+        <div role="radiogroup" aria-labelledby="focuslab">
+          <button type="button" role="radio" aria-checked="true" data-focus="0">alle</button>
+          <button type="button" role="radio" aria-checked="false" data-focus="1">1</button>
+          <button type="button" role="radio" aria-checked="false" data-focus="2">2</button>
+        </div>
+      </div>
+      <p class="hint" id="focushint" hidden>Die übrigen Moleküle sind grau. Tippe auf ein Molekül, um es hervorzuheben.</p>
       <label class="switch"><input type="checkbox" id="deltachk"> δ+ und δ− zeigen</label>
       <label class="switch"><input type="checkbox" id="dipolchk"> Dipolpfeile</label>
       <label class="switch"><input type="checkbox" id="fieldchk"> Feldrichtung zeigen</label>
@@ -494,13 +509,23 @@ function draw(){
   drawField();
   const at = mol.at;
   ctx.save(); ctx.beginPath(); ctx.rect(X(0), Y(0), S * BW, S * BH); ctx.clip();
-  for (const m of ms){
-    ctx.strokeStyle = "#c9d3ea"; ctx.lineWidth = Math.max(2, S * 0.28); ctx.lineCap = "round";
+  const shown = focusN ? focus.map(k => ms[k]) : ms;   // Moleküle mit Farben, Pfeilen und Beschriftung
+  ctx.lineCap = "round"; ctx.lineWidth = Math.max(2, S * 0.28);
+  if (focusN){        // alle anderen flach und grau
+    ctx.strokeStyle = ctx.fillStyle = "#2c3446";
+    ms.forEach((m, k) => {
+      if (focus.includes(k)) return;
+      for (const [i, j] of mol.bonds){ ctx.beginPath(); ctx.moveTo(X(m.ax[i]), Y(m.ay[i])); ctx.lineTo(X(m.ax[j]), Y(m.ay[j])); ctx.stroke(); }
+      for (let i = 0; i < at.length; i++){ ctx.beginPath(); ctx.arc(X(m.ax[i]), Y(m.ay[i]), S * at[i].r, 0, 2 * Math.PI); ctx.fill(); }
+    });
+  }
+  for (const m of shown){
+    ctx.strokeStyle = "#c9d3ea";
     for (const [i, j] of mol.bonds){ ctx.beginPath(); ctx.moveTo(X(m.ax[i]), Y(m.ay[i])); ctx.lineTo(X(m.ax[j]), Y(m.ay[j])); ctx.stroke(); }
     for (let i = 0; i < at.length; i++) ball(X(m.ax[i]), Y(m.ay[i]), S * at[i].r, at[i].col);
   }
   if (showDipole){
-    for (const m of ms){
+    for (const m of shown){
       const [mx, my] = dipole(m), mu = Math.hypot(mx, my);
       if (mu > 0.05){       // Gesamtdipol, Pfeil zeigt zum negativen Ende (δ−)
         const L = S * (1.0 + 1.6 * mu), ux = -mx / mu, uy = -my / mu, cx = X(m.x), cy = Y(m.y);
@@ -519,7 +544,7 @@ function draw(){
   if (showDelta && mol.delta > 0){
     ctx.font = `600 ${Math.max(11, S * 0.62) | 0}px ${getComputedStyle(document.body).fontFamily}`;
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    for (const m of ms){
+    for (const m of shown){
       for (let i = 0; i < at.length; i++){
         if (!at[i].q) continue;
         let ox = m.ax[i] - m.x, oy = m.ay[i] - m.y, d = Math.hypot(ox, oy);
@@ -573,7 +598,32 @@ $("dipolchk").addEventListener("change", e => { showDipole = e.target.checked; u
 $("fieldchk").addEventListener("change", e => { showField = e.target.checked; draw(); });
 $("attrchk").addEventListener("change", e => { attract = e.target.checked; });
 $("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
-function restart(){ init(); for (let k = 0; k < 200; k++) step(); alignAvg = null; updateStatus(); updateReadout(); draw(); }
+/* Hervorheben: nur ein oder zwei Moleküle farbig, die übrigen grau */
+let focusN = 0, focus = [];
+function pickFocus(){      // die Moleküle nächst der Mitte
+  focus = ms.map((m, k) => [Math.hypot(m.x - BW / 2, m.y - BH / 2), k]).sort((a, b) => a[0] - b[0]).slice(0, focusN).map(e => e[1]);
+}
+function setFocus(n){
+  focusN = n; pickFocus();
+  document.querySelectorAll("[data-focus]").forEach(b => b.setAttribute("aria-checked", String(+b.dataset.focus === n)));
+  $("focushint").hidden = !n;
+  draw();
+}
+document.querySelectorAll("[data-focus]").forEach(b => b.addEventListener("click", () => setFocus(+b.dataset.focus)));
+function moleculeAt(ev){   // Molekül unter dem Zeiger (Atom näher als 1,5 Å)
+  const r = cv.getBoundingClientRect(), x = (ev.clientX - r.left - OX) / S, y = (ev.clientY - r.top - OY) / S;
+  let best = -1, bd = 1.5;
+  ms.forEach((m, k) => { for (let i = 0; i < mol.at.length; i++){ const d = Math.hypot(m.ax[i] - x, m.ay[i] - y); if (d < bd){ bd = d; best = k; } } });
+  return best;
+}
+cv.addEventListener("click", ev => {
+  if (!focusN) return;
+  const k = moleculeAt(ev); if (k < 0 || focus.includes(k)) return;
+  focus.push(k); if (focus.length > focusN) focus.shift();
+  draw();
+});
+cv.addEventListener("pointermove", ev => { cv.style.cursor = focusN && moleculeAt(ev) >= 0 ? "pointer" : "default"; });
+function restart(){ init(); for (let k = 0; k < 200; k++) step(); pickFocus(); alignAvg = null; updateStatus(); updateReadout(); draw(); }
 
 /* ---------- Schleife ---------- */
 const STEPS_PER_FRAME = 4;
@@ -589,7 +639,7 @@ function frame(){
 // Für automatische Tests
 window.__polaritaet = {plates, step, alignment, neighbours, setAttract:b => { attract = b; }, select:k => { $("stoff").value = k; mol = MOLS[k]; restart(); },
   spreadLeft:() => ms.filter(m => m.x < BW / 4).length / ms.length, setKC:k => { K_C = k; }, setGamma:(g, gr) => { GAMMA = g; GAMMA_ROT = gr; }, setE:e => { eScale = e; KF = e * KF1; }, field:(x, y) => field(x, y),
-  nearWall:d => ms.filter(m => m.x < d).length / ms.length};
+  nearWall:d => ms.filter(m => m.x < d).length / ms.length, focus:() => focus.slice(), screenPos:k => [X(ms[k].ax[0]), Y(ms[k].ay[0])]};
 
 $("playbtn").textContent = running ? "Pause" : "Start";
 // Browser stellen Auswahl und Schalter beim Neuladen teils wieder her: Zustand aus dem Formular übernehmen
