@@ -457,7 +457,7 @@ function matrices(){
   const model = M4.mul(rot, base);
   const dist = BOX * 3.0 / zoom;
   const proj = M4.persp(0.62, W / H, 0.1, 100), view = M4.trans(0, 0, -dist);
-  return {mvp:M4.mul(proj, M4.mul(view, model)), rot:M4.mul(rot, M4.fromRows(m.axes)), boxMvp:M4.mul(proj, M4.mul(view, rot))};
+  return {mvp:M4.mul(proj, M4.mul(view, model)), rot:M4.mul(rot, M4.fromRows(m.axes)), boxMvp:M4.mul(proj, M4.mul(view, rot)), spin:rot};
 }
 function project(mvp, x, y, z){
   const v = [0, 1, 2, 3].map(r => mvp[r] * x + mvp[4 + r] * y + mvp[8 + r] * z + mvp[12 + r]);
@@ -471,7 +471,7 @@ function surfaceFor(g){
 let lastMeshMs = 0;
 function render(){
   if (!gl || !cur || !W) return;
-  const {mvp, rot, boxMvp} = matrices();
+  const {mvp, rot, boxMvp, spin} = matrices();
   gl.viewport(0, 0, cv.width, cv.height);
   gl.clearColor(0.039, 0.055, 0.094, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true); gl.disable(gl.BLEND); gl.disable(gl.CULL_FACE);
@@ -491,6 +491,24 @@ function render(){
   }
   gl.depthMask(true);
   drawOverlay(mvp);
+  drawAxes(spin);
+}
+function drawAxes(spin){   // Achsenkreuz unten links: dreht sich mit dem Kasten
+  const cx = 58, cy = H - 58, L = 38, font = getComputedStyle(document.body).fontFamily;
+  const ax = [["x", "#ff6b6b"], ["y", "#5fd38d"], ["z", "#6ea8ff"]].map(([name, col], i) =>
+    ({name, col, x:spin[i * 4], y:-spin[i * 4 + 1], z:spin[i * 4 + 2]}));
+  ax.sort((a, b) => a.z - b.z);   // hintere Achsen zuerst
+  octx.lineCap = "round"; octx.textAlign = "center"; octx.textBaseline = "middle"; octx.font = `700 15px ${font}`;
+  for (const a of ax){
+    const ex = cx + a.x * L, ey = cy + a.y * L, len = Math.hypot(a.x, a.y);
+    octx.globalAlpha = a.z < -0.2 ? 0.55 : 1;
+    octx.strokeStyle = octx.fillStyle = a.col; octx.lineWidth = 2.5;
+    octx.beginPath(); octx.moveTo(cx, cy); octx.lineTo(ex, ey); octx.stroke();
+    if (len > 0.15){ const ux = a.x / len, uy = a.y / len; octx.beginPath(); octx.moveTo(ex, ey); octx.lineTo(ex - ux * 8 - uy * 4, ey - uy * 8 + ux * 4); octx.lineTo(ex - ux * 8 + uy * 4, ey - uy * 8 - ux * 4); octx.closePath(); octx.fill(); }
+    octx.fillText(a.name, cx + a.x * (L + 12), cy + a.y * (L + 12));
+  }
+  octx.globalAlpha = 1;
+  octx.fillStyle = "#c9d3ea"; octx.beginPath(); octx.arc(cx, cy, 2.5, 0, 2 * Math.PI); octx.fill();
 }
 function drawOverlay(mvp){
   octx.setTransform(DPR, 0, 0, DPR, 0, 0); octx.clearRect(0, 0, W, H);
