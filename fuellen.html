@@ -80,8 +80,8 @@ canvas{display:block;width:100%}
 .rackrow{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .rackrow .nm{font-weight:700;font-size:.95rem}
 .rackrow .cap{display:block;font-weight:400;font-size:.76rem;color:var(--muted)}
-.dots{display:flex;flex-wrap:wrap;gap:4px;min-height:16px}
-.dot{width:13px;height:13px;border-radius:50%;background:var(--accent)}
+.dots{display:flex;flex-wrap:wrap;gap:5px;min-height:18px}
+.dot{width:18px;height:18px;border-radius:50%;background:var(--accent);border:0;padding:0;cursor:pointer;touch-action:manipulation}
 .dot.over{background:var(--bad)}
 .btns{display:flex;gap:6px}
 .btns .btn{width:36px;height:34px;padding:0;font-weight:700}
@@ -307,7 +307,7 @@ const Fill = (() => {
     const rem=remaining();
     target.forEach((_,i)=>{
       const d=$("dots"+i); let h="";
-      for(let k=0;k<cnt[i];k++) h+=`<span class="dot${isOver(i,k)?" over":""}"></span>`;
+      for(let k=0;k<cnt[i];k++) h+=`<button type="button" class="dot${isOver(i,k)?" over":""}" data-i="${i}" data-d="-1" title="Antippen zum Entfernen" aria-label="Elektron von der Energiestufe ${NAMES[i]} entfernen"></button>`;
       d.innerHTML=h;
     });
     rack.querySelectorAll("button").forEach(b=>{
