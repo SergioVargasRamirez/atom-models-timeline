@@ -21,6 +21,7 @@ Anfragen, auch Schriften sind eingebettet.
 | `elektronenwolken.html` | Elektronenwolken der neun Stoffe aus „Moleküle im elektrischen Feld“ in 3D (WebGL): Hülle mit Ladungsfarben oder Punktwolke, Größe der Wolke, Atome, δ+/δ−, Dipolpfeil | von Hand + Daten |
 | `london.html` | London-Kräfte: Drude-Modell schwankender Elektronenwolken (zwei Teilchen, Gleichtakt) und viele Teilchen von Edelgasen und Alkanen bei wählbarer Temperatur | von Hand |
 | `wasser.html` | Wasser: Tropfen und Eis. 2D-Wassermodell (Mercedes-Benz-Modell): Tropfen mit Oberflächenspannung, Gefrieren an einer kalten Fläche mit Kolben (Eis braucht mehr Platz) | von Hand |
+| `eis.html` | Eis und Wasser in 3D: hexagonales Eis (Eisregeln) und flüssiges Wasser (OpenMM TIP4P-Ew) im gleichen Kasten, Wasserstoffbrücken, Dichte | von Hand + Daten |
 | `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand + Engine |
 | `ammoniak.html` | Ammoniak in Wasser: NH₃ + H₂O (Nahaufnahme mit Rückreaktion), NH₃ in Wasser (Gleichgewicht), viele Teilchen mit Universalindikator | von Hand + Engine |
 | `neutralisation.html` | Neutralisation: HCl trifft NaOH (wenige Teilchen), viele Teilchen mit HCl- und NaOH-Knopf und Universalindikator | von Hand + Engine |

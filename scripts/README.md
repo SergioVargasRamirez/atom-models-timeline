@@ -92,6 +92,19 @@ python hcl.py --seed 1                  # -> results/hcl/: hcl_initial.pdb, hcl.
 vmd results/hcl/hcl_initial.pdb results/hcl/hcl.dcd
 ```
 
+## ice/ — ice crystal and liquid water for eis.html
+
+```
+cd scripts/ice
+python make_ice.py 3 2 2 > ice.json             # ice Ih, 96 molecules, protons by the ice rules
+python make_liquid.py ice.json 103 > liquid.json # OpenMM TIP4P-Ew, 293 K, 1 bar (openmm env)
+```
+
+`make_ice.py` builds the oxygen lattice of hexagonal ice and orients every
+H-bond along an Euler circuit of the periodic 4-connected network, so each
+molecule has exactly two H atoms and every O···O link carries one H.
+The JSON of both is pasted into `eis.html` (`EISDATEN`).
+
 ## proton_transfer/ — acetic acid gives a proton to water
 
 `proton_trajectory.py` moves the acidic proton along the O···O hydrogen bond
