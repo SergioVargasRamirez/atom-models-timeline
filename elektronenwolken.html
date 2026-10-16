@@ -190,7 +190,6 @@ details li{margin-bottom:6px}
           <input type="range" id="iso" min="0" max="100" step="1" value="70">
           <div class="ends"><span>eng</span><span>weit</span></div>
         </div>
-        <label class="switch" id="colwrap"><input type="checkbox" id="colchk" checked> Ladung farbig</label>
         <div class="legend" id="legend"><i></i><span><span>δ− negativ</span><span>neutral</span><span>δ+ positiv</span></span></div>
         <hr>
         <b>Atome</b>
@@ -449,7 +448,8 @@ function makeBox(){
 }
 
 /* ---------- Zustand und Zeichnen ---------- */
-let cur = null, mode = "surface", colored = true, showAtoms = true, showDelta = false, showDipole = false, auto = false;
+let cur = null, mode = "surface", colored = true,   // die Hülle ist immer nach der Ladung gefärbt
+    showAtoms = true, showDelta = false, showDipole = false, auto = false;
 let rotY = 0.35, rotX = 0.25, zoom = 1, iso = 0.002, dirty = true;
 let W = 0, H = 0, DPR = 1;
 const sliderToIso = v => 0.05 * Math.pow(0.01, v / 100);   // 0 → 0,05 (eng) … 100 → 0,0005 (weit)
@@ -575,11 +575,10 @@ $("stoff").addEventListener("change", e => select(e.target.value));
 document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
   mode = b.dataset.mode;
   document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-checked", String(x === b)));
-  $("isowrap").hidden = $("colwrap").hidden = mode !== "surface"; $("legend").hidden = mode !== "surface" || !colored;
+  $("isowrap").hidden = $("legend").hidden = mode !== "surface";
   updateText(); dirty = true;
 }));
 $("iso").addEventListener("input", e => { iso = sliderToIso(+e.target.value); updateText(); dirty = true; });
-$("colchk").addEventListener("change", e => { colored = e.target.checked; $("legend").hidden = !colored; dirty = true; });
 $("atomchk").addEventListener("change", e => { showAtoms = e.target.checked; dirty = true; });
 $("deltachk").addEventListener("change", e => { showDelta = e.target.checked; dirty = true; });
 $("dipolchk").addEventListener("change", e => { showDipole = e.target.checked; dirty = true; });
@@ -626,7 +625,6 @@ window.__wolken = {select, setIso:v => { $("iso").value = v; iso = sliderToIso(v
 if (gl){
   boxMesh = makeBox();
   // Browser stellen Auswahl und Schalter beim Neuladen teils wieder her
-  colored = $("colchk").checked; $("legend").hidden = !colored;
   showAtoms = $("atomchk").checked; showDelta = $("deltachk").checked; showDipole = $("dipolchk").checked; auto = $("autochk").checked;
   iso = sliderToIso(+$("iso").value);
   new ResizeObserver(resize).observe(cv); resize();

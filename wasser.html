@@ -171,7 +171,7 @@ details li{margin-bottom:6px}
     <div class="task tasks">
       <b>Beobachten und deuten</b>
       <ol>
-        <li>Tropfen: Beobachte, wie aus dem eckigen Block ein Tropfen wird. Schalte „Oberfläche markieren“ ein. Wie viele Nachbarn haben die Moleküle innen, wie viele an der Oberfläche?</li>
+        <li>Tropfen: Beobachte, wie aus dem Haufen auf der Glasplatte ein Tropfen wird. Schalte „Oberfläche markieren“ ein. Wie viele Nachbarn haben die Moleküle innen, wie viele an der Oberfläche?</li>
         <li>Schalte „Zug der Nachbarn an der Oberfläche“ ein. In welche Richtung ziehen die Nachbarn an den Molekülen der Oberfläche? Warum heben sich die Zugkräfte innen auf? Erkläre damit, warum der Tropfen rund wird (Oberflächenspannung).</li>
         <li>Gefrieren: Kühle langsam ab. Wo beginnt das Eis zu wachsen? Wie sind die Moleküle im Eis angeordnet?</li>
         <li>Beobachte den Kolben beim Gefrieren. Was passiert mit dem Volumen? Erkläre mit den Wasserstoffbrücken, warum Eis eine kleinere Dichte hat als flüssiges Wasser.</li>
@@ -228,6 +228,7 @@ details li{margin-bottom:6px}
       <li>Der Kolben drückt mit gleichbleibender Kraft. Er schwankt etwas, weil nur etwa 100 Moleküle im Gefäß sind. Aus demselben Grund ist das Dichtemaximum von Wasser bei 4 °C im Modell nicht zu sehen.</li>
       <li>Die Temperaturen in °C sind grob umgerechnet: Das Modell schmilzt bei etwa 0 °C.</li>
       <li>Beim Tropfen ist die allgemeine Anziehung zwischen den Molekülen (Van-der-Waals-Kräfte) verstärkt, damit der kleine Tropfen nicht verdunstet. Ein paar Moleküle verdampfen trotzdem und bilden Wasserdampf um den Tropfen.</li>
+      <li>Die Glasplatte zieht die Wassermoleküle an (Adhäsion). Hier ist die Anziehung so gewählt, dass ein Tropfen sitzen bleibt. Auf ganz sauberem Glas zieht das Glas stärker an, und Wasser läuft flacher auseinander. Die Schwerkraft spielt bei so kleinen Tropfen keine Rolle.</li>
       <li>Die Pfeile zeigen den Zug der Nachbarn, also nur die Anziehung, über einige Augenblicke gemittelt. Innen ziehen die Nachbarn von allen Seiten, die Kräfte heben sich auf. An der Oberfläche fehlen die Nachbarn nach außen: Es bleibt ein Zug nach innen. Ganz nah stoßen sich die Moleküle ab, deshalb wird der Tropfen nicht beliebig klein.</li>
       <li>Moleküle sind stark vergrößert, die Bewegung stark verlangsamt.</li>
     </ul>
@@ -244,6 +245,7 @@ const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-mo
 /* ---------- Mercedes-Benz-Wasser (2D): Einheiten ε_HB = 1, r_HB = 1 ---------- */
 const SQ3 = Math.sqrt(3), ARM = [0, 2 * Math.PI / 3, 4 * Math.PI / 3];
 const S_HB = 0.085, S2 = S_HB * S_HB, SIG_LJ = 0.7, RC = 1.75, NB_R = 1.05;   // NB_R: Abstand für „Nachbar“
+const GLASS = 0.8;   // Stärke der Anziehung durch das Glas (Wasser benetzt Glas)
 const DT = 0.005, GAMMA = 1, GAMMA_R = 1, INERTIA = 0.25;
 // Bienenwaben-Gitter (Abstand 1): Rechteckzelle √3 × 3 mit 4 Plätzen und Armwinkel
 const CELL = [[0, 0, -Math.PI / 2], [SQ3 / 2, 0.5, Math.PI / 2], [SQ3 / 2, 1.5, -Math.PI / 2], [0, 2, Math.PI / 2]];
@@ -260,11 +262,15 @@ function makeScene(kind){
     const nx = 8, Lx = nx * SQ3, rows = 2, nLiq = nx * 12;
     for (let c = 0; c < nx; c++) for (let s = 0; s < rows; s++){ const [dx, dy, t] = CELL[s]; X.push(c * SQ3 + dx); Y.push(dy + 0.6); TH.push(t); FIX.push(1); }
     for (let k = 0, r = 0; k < nLiq; r++) for (let c = 0; c < 2 * nx && k < nLiq; c++, k++){ X.push((c + 0.5) * Lx / (2 * nx) + 0.2 * (rnd() - 0.5)); Y.push(2.2 + r * 0.95); TH.push(rnd() * 6.283); FIX.push(0); }
-    o = {kind, Lx, periodic:true, eLJ:0.1, P0:0.10, T:T_OF_C(5), yP:Math.max(...Y) + 1, vP:0, view:{w:Lx, h:13.5}};
+    o = {kind, Lx, periodic:true, eLJ:0.1, P0:0.10, T:T_OF_C(5), yP:Math.max(...Y) + 1, vP:0, view:{w:Lx, h:13.5, y0:0}};
   } else {
     const W = 22, H = 17, n = 150, cols = 15, a = 0.9;
-    for (let k = 0; k < n; k++){ X.push(W / 2 + (k % cols - cols / 2 + 0.5) * a); Y.push(H / 2 + (Math.floor(k / cols) - n / cols / 2 + 0.5) * a); TH.push(rnd() * 6.283); FIX.push(0); }
-    o = {kind, Lx:W, H, periodic:false, eLJ:0.9, T:0.34, view:{w:W, h:H}};
+    // Start: halbrunder Haufen auf der Glasplatte (dicht gepackt), die n Plätze nächst der Mitte
+    const pts = [];
+    for (let r = 0; r < 14; r++) for (let c = -12; c <= 12; c++) pts.push([W / 2 + (c + (r % 2) * 0.5) * a, 0.75 + r * a * 0.87]);
+    pts.sort((p, q) => Math.hypot(p[0] - W / 2, p[1]) - Math.hypot(q[0] - W / 2, q[1]));
+    for (let k = 0; k < n; k++){ X.push(pts[k][0]); Y.push(pts[k][1]); TH.push(rnd() * 6.283); FIX.push(0); }
+    o = {kind, Lx:W, H, periodic:false, eLJ:0.9, T:0.36, glass:GLASS, view:{w:W, h:H + 0.9, y0:-0.9}};
   }
   const N = X.length;
   Object.assign(o, {N, x:Float64Array.from(X), y:Float64Array.from(Y), th:Float64Array.from(TH), fixed:Uint8Array.from(FIX),
@@ -329,7 +335,10 @@ function forces(o){
       const d = o.yP - y[i]; if (d < 0.6){ const f = 50 * (0.6 - d); o.fy[i] -= f; o.fP += f; }
     } else {
       if (x[i] < 0.5) o.fx[i] += 50 * (0.5 - x[i]); else if (x[i] > o.Lx - 0.5) o.fx[i] -= 50 * (x[i] - o.Lx + 0.5);
-      if (y[i] < 0.5) o.fy[i] += 50 * (0.5 - y[i]); else if (y[i] > o.H - 0.5) o.fy[i] -= 50 * (y[i] - o.H + 0.5);
+      if (y[i] > o.H - 0.5) o.fy[i] -= 50 * (y[i] - o.H + 0.5);
+      // Glasplatte bei y = 0: zieht Wassermoleküle an (Wandpotential 9-3), stößt ganz nah ab
+      const h = Math.max(y[i], 0.3);
+      if (h < 2.5 * SIG_LJ){ const s3 = Math.pow(SIG_LJ / h, 3); o.fy[i] += o.glass * (1.2 * s3 * s3 * s3 / h - 3 * s3 / h); if (h < 1.0) o.nb[i] += 2; }
     }
   }
 }
@@ -363,7 +372,7 @@ function resize(){
   draw();
 }
 function fit(){ const v = S.view, m = 16; SC = Math.min((W - 2 * m) / v.w, (H - 2 * m) / v.h); OX = (W - SC * v.w) / 2; OY = (H - SC * v.h) / 2; }
-const PX = x => OX + SC * x, PY = y => OY + SC * (S.view.h - y);   // y nach oben
+const PX = x => OX + SC * x, PY = y => OY + SC * (S.view.h + S.view.y0 - y);   // y nach oben, unten beginnt die Ansicht bei y0
 function draw(){
   if (!W || !S) return;
   fit();
@@ -383,8 +392,11 @@ function draw(){
     ctx.fillStyle = "#0a0e18"; ctx.font = `700 12px ${font}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("Kolben", PX(o.Lx / 2), PY(o.yP + 0.25));
   } else {
     ctx.strokeStyle = "#3a4666"; ctx.lineWidth = 1; ctx.strokeRect(PX(0), PY(o.H), SC * o.Lx, SC * o.H);
+    const gg = ctx.createLinearGradient(0, PY(0), 0, PY(-0.9)); gg.addColorStop(0, "#9fc3d9"); gg.addColorStop(1, "#4d6a80");   // Glasplatte
+    ctx.fillStyle = gg; ctx.fillRect(PX(0), PY(0), SC * o.Lx, SC * 0.9);
+    ctx.fillStyle = "#0a0e18"; ctx.font = `700 12px ${font}`; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText("Glasplatte", PX(o.Lx) - 8, PY(-0.45));
   }
-  ctx.beginPath(); ctx.rect(PX(0), PY(o.view.h), SC * o.view.w, SC * o.view.h); ctx.clip();
+  ctx.beginPath(); ctx.rect(PX(0), PY(o.view.h + o.view.y0), SC * o.view.w, SC * o.view.h); ctx.clip();
   if (showHB){   // Wasserstoffbrücken
     ctx.strokeStyle = "rgba(110,168,255,.75)"; ctx.lineWidth = Math.max(1, SC * 0.06); ctx.setLineDash([SC * 0.12, SC * 0.08]);
     for (let k = 0; k < o.bonds.length; k += 2){
@@ -427,7 +439,7 @@ function updateText(){
   const o = S;
   if (o.kind === "drop"){
     const f = free(o), inside = f.filter(i => o.nb[i] > 3).length, surf = f.filter(i => o.nb[i] > 0 && o.nb[i] <= 3).length, vap = f.filter(i => o.nb[i] === 0).length;
-    $("status").innerHTML = "<b>Tropfen</b>: 150 Wassermoleküle in einem geschlossenen Kasten. Die meisten halten durch Wasserstoffbrücken zusammen, einige verdampfen.";
+    $("status").innerHTML = "<b>Tropfen</b>: 150 Wassermoleküle auf einer Glasplatte in einem geschlossenen Kasten. Die meisten halten durch Wasserstoffbrücken zusammen, einige verdampfen.";
     $("readout").textContent = `innen: ${inside} · an der Oberfläche: ${surf} · im Dampf: ${vap} Moleküle`;
   } else {
     const fr = frac3(o), vol = refVolume ? Math.round((pistonAvg - 0.6) / (refVolume - 0.6) * 100) : null;
@@ -478,7 +490,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 // Für automatische Tests
-window.__wasser = {scene:() => S, step:n => { for (let k = 0; k < n; k++) step(S); }, frac3:() => frac3(S), setTemp, setScene, piston:() => S.yP, ref:() => refVolume, setRef:v => { refVolume = v; pistonAvg = v; }};
+window.__wasser = {setGlass:g => { S.glass = g; }, scene:() => S, step:n => { for (let k = 0; k < n; k++) step(S); }, frac3:() => frac3(S), setTemp, setScene, piston:() => S.yP, ref:() => refVolume, setRef:v => { refVolume = v; pistonAvg = v; }};
 
 $("playbtn").textContent = running ? "Pause" : "Start";
 showHB = $("hbchk").checked; showSurf = $("surfchk").checked; showForce = $("forcechk").checked; $("surflegend").hidden = !showSurf;
