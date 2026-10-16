@@ -96,7 +96,6 @@ canvas{display:block;width:100%}
 .meter{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 14px;border-top:1px solid #1b2338;color:var(--stage-fg)}
 .meter span{font-size:.85rem;color:var(--stage-dim);text-transform:uppercase;letter-spacing:.06em}
 .meter b{font-family:var(--mono);font-size:1.1rem}
-#polcv{height:170px;border-top:1px solid #1b2338;cursor:ew-resize;touch-action:none}
 .slider label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600}
 .slider output{font-family:var(--mono);font-size:1.05rem}
 .slider input[type=range]{width:100%;margin:8px 0 0;accent-color:var(--accent)}
@@ -220,11 +219,10 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
     <div class="task tasks">
       <b>Isomere zählen</b>
       <ol>
-        <li>Wähle die Form „Quadrat“. Ersetze ein H durch Cl (auf ein Atom tippen). Lies das Dipolmoment ab und drehe den Analysator des Polarimeters, bis der Schirm am hellsten ist. Die Pfeile am Probenrohr zeigen, in welche Richtung das Licht vor und nach der Probe schwingt. Viele Stoffe drehen das Licht überhaupt nicht – dann ist der Schirm bei 0° am hellsten. Notiere die Messwerte. Probiere einen anderen Platz für das Cl: Ändern sich die Messwerte?</li>
+        <li>Wähle die Form „Quadrat“. Ersetze ein H durch Cl (auf ein Atom tippen). Lies das Dipolmoment ab. Notiere die Messwerte. Setze das Cl dann auf einen anderen Platz und miss wieder: Ändert sich das Dipolmoment?</li>
         <li>Baue CH₂Cl₂ auf alle möglichen Arten (Cl auf Platz 1 und 2, 1 und 3, 2 und 3 …) und miss jedes Mal. Moleküle mit gleichen Messwerten sind derselbe Stoff, nur anders gedreht. Wie viele verschiedene CH₂Cl₂ gibt es beim Quadrat? Trage die Zahl in die Tabelle ein, ebenso für CH₃Cl und CHCl₃.</li>
         <li>Wiederhole das für die Pyramide und das Tetraeder.</li>
         <li>Vergleiche mit dem Experiment: Von CH₂Cl₂ (Dichlormethan) ist nur eine einzige Form bekannt. Welche Form des Methans bleibt übrig?</li>
-        <li>Für Fortgeschrittene: Baue CHBrClF beim Tetraeder auf verschiedene Arten. Du findest zwei Moleküle mit gleichem Dipolmoment, die das Licht aber in entgegengesetzte Richtungen drehen. Was ist das Besondere an ihnen?</li>
       </ol>
     </div>
     <div class="lab">
@@ -232,7 +230,6 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
         <div class="status" id="status" aria-live="polite"></div>
         <canvas id="stage" tabindex="0" aria-label="Räumliches Modell des Moleküls. Ziehen dreht es, Tippen auf ein Atom ersetzt es."></canvas>
         <div class="meter"><span>Dipolmoment</span><b id="dipout">0,0 D</b></div>
-        <canvas id="polcv" aria-label="Polarimeter: Lampe, Polarisator, Probenrohr mit dem Stoff, drehbarer Analysator und Schirm. Der Schirm ist am hellsten, wenn der Analysator um den Drehwinkel der Probe gedreht ist."></canvas>
         <div class="readout" id="readout"></div>
       </div>
       <div class="panel">
@@ -247,14 +244,6 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
         <div class="paint" role="radiogroup" aria-label="Ersetzen durch" id="paint"></div>
         <p class="hint">Tippe auf ein Atom (oder auf Platz 1 bis 4), um es zu ersetzen.</p>
         <div class="paint" id="places" aria-label="Plätze"></div>
-        <hr>
-        <b>Polarimeter</b>
-        <div class="slider">
-          <label for="anal">Analysator <output id="anout">0°</output></label>
-          <input type="range" id="anal" min="-90" max="90" step="1" value="0">
-          <div class="ends"><span>−90°</span><span>+90°</span></div>
-        </div>
-        <p class="hint">Drehe den Analysator, bis der Schirm am hellsten ist (auch: im Bild ziehen).</p>
         <hr>
         <button class="btn primary" type="button" id="savebtn">Messwerte notieren</button>
         <button class="btn" type="button" id="resetbtn">Zurück zu CH₄</button>
@@ -278,8 +267,8 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
       <h3 style="margin:18px 0 6px;font-size:1rem">Messprotokoll</h3>
       <div class="tablewrap">
         <table class="log">
-          <thead><tr><th scope="col">Nr.</th><th scope="col">Form</th><th scope="col">Stoff</th><th scope="col">Plätze</th><th scope="col">Dipolmoment</th><th scope="col">Drehwinkel (abgelesen)</th><th scope="col" class="auswertung">Auswertung</th></tr></thead>
-          <tbody id="logbody"><tr><td colspan="7" class="empty">Noch nichts notiert.</td></tr></tbody>
+          <thead><tr><th scope="col">Nr.</th><th scope="col">Form</th><th scope="col">Stoff</th><th scope="col">Plätze</th><th scope="col">Dipolmoment</th><th scope="col" class="auswertung">Auswertung</th></tr></thead>
+          <tbody id="logbody"><tr><td colspan="6" class="empty">Noch nichts notiert.</td></tr></tbody>
         </table>
       </div>
       <label class="switch"><input type="checkbox" id="evalchk"> Auswertung zeigen</label>
@@ -290,10 +279,10 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
     <ul>
       <li>1874 veröffentlichten der 22-jährige Niederländer Jacobus Henricus van ’t Hoff und der Franzose Joseph Achille Le Bel unabhängig voneinander die Idee des tetraedrischen Kohlenstoffatoms. Van ’t Hoff erhielt 1901 den ersten Nobelpreis für Chemie (für andere Arbeiten). Der berühmte Chemiker Hermann Kolbe verspottete die Idee anfangs als Fantasie.</li>
       <li>Das Argument: Wären die vier Partner flach im Quadrat angeordnet, müsste es zwei verschiedene CH₂Cl₂ geben, eines mit den Cl-Atomen nebeneinander und eines mit ihnen gegenüber. Man hat aber immer nur eine Form gefunden. Beim Tetraeder liegen alle Plätze gleichwertig nebeneinander: Es gibt nur ein CH₂Cl₂.</li>
-      <li>Das zweite Argument: Ein Kohlenstoffatom mit vier verschiedenen Partnern gibt es beim Tetraeder in zwei Formen, die sich wie Bild und Spiegelbild verhalten (wie linke und rechte Hand). Solche Stoffe drehen die Ebene von polarisiertem Licht (optische Aktivität, von Louis Pasteur 1848 an Weinsäure untersucht). Van ’t Hoff konnte das erklären; ein Quadrat hat kein solches Spiegelbild-Paar. CHBrClF ist hier nur ein einfaches Beispiel: Seine beiden Formen ließen sich wegen der Ähnlichkeit erst in neuerer Zeit trennen; damals dienten Stoffe wie Milchsäure und Weinsäure als Belege.</li>
-      <li>Gemessen werden zwei Eigenschaften. Das Dipolmoment ist aus Bindungsdipolen geschätzt (C–H 0,3 D, C–F 1,4 D, C–Br 1,5 D, C–Cl 1,6 D; Modellwerte) und als Pfeilsumme über die räumliche Form berechnet: CH₃Cl ergibt so 1,9 D (gemessen 1,87 D). Das Polarimeter misst, um welchen Winkel ein Stoff die Schwingungsebene von polarisiertem Licht dreht. Moleküle, die mit ihrem Spiegelbild übereinstimmen, drehen gar nicht (0°). Bild und Spiegelbild drehen gleich stark in entgegengesetzte Richtungen; die Drehwinkel hier sind Modellwerte (etwa ±12°). Echte Drehwinkel hängen auch von Konzentration, Rohrlänge und Wellenlänge ab.</li>
-      <li>Moleküle, die nur gegeneinander gedreht sind, sind derselbe Stoff und haben deshalb dieselben Messwerte. Verschiedene Stoffe unterscheiden sich in mindestens einem Messwert. Früher hat man Isomere vor allem an Siedetemperatur, Schmelztemperatur und Kristallform unterschieden.</li>
-      <li>Zwei Moleküle gelten hier als gleich, wenn man das eine so drehen kann, dass es genau auf dem anderen liegt. Das Quadrat lässt sich dabei auch umdrehen (wenden), die Pyramide nicht, denn ihre Spitze bleibt oben. Spiegeln ist kein Drehen: Bild und Spiegelbild zählen als verschieden.</li>
+      <li>Van ’t Hoffs zweites Argument betraf Kohlenstoffatome mit vier verschiedenen Partnern: Beim Tetraeder gibt es sie in zwei Formen, die sich wie Bild und Spiegelbild verhalten (wie linke und rechte Hand). Solche Stoffe drehen die Schwingungsebene von polarisiertem Licht (optische Aktivität, von Louis Pasteur 1848 an Weinsäure untersucht).</li>
+      <li>Gemessen wird das Dipolmoment. Es ist aus Bindungsdipolen geschätzt (C–H 0,3 D, C–Cl 1,6 D; Modellwerte) und als Pfeilsumme über die räumliche Form berechnet: CH₃Cl ergibt so 1,9 D (gemessen 1,87 D). Moleküle, die gleich aufgebaut sind, haben dasselbe Dipolmoment, egal wie sie gedreht sind.</li>
+      <li>Moleküle, die nur gegeneinander gedreht sind, sind derselbe Stoff und haben deshalb dasselbe Dipolmoment. Die verschiedenen Isomere der Chlormethane unterscheiden sich hier im Dipolmoment. Früher hat man Isomere vor allem an Siedetemperatur, Schmelztemperatur und Kristallform unterschieden.</li>
+      <li>Zwei Moleküle gelten hier als gleich, wenn man das eine so drehen kann, dass es genau auf dem anderen liegt. Das Quadrat lässt sich dabei auch umdrehen (wenden), die Pyramide nicht, denn ihre Spitze bleibt oben.</li>
       <li>Heute sieht man die Tetraederform direkt, zum Beispiel mit Elektronenbeugung und Röntgenbeugung: Alle H–C–H-Winkel im Methan sind 109,5°.</li>
       <li>Die Pyramide ist eine von mehreren denkbaren Formen; van ’t Hoff hat auch sie mit demselben Argument ausgeschlossen.</li>
     </ul>
@@ -304,7 +293,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
-const cv = $("stage"), ctx = cv.getContext("2d"), pc = $("polcv"), pctx = pc.getContext("2d");
+const cv = $("stage"), ctx = cv.getContext("2d");
 const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ---------- Formen: Plätze der vier Partner und ihre Drehungen ---------- */
@@ -330,7 +319,7 @@ GEOS.square.mirror = D4; GEOS.pyramid.mirror = D4; GEOS.tetra.mirror = MIRROR_AL
 /* ---------- Atome ---------- */
 const EL = {C:{col:"#8d97a8", r:0.30}, H:{col:"#eef2f8", r:0.20}, Cl:{col:"#3fbf5f", r:0.33}, Br:{col:"#a3412c", r:0.36}, F:{col:"#b7e14a", r:0.24}};
 const BOND = {H:1.0, Cl:1.45, Br:1.6, F:1.15};   // gezeichnete Bindungslänge (nicht maßstäblich)
-const ORDER = ["H", "Cl", "Br", "F"];
+const ORDER = ["H", "Cl"];
 const SUB = n => String(n).replace(/[0-9]/g, d => "₀₁₂₃₄₅₆₇₈₉"[d]);
 function formula(sub){
   const c = {}; for (const s of sub) c[s] = (c[s] || 0) + 1;
@@ -350,27 +339,16 @@ function dipoleOf(sub, g){
   const m = [0, 0, 0]; sub.forEach((e, k) => { const u = unit(GEOS[g].pos[k]); for (let i = 0; i < 3; i++) m[i] += BOND_MU[e] * u[i]; });
   return Math.hypot(...m);
 }
-// Drehwinkel: Pseudoskalar aus der räumlichen Anordnung. Er ändert sich beim Drehen nicht, wechselt beim Spiegeln
-// das Vorzeichen und ist 0 für jedes Molekül, das mit seinem Spiegelbild übereinstimmt. Skaliert auf Modellwerte.
-const CHI_W = {H:1, F:2, Cl:3, Br:4};
-function pseudo(sub, g){
-  const v = [1, 2, 3].map(n => { const s = [0, 0, 0]; sub.forEach((e, k) => { const u = unit(GEOS[g].pos[k]), w = Math.pow(CHI_W[e], n); for (let i = 0; i < 3; i++) s[i] += w * u[i]; }); return s; });
-  const [a, b, c] = v; return a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
-}
-// Auf ±60° gestaucht (Arkustangens), damit alle Werte mit dem Analysator (±90°) messbar und verschieden bleiben;
-// CHBrClF beim Tetraeder ergibt ±12° (Modellwert).
-const ROT_MAX = 60, ROT_K = Math.tan(12 / ROT_MAX * Math.PI / 2) / Math.abs(pseudo(["H", "Br", "Cl", "F"], "tetra"));
-function rotationOf(sub, g){ const r = Math.round(ROT_MAX * 2 / Math.PI * Math.atan(ROT_K * pseudo(sub, g)) * 10) / 10; return Math.abs(r) < 0.05 ? 0 : r; }
-const fmtD = x => x.toFixed(2).replace(".", ","), fmtA = a => (a > 0 ? "+" : a < 0 ? "−" : "") + Math.abs(a).toString().replace(".", ",") + "°";
+const fmtD = x => x.toFixed(2).replace(".", ",");
 
 /* ---------- Zustand ---------- */
-let geo = "square", sub = ["H", "H", "H", "H"], paint = "Cl", showNum = true, auto = false, beta = 0, showEval = false;
+let geo = "square", sub = ["H", "H", "H", "H"], paint = "Cl", showNum = true, auto = false;
 const log = [];   // Messprotokoll
 let rotY = 0.5, rotX = 0.9;
 // gefundene Isomere je Form und Summenformel: Liste kanonischer Formen
 const found = {square:{}, pyramid:{}, tetra:{}};
-const ROWS = ["CH₃Cl", "CH₂Cl₂", "CHCl₃", "CCl₄", "CHBrClF"];
-const EXPERIMENT = {"CH₃Cl":"1", "CH₂Cl₂":"1", "CHCl₃":"1", "CCl₄":"1", "CHBrClF":"2 (Bild und Spiegelbild)"};
+const ROWS = ["CH₃Cl", "CH₂Cl₂", "CHCl₃", "CCl₄"];
+const EXPERIMENT = {"CH₃Cl":"1", "CH₂Cl₂":"1", "CHCl₃":"1", "CCl₄":"1"};
 // theoretische Zahl der Isomere: Bahnen aller Belegungen mit diesen Partnern unter der Drehgruppe
 function theory(g, f){
   const sets = {"CH₃Cl":["H", "H", "H", "Cl"], "CH₂Cl₂":["H", "H", "Cl", "Cl"], "CHCl₃":["H", "Cl", "Cl", "Cl"], "CCl₄":["Cl", "Cl", "Cl", "Cl"], "CHBrClF":["H", "Br", "Cl", "F"]};
@@ -456,72 +434,11 @@ function drawAxes(font){   // Achsenkreuz unten links: dreht sich mit dem Molek�
 }
 
 
-/* ---------- Polarimeter: Lampe, Polarisator, Probenrohr, Analysator, Schirm ----------
-   Die Welle schwingt nach dem Polarisator senkrecht (0°), im Rohr dreht sich ihre Ebene bis zum Drehwinkel α.
-   Durch den Analysator (Winkel β) kommt der Anteil cos(α − β); die Helligkeit am Schirm ist cos²(α − β). */
-function drawPol(){
-  const w = pc.clientWidth, h = pc.clientHeight, dpr = window.devicePixelRatio || 1;
-  if (!w) return;
-  if (pc.width !== Math.round(w * dpr) || pc.height !== Math.round(h * dpr)){ pc.width = Math.round(w * dpr); pc.height = Math.round(h * dpr); }
-  pctx.setTransform(dpr, 0, 0, dpr, 0, 0); pctx.fillStyle = "#0d1322"; pctx.fillRect(0, 0, w, h);
-  const font = getComputedStyle(document.body).fontFamily, cy = h * 0.5, A = h * 0.22;
-  const xL = 34, xP = w * 0.22, x0 = w * 0.32, x1 = w * 0.62, xA = w * 0.74, xS = w - 44;
-  const alpha = rotationOf(sub, geo), d2r = Math.PI / 180;
-  // Schwingungsrichtung θ (von der Senkrechten) schräg dargestellt: senkrecht nach oben, waagrecht in die Tiefe
-  const off = (s, th) => [s * Math.sin(th) * 0.55, -s * Math.cos(th) - s * Math.sin(th) * 0.28];
-  pctx.lineWidth = 2; pctx.lineCap = "round";
-  // unpolarisiertes Licht: mehrere Richtungen, schwach
-  for (const th of [0, 60, 120]) { pctx.strokeStyle = "rgba(255,209,102,.35)"; pctx.beginPath();
-    for (let x = xL + 14; x <= xP; x += 3){ const s = A * 0.7 * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, th * d2r); x === xL + 14 ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy); } pctx.stroke(); }
-  // polarisiertes Licht bis zum Analysator, im Rohr gedreht
-  pctx.strokeStyle = "#ffd166"; pctx.beginPath();
-  for (let x = xP; x <= xA; x += 2){
-    const th = (x < x0 ? 0 : x > x1 ? alpha : alpha * (x - x0) / (x1 - x0)) * d2r, s = A * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, th);
-    x === xP ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy);
-  }
-  pctx.stroke();
-  // nach dem Analysator: Richtung β, Amplitude cos(α − β)
-  const amp = Math.cos((alpha - beta) * d2r), bright = amp * amp;
-  pctx.beginPath();
-  for (let x = xA; x <= xS; x += 2){ const s = A * amp * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, beta * d2r); x === xA ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy); }
-  pctx.stroke();
-  // Probenrohr: getönt, sobald ein Stoff darin ist
-  const filled = formula(sub) !== "CH₄";
-  pctx.fillStyle = filled ? "rgba(120,200,140,.18)" : "rgba(140,170,220,.08)"; pctx.strokeStyle = "#4b5a80"; pctx.lineWidth = 1.5;
-  pctx.beginPath(); pctx.rect(x0, cy - A * 1.35, x1 - x0, A * 2.7); pctx.fill(); pctx.stroke();
-  // Schwingungsrichtung vor und nach der Probe als Doppelpfeil
-  const dir = (x, th, label) => {
-    const [dx, dy] = off(A * 1.05, th * d2r), y0 = cy;
-    pctx.strokeStyle = pctx.fillStyle = "#8fd3ff"; pctx.lineWidth = 2.5;
-    pctx.beginPath(); pctx.moveTo(x - dx, y0 - dy); pctx.lineTo(x + dx, y0 + dy); pctx.stroke();
-    for (const sg of [1, -1]){ const ex = x + sg * dx, ey = y0 + sg * dy, L = Math.hypot(dx, dy) || 1, ux = sg * dx / L, uy = sg * dy / L;
-      pctx.beginPath(); pctx.moveTo(ex, ey); pctx.lineTo(ex - ux * 8 - uy * 4, ey - uy * 8 + ux * 4); pctx.lineTo(ex - ux * 8 + uy * 4, ey - uy * 8 - ux * 4); pctx.closePath(); pctx.fill(); }
-    pctx.font = `700 12px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "bottom"; pctx.fillText(label, x, cy - A * 1.4);
-  };
-  dir(x0 + 14, 0, "vorher"); dir(x1 - 14, alpha, "nachher");   // ohne Zahl: den Winkel misst man mit dem Analysator
-  // Polarisator und Analysator: Scheiben mit Durchlassrichtung
-  const disc = (x, th, label) => {
-    pctx.fillStyle = "rgba(201,211,234,.10)"; pctx.strokeStyle = "#c9d3ea"; pctx.lineWidth = 1.5;
-    pctx.beginPath(); pctx.ellipse(x, cy, A * 0.55, A * 1.45, 0, 0, 2 * Math.PI); pctx.fill(); pctx.stroke();
-    const [dx, dy] = off(A * 1.2, th * d2r); pctx.strokeStyle = "#ffffff"; pctx.lineWidth = 3;
-    pctx.beginPath(); pctx.moveTo(x - dx, cy - dy); pctx.lineTo(x + dx, cy + dy); pctx.stroke();
-    pctx.fillStyle = "#7482a3"; pctx.font = `600 11px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "top"; pctx.fillText(label, x, h - 18);
-  };
-  disc(xP, 0, "Polarisator"); disc(xA, beta, `Analysator ${fmtA(beta)}`);
-  // Lampe und Schirm
-  pctx.fillStyle = "#ffd166"; pctx.beginPath(); pctx.arc(xL, cy, 10, 0, 2 * Math.PI); pctx.fill();
-  const g = Math.round(40 + 215 * bright); pctx.fillStyle = `rgb(${g},${g},${Math.round(g * 0.85)})`;
-  pctx.beginPath(); pctx.ellipse(xS, cy, A * 0.45, A * 1.3, 0, 0, 2 * Math.PI); pctx.fill();
-  pctx.fillStyle = "#7482a3"; pctx.font = `600 11px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "top";
-  pctx.fillText("Lampe", xL, h - 18); pctx.fillText("Probe: " + formula(sub), (x0 + x1) / 2, h - 18); pctx.fillText("Schirm", xS, h - 18);
-}
 /* ---------- Texte und Tabelle ---------- */
 function setStatus(html, cls){ const s = $("status"); s.innerHTML = html; s.className = "status" + (cls ? " " + cls : ""); }
 function updateReadout(){
-  const a = rotationOf(sub, geo), bright = Math.pow(Math.cos((a - beta) * Math.PI / 180), 2);
   $("dipout").textContent = `${fmtD(dipoleOf(sub, geo))} D`;
-  $("anout").textContent = fmtA(beta);
-  $("readout").textContent = `${formula(sub)} ${GEOS[geo].bei} · Analysator ${fmtA(beta)} · Helligkeit am Schirm ${Math.round(bright * 100)} %`;
+  $("readout").textContent = `${formula(sub)} ${GEOS[geo].bei} · Dipolmoment ${fmtD(dipoleOf(sub, geo))} D`;
 }
 function updateTable(){
   const tb = $("tbody"); tb.textContent = "";
@@ -544,26 +461,26 @@ function setGeo(g){
 }
 function setPlace(k){
   sub[k] = sub[k] === paint ? "H" : paint;   // gleiches Element nochmals: zurück zu H
-  setStatus(`${formula(sub)} ${GEOS[geo].bei}: Dipolmoment ablesen, Analysator drehen, Messwerte notieren.`);
+  setStatus(`${formula(sub)} ${GEOS[geo].bei}: Dipolmoment ablesen und notieren.`);
   updateReadout(); draw();
 }
 function save(){   // Messwerte ins Protokoll; ob es ein neuer Stoff ist, entscheiden die Schülerinnen und Schüler selbst
   const f = formula(sub), G = GEOS[geo];
   if (f === "CH₄"){ setStatus("Das ist noch Methan. Ersetze zuerst mindestens ein H.", "same"); return; }
   const places = sub.map((e, k) => e !== "H" ? `${k + 1}: ${e}` : null).filter(Boolean).join(", ");
-  log.push({nr:log.length + 1, geo, f, places, mu:dipoleOf(sub, geo), read:beta, k:key(sub, G.group), km:key(sub, G.mirror)});
-  setStatus(`Nr. ${log.length} notiert: ${f} ${G.bei}, Dipolmoment ${fmtD(dipoleOf(sub, geo))} D, Drehwinkel ${fmtA(beta)} (abgelesen).`, "new");
+  log.push({nr:log.length + 1, geo, f, places, mu:dipoleOf(sub, geo), k:key(sub, G.group)});
+  setStatus(`Nr. ${log.length} notiert: ${f} ${G.bei}, Dipolmoment ${fmtD(dipoleOf(sub, geo))} D.`, "new");
   updateLog();
 }
 function updateLog(){
   const tb = $("logbody"); tb.textContent = "";
-  if (!log.length){ tb.innerHTML = `<tr><td colspan="7" class="empty">Noch nichts notiert.</td></tr>`; return; }
+  if (!log.length){ tb.innerHTML = `<tr><td colspan="6" class="empty">Noch nichts notiert.</td></tr>`; return; }
   for (const e of log){
     const earlier = log.filter(x => x.nr < e.nr && x.geo === e.geo && x.f === e.f);
-    const same = earlier.find(x => x.k === e.k), mirror = !same && earlier.find(x => x.km === e.km);
-    const ev = same ? `gleicher Stoff wie Nr. ${same.nr}, nur gedreht` : mirror ? `Spiegelbild von Nr. ${mirror.nr}` : "neuer Stoff";
+    const same = earlier.find(x => x.k === e.k);
+    const ev = same ? `gleicher Stoff wie Nr. ${same.nr}, nur gedreht` : "neuer Stoff";
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${e.nr}</td><td>${GEOS[e.geo].name}</td><td>${e.f}</td><td>${e.places}</td><td>${fmtD(e.mu)} D</td><td>${fmtA(e.read)}</td><td class="auswertung">${ev}</td>`;
+    tr.innerHTML = `<td>${e.nr}</td><td>${GEOS[e.geo].name}</td><td>${e.f}</td><td>${e.places}</td><td>${fmtD(e.mu)} D</td><td class="auswertung">${ev}</td>`;
     tb.appendChild(tr);
   }
 }
@@ -583,12 +500,6 @@ $("numchk").addEventListener("change", e => { showNum = e.target.checked; draw()
 $("autochk").addEventListener("change", e => { auto = e.target.checked; });
 $("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
 $("evalchk").addEventListener("change", e => $("obs").classList.toggle("eval", e.target.checked));
-function setBeta(b){ beta = Math.max(-90, Math.min(90, Math.round(b))); $("anal").value = beta; updateReadout(); }
-$("anal").addEventListener("input", e => setBeta(+e.target.value));
-let pdrag = null;   // im Polarimeter-Bild waagrecht ziehen dreht den Analysator
-pc.addEventListener("pointerdown", e => { pc.setPointerCapture(e.pointerId); pdrag = {x:e.clientX, b:beta}; });
-pc.addEventListener("pointermove", e => { if (pdrag) setBeta(pdrag.b + (e.clientX - pdrag.x) * 0.5); });
-for (const ev of ["pointerup", "pointercancel"]) pc.addEventListener(ev, () => { pdrag = null; });
 // Ziehen dreht, kurzes Tippen ersetzt das Atom unter dem Finger
 let drag = null;
 cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); drag = {x:e.clientX, y:e.clientY, moved:0}; });
@@ -612,10 +523,9 @@ cv.addEventListener("keydown", e => {
   e.preventDefault(); draw();
 });
 let last = performance.now();
-let phase = 0;
-function frame(now){ const dt = Math.min(0.1, (now - last) / 1000); last = now; if (auto && !reduceMotion && !drag){ rotY += dt * 0.5; draw(); } if (!reduceMotion) phase += dt * 3; drawPol(); requestAnimationFrame(frame); }
+function frame(now){ const dt = Math.min(0.1, (now - last) / 1000); last = now; if (auto && !reduceMotion && !drag){ rotY += dt * 0.5; draw(); } requestAnimationFrame(frame); }
 // Für automatische Tests
-window.__vanthoff = {dipoleOf, rotationOf, key, GEOS, setBeta, log:() => log,
+window.__vanthoff = {dipoleOf, key, GEOS, log:() => log,
   setGeo, setPlace, setPaint:e => document.querySelector(`[data-el="${e}"]`).click(), save, reset:() => $("resetbtn").click(), found:() => found, theory, status:() => $("status").textContent, rotate:(y, x) => { rotY = y; rotX = x; draw(); }};
 
 showNum = $("numchk").checked; auto = $("autochk").checked; $("obs").classList.toggle("show", $("anschk").checked);
