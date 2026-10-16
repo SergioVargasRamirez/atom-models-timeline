@@ -42,20 +42,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .stoffwahl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:4px 0 12px}
 .stoffwahl label{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .stoffwahl select{font:inherit;font-size:1.02rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;min-width:260px;max-width:100%;cursor:pointer}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:6px 12px;cursor:pointer}
-.chips button[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .stagewrap{background:var(--stage);border-radius:10px;overflow:hidden;position:relative}
 canvas{display:block;width:100%}
 #stage{aspect-ratio:44/30;touch-action:manipulation}
 .status{color:var(--stage-fg);background:#111a2c;border-bottom:1px solid #1b2338;border-left:4px solid #7d9bff;padding:10px 14px;min-height:3.2em;font-size:1rem;line-height:1.45}
 .readout{font-family:var(--mono);font-size:.82rem;color:var(--stage-fg);padding:8px 12px;border-top:1px solid #1b2338;min-height:2.4em}
 .ctrlrow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:center;margin:12px 0}
-.walls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:12px 0 0}
-.walls > span{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.walls .btn{min-width:7.2em}
-.walls .btn[data-q="-1"]{border-color:#e5484d;box-shadow:inset 0 0 0 2px #e5484d}
-.walls .btn[data-q="1"]{border-color:#3e7bfa;box-shadow:inset 0 0 0 2px #3e7bfa}
+.fieldrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:12px 0 0}
+#fieldbtn{min-width:12em;font-weight:700}
+#fieldbtn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:disabled:hover{border-color:var(--line)}
 .btn{font:inherit;font-size:.95rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);min-width:96px;font-weight:700}
@@ -164,12 +161,12 @@ details li{margin-bottom:6px}
     <div class="task tasks" style="margin:16px 0">
       <b>Beobachten und deuten</b>
       <ol>
-        <li>Wähle Wasser. Tippe auf die linke Wand, bis sie negativ geladen ist (−). Was machen die Moleküle? Lade danach die rechte Wand positiv (+) auf.</li>
+        <li>Wähle Wasser und schalte das Feld ein: Die linke Wand wird negativ (−), die rechte positiv (+). Was machen die Moleküle? Kehre danach die Polung um.</li>
         <li>Vergleiche mit Chlorwasserstoff und Ammoniak. Fülle für jeden Stoff eine Zeile der Tabelle aus.</li>
         <li>Wähle Kohlenstoffdioxid und Methan. Sind die Bindungen polar? Warum drehen sich die Moleküle trotzdem nicht? Schalte die Dipolpfeile ein.</li>
         <li>Probiere Wasserstoff, Chlor, Stickstoff und Sauerstoff aus.</li>
-        <li>Entlade alle Wände und schalte „Anziehung zwischen den Molekülen“ ein. Was passiert bei Wasser, was bei Kohlenstoffdioxid?</li>
-        <li>Ein dünner Wasserstrahl wird von einem geriebenen Kunststoffstab abgelenkt, ein Strahl aus Hexan (C₆H₁₄, unpolar) nicht. Erkläre den Versuch mit deinen Beobachtungen. Tipp: Lade nur eine Wand auf.</li>
+        <li>Schalte das Feld aus und „Anziehung zwischen den Molekülen“ ein. Was passiert bei Wasser, was bei Kohlenstoffdioxid?</li>
+        <li>Ein dünner Wasserstrahl wird von einem geriebenen Kunststoffstab abgelenkt, ein Strahl aus Hexan (C₆H₁₄, unpolar) nicht. Erkläre den Versuch mit deinen Beobachtungen.</li>
       </ol>
     </div>
     <div class="stoffwahl">
@@ -185,26 +182,16 @@ details li{margin-bottom:6px}
         <option value="N2">Stickstoff (N₂)</option>
         <option value="O2">Sauerstoff (O₂)</option>
       </select>
-      <label id="viewlab">Ansicht</label>
-      <div class="chips" role="radiogroup" aria-labelledby="viewlab" id="viewchips">
-        <button type="button" role="radio" aria-checked="false" data-view="nah">nah</button>
-        <button type="button" role="radio" aria-checked="false" data-view="mittel">mittel</button>
-        <button type="button" role="radio" aria-checked="false" data-view="weit">weit</button>
-      </div>
     </div>
 
     <div class="stagewrap">
       <div class="status" id="status" aria-live="polite"></div>
-      <canvas id="stage" role="img" aria-label="Kasten mit Molekülen des gewählten Stoffes. Jede der vier Wände lässt sich antippen und wird dann negativ, positiv oder wieder ungeladen."></canvas>
+      <canvas id="stage" role="img" aria-label="Kasten mit Molekülen des gewählten Stoffes. Die linke und die rechte Wand sind Platten, die sich mit dem Knopf „Feld einschalten“ entgegengesetzt aufladen lassen."></canvas>
       <div class="readout" id="readout"></div>
     </div>
-    <div class="walls" role="group" aria-label="Wände aufladen">
-      <span>Wände</span>
-      <button class="btn" type="button" data-wall="0"></button>
-      <button class="btn" type="button" data-wall="1"></button>
-      <button class="btn" type="button" data-wall="2"></button>
-      <button class="btn" type="button" data-wall="3"></button>
-      <button class="btn" type="button" id="unload">Alle entladen</button>
+    <div class="fieldrow">
+      <button class="btn" type="button" id="fieldbtn" aria-pressed="false">Feld einschalten</button>
+      <button class="btn" type="button" id="flipbtn" disabled>Polung umkehren</button>
     </div>
     <div class="ctrlrow">
       <button class="btn primary" id="playbtn" type="button">Pause</button>
@@ -239,7 +226,7 @@ details li{margin-bottom:6px}
       <li>Die Moleküle sind flach (2D) gezeichnet. CH₄ ist in Wirklichkeit ein Tetraeder, NH₃ eine Pyramide; NH₃ ist von der Seite gezeichnet, das mittlere H-Atom zeigt nach hinten.</li>
       <li>Jedes Atom trägt eine Teilladung (δ+ oder δ−). Sie sind so gewählt, dass die Dipolmomente im richtigen Verhältnis stehen: H₂O 1,85 D, NH₃ 1,47 D, HCl 1,08 D. Bei CO₂ und CH₄ sind die Bindungen polar, die Summe der Bindungsdipole ist aber null.</li>
       <li>Das Feld ist stark übertrieben. Echte Felder richten Moleküle bei Raumtemperatur nur ganz wenig aus, weil die Wärmebewegung sie ständig durcheinanderwirbelt. Die Temperatur ist fest eingestellt.</li>
-      <li>Die Wände wirken wie geladene Platten. Ist nur eine Wand geladen, ist das Feld an ihr am stärksten: Polare Moleküle drehen sich dann nicht nur, sie werden auch zur Wand gezogen. Das passiert auch beim Wasserstrahl.</li>
+      <li>Die linke und die rechte Wand wirken wie entgegengesetzt geladene Platten. Dazwischen ist das Feld fast gleichmäßig: Polare Moleküle drehen sich, werden aber kaum verschoben. An einem geladenen Stab (Wasserstrahl-Versuch) ist das Feld ungleichmäßig, nahe am Stab stärker. Dort werden die ausgerichteten Moleküle zusätzlich zum Stab hingezogen.</li>
       <li>„Anziehung zwischen den Molekülen“ berechnet die Kräfte zwischen den Teilladungen (Dipol-Dipol-Kräfte, bei Wasser auch Wasserstoffbrücken). Die schwachen Van-der-Waals-Kräfte, die zwischen allen Molekülen wirken, sind hier nicht eingerechnet.</li>
       <li>Moleküle und Atome sind stark vergrößert und ihre Bewegung stark verlangsamt.</li>
     </ul>
@@ -297,11 +284,8 @@ for (const k in MOLS){
 }
 
 /* ---------- Kasten und Wände ---------- */
-// Ansicht: größerer Ausschnitt mit mehr Molekülen bei gleicher Dichte (kleinere Moleküle auf dem Bildschirm)
-const VIEWS = {nah:{BW:40, BH:26, N:24}, mittel:{BW:56, BH:36.4, N:47}, weit:{BW:76, BH:49.4, N:87}};
-let BW = 40, BH = 26, N = 24;     // Kasten in Å, Zahl der Moleküle
-const WALLS = ["links", "oben", "rechts", "unten"];
-const plates = [0, 0, 0, 0];      // −1, 0, +1
+const BW = 40, BH = 26, N = 24;   // Kasten in Å, Zahl der Moleküle
+const plates = [0, 0, 0, 0];      // Ladung der Wände links, oben, rechts, unten (−1, 0, +1); oben und unten bleiben ungeladen
 const E_CENTER = 5;               // μ(Wasser)·E in der Mitte bei zwei gegenüberliegenden Platten, in kT
 // Feld einer gleichmäßig geladenen Platte, die senkrecht zur Bildebene unendlich weit reicht (Streifen):
 // beschränkt an der Platte, fällt nach innen ab. along: Koordinate längs der Platte, d: Abstand ins Innere
@@ -318,7 +302,7 @@ function rawField(x, y, pl){
   if (pl[3]){ const [a, p] = stripField(-x, BW - x, db); ey -= pl[3] * p; ex += pl[3] * a; }
   return [ex, ey];
 }
-// Maßstab: links − und rechts + ergeben in der Mitte die Feldstärke E_CENTER (in jeder Ansicht)
+// Maßstab: links − und rechts + ergeben in der Mitte die Feldstärke E_CENTER
 let eScale = E_CENTER, KF1 = 1, KF = 1;
 function scaleField(){ KF1 = 1 / Math.hypot(...rawField(BW / 2, BH / 2, [1, 0, -1, 0])); KF = eScale * KF1; }
 scaleField();
@@ -433,7 +417,7 @@ let showDelta = false, showDipole = false, showField = false;
 
 function drawPlates(){
   const g = 5, len = [BH, BW, BH, BW];
-  for (let w = 0; w < 4; w++){
+  for (const w of [0, 2]){
     const q = plates[w];
     let x, y, ww, hh;
     if (w === 0){ x = X(0) - g - PLATE; y = Y(0); ww = PLATE; hh = S * BH; }
@@ -532,11 +516,9 @@ function draw(){
 
 /* ---------- Texte ---------- */
 const fmt = (x, d = 2) => x.toFixed(d).replace(".", ",");
-const QWORD = {"-1":"negativ", "0":"ungeladen", "1":"positiv"};
 function plateText(){
-  const on = WALLS.map((w, i) => plates[i] ? `${w} ${QWORD[plates[i]]}` : null).filter(Boolean);
-  if (!on.length) return "Alle Wände sind ungeladen. Tippe auf eine Wand, um sie aufzuladen.";
-  return "Geladene Wände: " + on.join(", ") + ".";
+  if (!anyPlate()) return "Feld aus: Die Wände sind ungeladen.";
+  return plates[0] < 0 ? "Feld an: links negativ (−), rechts positiv (+)." : "Feld an: links positiv (+), rechts negativ (−).";
 }
 function updateStatus(){
   let t = `<b>${mol.name} (${mol.f})</b>. ${plateText()}`;
@@ -546,12 +528,10 @@ function updateStatus(){
     else t += " Gleiche Atome, unpolare Bindung: Dipolmoment 0 D.";
   }
   $("status").innerHTML = t;
-  document.querySelectorAll("[data-wall]").forEach(b => {
-    const w = +b.dataset.wall, q = plates[w];
-    b.dataset.q = q;
-    b.textContent = WALLS[w] + (q < 0 ? " −" : q > 0 ? " +" : " ○");
-    b.setAttribute("aria-label", `Wand ${WALLS[w]}: ${QWORD[q]}. Antippen zum Umschalten.`);
-  });
+  const on = anyPlate();
+  $("fieldbtn").textContent = on ? "Feld ausschalten" : "Feld einschalten";
+  $("fieldbtn").setAttribute("aria-pressed", String(on));
+  $("flipbtn").disabled = !on;
 }
 let alignAvg = null;
 function updateReadout(){
@@ -562,19 +542,9 @@ function updateReadout(){
 }
 
 /* ---------- Bedienung ---------- */
-function cycle(w){ plates[w] = plates[w] === 0 ? -1 : plates[w] === -1 ? 1 : 0; alignAvg = null; updateStatus(); updateReadout(); draw(); }
-function wallAt(ev){   // Wand unter dem Zeiger: außerhalb des Kastens oder bis 4 Å innen
-  const r = cv.getBoundingClientRect(), x = (ev.clientX - r.left - OX) / S, y = (ev.clientY - r.top - OY) / S;
-  const band = Math.max(4, 40 / S);
-  const d = [x, y, BW - x, BH - y];
-  let best = -1, bd = band;
-  d.forEach((v, i) => { if (v < bd){ bd = v; best = i; } });
-  return best;
-}
-cv.addEventListener("click", ev => { const w = wallAt(ev); if (w >= 0) cycle(w); });
-cv.addEventListener("pointermove", ev => { cv.style.cursor = wallAt(ev) >= 0 ? "pointer" : "default"; });
-document.querySelectorAll("[data-wall]").forEach(b => b.addEventListener("click", () => cycle(+b.dataset.wall)));
-$("unload").addEventListener("click", () => { plates.fill(0); alignAvg = null; updateStatus(); updateReadout(); draw(); });
+function setPlates(left){ plates[0] = left; plates[2] = -left; alignAvg = null; updateStatus(); updateReadout(); draw(); }
+$("fieldbtn").addEventListener("click", () => setPlates(anyPlate() ? 0 : -1));   // einschalten: links −, rechts +
+$("flipbtn").addEventListener("click", () => setPlates(-plates[0]));
 $("stoff").addEventListener("change", e => { mol = MOLS[e.target.value]; restart(); });
 $("resetbtn").addEventListener("click", restart);
 let running = !reduceMotion;
@@ -584,16 +554,10 @@ $("dipolchk").addEventListener("change", e => { showDipole = e.target.checked; u
 $("fieldchk").addEventListener("change", e => { showField = e.target.checked; draw(); });
 $("attrchk").addEventListener("change", e => { attract = e.target.checked; });
 $("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
-function setView(v){
-  ({BW, BH, N} = VIEWS[v]);
-  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.view === v)));
-  scaleField(); restart(); resize();
-}
-document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
 function restart(){ init(); for (let k = 0; k < 200; k++) step(); alignAvg = null; updateStatus(); updateReadout(); draw(); }
 
 /* ---------- Schleife ---------- */
-const STEPS_PER_FRAME = 8;
+const STEPS_PER_FRAME = 4;
 let frameNo = 0;
 function frame(){
   if (running){
@@ -605,7 +569,7 @@ function frame(){
 }
 // Für automatische Tests
 window.__polaritaet = {plates, step, alignment, neighbours, setAttract:b => { attract = b; }, select:k => { $("stoff").value = k; mol = MOLS[k]; restart(); },
-  spreadLeft:() => ms.filter(m => m.x < BW / 4).length / ms.length, setKC:k => { K_C = k; }, setGamma:(g, gr) => { GAMMA = g; GAMMA_ROT = gr; }, setE:e => { eScale = e; KF = e * KF1; }, view:v => setView(v), field:(x, y) => field(x, y),
+  spreadLeft:() => ms.filter(m => m.x < BW / 4).length / ms.length, setKC:k => { K_C = k; }, setGamma:(g, gr) => { GAMMA = g; GAMMA_ROT = gr; }, setE:e => { eScale = e; KF = e * KF1; }, field:(x, y) => field(x, y),
   nearWall:d => ms.filter(m => m.x < d).length / ms.length};
 
 $("playbtn").textContent = running ? "Pause" : "Start";
@@ -613,7 +577,7 @@ $("playbtn").textContent = running ? "Pause" : "Start";
 mol = MOLS[$("stoff").value] || MOLS.H2O;
 showDelta = $("deltachk").checked; showDipole = $("dipolchk").checked; showField = $("fieldchk").checked; attract = $("attrchk").checked;
 $("obs").classList.toggle("show", $("anschk").checked);
-setView(cv.clientWidth >= 600 ? "mittel" : "nah");   // auf dem Handy wären die Moleküle sonst sehr klein
+restart();
 new ResizeObserver(resize).observe(cv);
 resize();
 requestAnimationFrame(frame);
