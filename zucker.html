@@ -114,7 +114,14 @@ details li{margin-bottom:6px}
 </style>
 <style>
 #stage{aspect-ratio:16/9}
-#polcv{height:170px;border-top:1px solid #1b2338;cursor:ew-resize;touch-action:none}
+#polcv{height:200px;border-top:1px solid #1b2338;cursor:ew-resize;touch-action:none}
+.fischer-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:4px 8px;margin:6px 0 8px;padding-top:16px}
+.fischer-row svg{width:min(190px,38vw);height:auto;color:var(--fg)}
+.fischer-row svg .num{fill:var(--muted);font-size:11px}
+.fischer-row svg .ref{color:var(--accent)}
+.fischer-row .mirror{align-self:stretch;border-left:2px dashed var(--line);margin:8px 6px;position:relative}
+.fischer-row .mirror span{position:absolute;top:-22px;left:-1px;transform:translateX(-50%);font-size:.75rem;color:var(--muted)}
+.fischer .hint{font-size:.9rem;color:var(--muted);margin:0 0 6px;max-width:75ch}
 .panel select{font:inherit;font-size:1rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%;cursor:pointer}
 </style>
 <style id="sitenav-css">
@@ -225,12 +232,14 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
     <div class="task tasks">
       <b>Beobachten und deuten</b>
       <ol>
-        <li>Wähle Wasser. Drehe den Analysator, bis beide Hälften des Schirms gleich hell sind. Das ist der Nullpunkt.</li>
-        <li>Wähle D-Glucose, 10 g pro 100 mL, Rohr 1 dm. Miss den Drehwinkel und notiere ihn. Verdopple dann die Konzentration, danach die Rohrlänge. Wie hängt der Drehwinkel davon ab? Tipp: Unter dem Bild steht die Helligkeit beider Hälften in Prozent.</li>
+        <li>Wähle Wasser. Der Polarisator lässt nur senkrecht schwingendes Licht durch, der Analysator bei 0° nur waagrechtes: Der Schirm ist dunkel. Das ist der Nullpunkt.</li>
+        <li>Wähle D-Glucose. Warum wird der Schirm hell? Vergleiche die Schwingungsrichtung vorher und nachher. Drehe den Analysator, bis der Schirm wieder dunkel ist: Der Winkel am Analysator ist der Drehwinkel α.</li>
+        <li>Miss D-Glucose mit 10 g pro 100 mL im Rohr 1 dm und notiere den Drehwinkel. Verdopple dann die Konzentration, danach die Rohrlänge. Wie hängt der Drehwinkel davon ab?</li>
+        <li>Schalte „Halbschatten“ ein und stelle auf gleich dunkle Hälften ein. Warum lässt sich der Winkel so genauer einstellen als mit „ganz dunkel“? Tipp: Unter dem Bild steht die Helligkeit in Prozent.</li>
         <li>Berechne die spezifische Drehung [α] = α ÷ (l · c), mit l in dm und c in g pro mL. Vergleiche sie für verschiedene Messungen desselben Stoffes.</li>
-        <li>Miss L-Glucose. Schalte „Spiegelbild daneben“ ein und vergleiche D- und L-Glucose. Lassen sie sich durch Drehen zur Deckung bringen?</li>
+        <li>Miss L-Glucose. Schalte „Spiegelbild daneben“ ein und vergleiche D- und L-Glucose. Lassen sie sich durch Drehen zur Deckung bringen? Woran erkennst du D und L in der Fischer-Projektion?</li>
         <li>Miss das Racemat (D- und L-Glucose zu gleichen Teilen). Erkläre den Messwert.</li>
-        <li>Miss D-Fructose. Was sagt das „D“ über die Drehrichtung aus?</li>
+        <li>Miss D-Fructose und sieh dir ihre Fischer-Projektion an. Was sagt das „D“ über die Drehrichtung aus?</li>
         <li>Löse α-D-Glucose frisch und miss mehrmals im Abstand von einigen Minuten. Was beobachtest du (Mutarotation)?</li>
       </ol>
     </div>
@@ -238,7 +247,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
       <div class="stagewrap">
         <div class="status" id="status" aria-live="polite"></div>
         <canvas id="stage" tabindex="0" aria-label="Räumliches Modell des Zuckermoleküls, auf Wunsch mit Spiegelbild. Ziehen oder Pfeiltasten drehen."></canvas>
-        <canvas id="polcv" aria-label="Halbschatten-Polarimeter: Natriumlampe, Polarisator, Probenrohr mit der Lösung, drehbarer Analysator und ein zweigeteilter Schirm. Beide Hälften sind gleich hell, wenn der Analysator auf dem Drehwinkel der Probe steht."></canvas>
+        <canvas id="polcv" aria-label="Polarimeter: Natriumlampe, Polarisator, Probenrohr mit der Lösung, drehbarer Analysator und Schirm. Kreise zeigen die Schwingungsrichtung des Lichts vor und nach der Probe. Der Schirm ist dunkel, wenn der Analysator auf dem Drehwinkel der Probe steht."></canvas>
         <div class="readout" id="readout"></div>
       </div>
       <div class="panel">
@@ -264,7 +273,8 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
           <input type="range" id="anal" min="-90" max="90" step="0.5" value="0">
           <div class="ends"><span>−90°</span><span>+90°</span></div>
         </div>
-        <p class="hint">Drehe den Analysator, bis beide Hälften des Schirms gleich hell sind (auch: im Bild ziehen).</p>
+        <p class="hint">Drehe den Analysator, bis der Schirm dunkel ist (auch: im Bild ziehen). Die Striche zeigen, welche Schwingungsrichtung ein Filter durchlässt.</p>
+        <label class="switch"><input type="checkbox" id="halfchk"> Halbschatten (genauer)</label>
         <button class="btn primary" type="button" id="savebtn">Messwerte notieren</button>
         <hr>
         <b>Molekül</b>
@@ -272,6 +282,13 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
         <label class="switch"><input type="checkbox" id="hchk" checked> H-Atome</label>
         <label class="switch"><input type="checkbox" id="autochk"> Dreht sich langsam</label>
       </div>
+    </div>
+
+    <div class="obs fischer" id="fischerbox">
+      <b>Fischer-Projektion (offene Kettenform)</b>
+      <div class="fischer-row" id="fischer"></div>
+      <p class="hint" id="fischernote"></p>
+      <p class="hint">So liest man sie: Die Kohlenstoffkette steht senkrecht, das am stärksten oxidierte Ende oben. An jedem Kreuzungspunkt sitzt ein Kohlenstoffatom; waagrechte Bindungen zeigen zum Betrachter, senkrechte nach hinten. Über D oder L entscheidet das unterste Stereozentrum (farbig): OH rechts = D, OH links = L. In Wasser schließt sich die Kette zum Ring, wie im 3D-Modell.</p>
     </div>
 
     <div class="obs" id="obs">
@@ -292,7 +309,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
       <li>Werte bei 20 °C und gelbem Natriumlicht (589 nm), gerundet: Saccharose +66,5°, D-Glucose im Gleichgewicht +52,7°, frisch gelöste α-D-Glucose +112,2°, D-Fructose −92,4°. L-Glucose dreht gleich stark in die andere Richtung (−52,7°), ein Racemat aus gleich viel D- und L-Glucose gar nicht.</li>
       <li>Mutarotation: Gelöste Glucose wandelt sich zwischen α- und β-Form um (über die offene Kettenform), bis sich ein Gleichgewicht mit etwa 36 % α und 64 % β einstellt. Dabei sinkt [α] von +112,2° auf +52,7°. Die Halbwertszeit ist hier mit 45 Minuten angenommen (ungefährer Wert bei Raumtemperatur, ohne Katalysator); die Uhr läuft im Zeitraffer, 1 Sekunde entspricht 1 Minute.</li>
       <li>D und L beschreiben den räumlichen Bau (die OH-Gruppe am untersten Stereozentrum in der Fischer-Projektion), nicht die Drehrichtung. Die Drehrichtung steht als (+) oder (−) dabei: D-(+)-Glucose, D-(−)-Fructose.</li>
-      <li>Das Polarimeter ist ein Halbschatten-Polarimeter: Die beiden Hälften des Lichtbündels schwingen um 10° gegeneinander verdreht, der Analysator steht fast gekreuzt. Man stellt auf gleiche Helligkeit beider Hälften ein, weil das Auge kleine Helligkeitsunterschiede nahe der Dunkelheit sehr genau erkennt; die größte Helligkeit zu suchen wäre viel ungenauer. Ein Drehwinkel ist nur bis auf halbe Umdrehungen (180°) eindeutig; hier bleiben alle Werte zwischen −90° und +90°.</li>
+      <li>Der Analysator steht bei 0° gekreuzt zum Polarisator; der Schirm hat die Helligkeit sin²(α − β) (Gesetz von Malus) und ist dunkel, wenn der Analysator auf dem Drehwinkel steht. Nahe der Dunkelheit ändert sich die Helligkeit aber kaum, deshalb haben echte Geräte einen Halbschatten: Die beiden Hälften des Lichtbündels schwingen um ±5° gegeneinander verdreht, und man stellt auf gleiche Helligkeit beider Hälften ein. Gleich und ungleich erkennt das Auge sehr genau. Die Helligkeit des Schirms ist für das Auge gestreckt dargestellt. Ein Drehwinkel ist nur bis auf halbe Umdrehungen (180°) eindeutig; hier bleiben alle Werte zwischen −90° und +90°.</li>
       <li>Die räumlichen Modelle sind mit RDKit berechnet (Kraftfeld MMFF). Gezeigt ist jeweils die häufigste Ringform in Wasser: β-D-Glucopyranose, β-D-Fructopyranose; Saccharose aus α-D-Glucose und β-D-Fructose. Die Skripte liegen unter <code>scripts/sugar</code>.</li>
     </ul>
   </details>
@@ -319,7 +336,7 @@ const STOFFE = [
   {key:"aglc", name:"α-D-Glucose, frisch gelöst", mol:"alpha_glc", rot:112.2, mutarot:true, note:"Die α-Form wandelt sich in der Lösung langsam teilweise in die β-Form um."},
 ];
 const GLC_EQ = 52.7, HALF_LIFE = 45;   // Minuten (ungefähr)
-let st = STOFFE[0], conc = 20, len = 2, beta = 0, minutes = 0, showMirror = false, showH = true, auto = false;
+let st = STOFFE[0], conc = 20, len = 2, beta = 0, minutes = 0, showMirror = false, showH = true, auto = false, halfShade = false;
 // spezifische Drehung jetzt (bei frisch gelöster α-Glucose abhängig von der Zeit)
 const specRot = () => st.mutarot ? GLC_EQ + (st.rot - GLC_EQ) * Math.pow(0.5, minutes / HALF_LIFE) : st.rot;
 const alphaNow = () => specRot() * len * conc / 100;   // c in g/mL = (g pro 100 mL) / 100
@@ -390,82 +407,163 @@ function drawAxes(font){   // Achsenkreuz unten links: dreht sich mit dem Molek�
   ctx.globalAlpha = 1;
 }
 
-/* ---------- Polarimeter ---------- */
 /* ---------- Polarimeter: Lampe, Polarisator, Probenrohr, Analysator, Schirm ----------
-   Die Welle schwingt nach dem Polarisator senkrecht (0°), im Rohr dreht sich ihre Ebene bis zum Drehwinkel α.
-   Halbschatten-Polarimeter: Die beiden Hälften des Lichtbündels schwingen um ±δ gegeneinander verdreht. Der Analysator steht
-   gekreuzt (Durchlassrichtung β + 90°); die Hälften haben die Helligkeit sin²(α ± δ − β). Bei β = α sind beide gleich hell. */
-const HALF = 10;   // δ in Grad
-const halves = (alpha, b) => [-1, 1].map(s => Math.pow(Math.sin((alpha + s * HALF - b) * Math.PI / 180), 2));
+   Seitlich der Lichtstrahl; darüber Kreise mit dem Blick in den Strahl: Sie zeigen die Schwingungsrichtung.
+   Nach dem Polarisator schwingt das Licht senkrecht (0°), im Rohr dreht sich die Richtung um den Drehwinkel α.
+   Der Analysator steht bei 0° gekreuzt (Durchlassrichtung waagrecht, β + 90°); der Schirm hat die Helligkeit sin²(α − β)
+   und ist dunkel, wenn β = α. Halbschatten: Die beiden Hälften des Bündels schwingen um ±δ verdreht, sin²(α ± δ − β);
+   bei β = α sind beide gleich dunkel. */
+const HALF = 5;   // δ in Grad
+const NA = "255,196,61";   // Natriumlicht, 589 nm
+const screenB = (alpha, b) => (halfShade ? [-HALF, HALF] : [0]).map(d => Math.pow(Math.sin((alpha + d - b) * Math.PI / 180), 2));
 function drawPol(){
   const w = pc.clientWidth, h = pc.clientHeight, dpr = window.devicePixelRatio || 1;
   if (!w) return;
   if (pc.width !== Math.round(w * dpr) || pc.height !== Math.round(h * dpr)){ pc.width = Math.round(w * dpr); pc.height = Math.round(h * dpr); }
-  pctx.setTransform(dpr, 0, 0, dpr, 0, 0); pctx.fillStyle = "#0d1322"; pctx.fillRect(0, 0, w, h);
-  const font = getComputedStyle(document.body).fontFamily, cy = h * 0.5, A = h * 0.22;
-  const xL = 34, xP = w * 0.22, x0 = w * 0.32, x1 = w * 0.62, xA = w * 0.74, xS = w - 44;
-  const alpha = alphaNow(), d2r = Math.PI / 180;
-  // Schwingungsrichtung θ (von der Senkrechten) schräg dargestellt: senkrecht nach oben, waagrecht in die Tiefe
-  const off = (s, th) => [s * Math.sin(th) * 0.55, -s * Math.cos(th) - s * Math.sin(th) * 0.28];
-  pctx.lineWidth = 2; pctx.lineCap = "round";
-  // unpolarisiertes Licht: mehrere Richtungen, schwach
-  for (const th of [0, 60, 120]) { pctx.strokeStyle = "rgba(255,209,102,.35)"; pctx.beginPath();
-    for (let x = xL + 14; x <= xP; x += 3){ const s = A * 0.7 * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, th * d2r); x === xL + 14 ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy); } pctx.stroke(); }
-  // polarisiertes Licht bis zum Analysator, im Rohr gedreht
-  pctx.strokeStyle = "#ffd166"; pctx.beginPath();
-  for (let x = xP; x <= xA; x += 2){
-    const th = (x < x0 ? 0 : x > x1 ? alpha : alpha * (x - x0) / (x1 - x0)) * d2r, s = A * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, th);
-    x === xP ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy);
-  }
-  pctx.stroke();
-  // nach dem Analysator: Richtung β + 90°, Amplitude aus der mittleren Helligkeit der beiden Hälften
-  const [bL, bR] = halves(alpha, beta), amp = Math.sqrt((bL + bR) / 2);
-  pctx.beginPath();
-  for (let x = xA; x <= xS; x += 2){ const s = A * amp * Math.sin((x - xL) * 0.12 - phase), [dx, dy] = off(s, (beta + 90) * d2r); x === xA ? pctx.moveTo(x + dx, cy + dy) : pctx.lineTo(x + dx, cy + dy); }
-  pctx.stroke();
+  const g = pctx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = "#0d1322"; g.fillRect(0, 0, w, h);
+  const font = getComputedStyle(document.body).fontFamily, narrow = w < 560, d2r = Math.PI / 180;
+  const R = Math.max(13, Math.min(h * 0.17, w * 0.045)), cy = h * 0.47, alpha = alphaNow(), bs = screenB(alpha, beta);
+  const xL = R * 1.1 + 10, xS = w - R * 1.4 - 10;
+  const X = narrow ? {P:.2, V:.31, t0:.37, t1:.53, N:.6, A:.74} : {U:.14, P:.24, V:.33, t0:.385, t1:.565, N:.62, A:.72, O:.81};
+  const xP = w * X.P, xV = w * X.V, x0 = w * X.t0, x1 = w * X.t1, xN = w * X.N, xA = w * X.A;
+  const bh = R * 0.5, after = Math.sqrt(bs.reduce((s, b) => s + b, 0) / bs.length);   // Strahl nach dem Analysator, für das Auge gestreckt
+  // Lichtstrahl in drei Abschnitten: unpolarisiert, polarisiert, nach dem Analysator
+  const beam = (xa, xb, a) => {
+    g.fillStyle = `rgba(${NA},${a})`; g.fillRect(xa, cy - bh, xb - xa, 2 * bh);
+    if (reduceMotion || a < 0.02) return;
+    g.strokeStyle = `rgba(${NA},${Math.min(0.5, a * 1.6)})`; g.lineWidth = 1.5;   // Wellenfronten wandern mit dem Licht
+    for (let x = xa + ((phase * 14) % 16); x < xb; x += 16){ g.beginPath(); g.moveTo(x, cy - bh); g.lineTo(x, cy + bh); g.stroke(); }
+  };
+  beam(xL, xP, 0.30); beam(xP, xA, 0.20); beam(xA, xS, 0.03 + 0.25 * after);
   // Probenrohr: getönt, sobald ein Stoff darin ist
-  const filled = st.key !== "water";
-  pctx.fillStyle = filled ? "rgba(120,200,140,.18)" : "rgba(140,170,220,.08)"; pctx.strokeStyle = "#4b5a80"; pctx.lineWidth = 1.5;
-  pctx.beginPath(); pctx.rect(x0, cy - A * 1.35, x1 - x0, A * 2.7); pctx.fill(); pctx.stroke();
-  // Schwingungsrichtung vor und nach der Probe als Doppelpfeil
-  const dir = (x, th, label) => {
-    const [dx, dy] = off(A * 1.05, th * d2r), y0 = cy;
-    pctx.strokeStyle = pctx.fillStyle = "#8fd3ff"; pctx.lineWidth = 2.5;
-    pctx.beginPath(); pctx.moveTo(x - dx, y0 - dy); pctx.lineTo(x + dx, y0 + dy); pctx.stroke();
-    for (const sg of [1, -1]){ const ex = x + sg * dx, ey = y0 + sg * dy, L = Math.hypot(dx, dy) || 1, ux = sg * dx / L, uy = sg * dy / L;
-      pctx.beginPath(); pctx.moveTo(ex, ey); pctx.lineTo(ex - ux * 8 - uy * 4, ey - uy * 8 + ux * 4); pctx.lineTo(ex - ux * 8 + uy * 4, ey - uy * 8 - ux * 4); pctx.closePath(); pctx.fill(); }
-    pctx.font = `700 12px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "bottom"; pctx.fillText(label, x, cy - A * 1.4);
+  const filled = st.key !== "water", th = R * 0.85;
+  g.fillStyle = filled ? "rgba(120,200,140,.20)" : "rgba(140,170,220,.10)"; g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5;
+  g.beginPath(); g.roundRect(x0, cy - th, x1 - x0, 2 * th, 6); g.fill(); g.stroke();
+  // Lampe: Gehäuse mit leuchtendem Fenster
+  const halo = g.createRadialGradient(xL, cy, 2, xL, cy, R * 2.2); halo.addColorStop(0, `rgba(${NA},.45)`); halo.addColorStop(1, `rgba(${NA},0)`);
+  g.fillStyle = halo; g.beginPath(); g.arc(xL, cy, R * 2.2, 0, 2 * Math.PI); g.fill();
+  g.fillStyle = "#2a3245"; g.strokeStyle = "#5a6a92"; g.beginPath(); g.roundRect(xL - R * 0.8, cy - R * 1.2, R * 1.6, R * 2.4, 5); g.fill(); g.stroke();
+  const win = g.createRadialGradient(xL, cy, 1, xL, cy, R * 0.65); win.addColorStop(0, "#fff6d8"); win.addColorStop(0.5, `rgb(${NA})`); win.addColorStop(1, "#c27c0e");
+  g.fillStyle = win; g.beginPath(); g.roundRect(xL - R * 0.5, cy - R * 0.8, R, R * 1.6, 4); g.fill();
+  // Doppelpfeil (Schwingungsrichtung θ von der Senkrechten, im Uhrzeigersinn positiv)
+  const arrow = (x, y, thDeg, L, col, lw = 2.5) => {
+    const dx = Math.sin(thDeg * d2r) * L, dy = -Math.cos(thDeg * d2r) * L;
+    g.strokeStyle = g.fillStyle = col; g.lineWidth = lw; g.lineCap = "round";
+    g.beginPath(); g.moveTo(x - dx, y - dy); g.lineTo(x + dx, y + dy); g.stroke();
+    if (L < 4) return;
+    const hl = Math.min(7, L * 0.45);
+    for (const s of [1, -1]){ const ex = x + s * dx, ey = y + s * dy, ux = s * dx / L, uy = s * dy / L;
+      g.beginPath(); g.moveTo(ex + ux * 2, ey + uy * 2); g.lineTo(ex - ux * hl - uy * hl * 0.6, ey - uy * hl + ux * hl * 0.6); g.lineTo(ex - ux * hl + uy * hl * 0.6, ey - uy * hl - ux * hl * 0.6); g.closePath(); g.fill(); }
   };
-  dir(x0 + 14, 0, "vorher"); dir(x1 - 14, alpha, "nachher");   // ohne Zahl: den Winkel misst man mit dem Analysator
-  // Polarisator und Analysator: Scheiben mit Durchlassrichtung
-  const disc = (x, th, label) => {
-    pctx.fillStyle = "rgba(201,211,234,.10)"; pctx.strokeStyle = "#c9d3ea"; pctx.lineWidth = 1.5;
-    pctx.beginPath(); pctx.ellipse(x, cy, A * 0.55, A * 1.45, 0, 0, 2 * Math.PI); pctx.fill(); pctx.stroke();
-    const [dx, dy] = off(A * 1.2, th * d2r); pctx.strokeStyle = "#ffffff"; pctx.lineWidth = 3;
-    pctx.beginPath(); pctx.moveTo(x - dx, cy - dy); pctx.lineTo(x + dx, cy + dy); pctx.stroke();
-    pctx.fillStyle = "#7482a3"; pctx.font = `600 11px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "top"; pctx.fillText(label, x, h - 18);
+  // Kreis "Blick in den Strahl" oberhalb des Strahls
+  const yc = cy - R * 0.1;
+  const ring = (x, fill = "#111a2c") => { g.fillStyle = fill; g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5; g.beginPath(); g.arc(x, yc, R, 0, 2 * Math.PI); g.fill(); g.stroke(); };
+  const light = (x, thDeg, amp, ghost) => {   // Schwingungsrichtung(en) im Kreis; halbiert bei Halbschatten
+    ring(x);
+    if (ghost && Math.abs(thDeg) > 0.5){ g.setLineDash([3, 4]); g.strokeStyle = "rgba(201,211,234,.45)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, yc - R * 0.85); g.lineTo(x, yc + R * 0.85); g.stroke(); g.setLineDash([]); }
+    const col = `rgb(${NA})`;
+    if (!halfShade){ arrow(x, yc, thDeg, R * 0.75 * amp[0], col); return; }
+    g.save(); g.beginPath(); g.arc(x, yc, R, 0, 2 * Math.PI); g.clip();
+    g.strokeStyle = "#5a6a92"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, yc - R); g.lineTo(x, yc + R); g.stroke();
+    arrow(x - R * 0.45, yc, thDeg - HALF, R * 0.62 * amp[0], col, 2); arrow(x + R * 0.45, yc, thDeg + HALF, R * 0.62 * amp[1], col, 2);
+    g.restore();
   };
-  disc(xP, 0, "Polarisator"); disc(xA, beta + 90, `Analysator ${fmtA(beta)}`);
-  // Lampe und Schirm
-  pctx.fillStyle = "#ffd166"; pctx.beginPath(); pctx.arc(xL, cy, 10, 0, 2 * Math.PI); pctx.fill();
-  // Schirm in zwei Hälften; Helligkeit für das Auge gestreckt (Wurzel), damit kleine Unterschiede sichtbar sind
-  for (const [k, b] of [[-1, bL], [1, bR]]){
-    const g = Math.round(25 + 230 * Math.sqrt(Math.min(1, b / 0.12)));
-    pctx.fillStyle = `rgb(${g},${g},${Math.round(g * 0.8)})`;
-    pctx.beginPath(); pctx.ellipse(xS, cy, A * 0.45, A * 1.3, 0, k < 0 ? Math.PI / 2 : -Math.PI / 2, k < 0 ? 3 * Math.PI / 2 : Math.PI / 2); pctx.closePath(); pctx.fill();
-  }
-  pctx.strokeStyle = "#0d1322"; pctx.lineWidth = 2; pctx.beginPath(); pctx.moveTo(xS, cy - A * 1.3); pctx.lineTo(xS, cy + A * 1.3); pctx.stroke();
-  pctx.fillStyle = "#7482a3"; pctx.font = `600 11px ${font}`; pctx.textAlign = "center"; pctx.textBaseline = "top";
-  pctx.fillText("Natriumlampe", xL + 20, h - 18); pctx.fillText("Probenrohr", (x0 + x1) / 2, h - 18); pctx.fillText("Schirm", xS, h - 18);
+  const filter = (x, transDeg, label, pointer) => {   // Polarisationsfilter: Striche in Durchlassrichtung
+    ring(x, "rgba(201,211,234,.10)");
+    g.save(); g.beginPath(); g.arc(x, yc, R - 1, 0, 2 * Math.PI); g.clip();
+    g.strokeStyle = "rgba(220,228,245,.75)"; g.lineWidth = 1.2;
+    const parts = halfShade && !pointer ? [[-1, transDeg - HALF], [1, transDeg + HALF]] : [[0, transDeg]];
+    for (const [side, t] of parts){
+      g.save(); if (side){ g.beginPath(); g.rect(side < 0 ? x - R : x, yc - R, R, 2 * R); g.clip(); }
+      const ux = Math.sin(t * d2r), uy = -Math.cos(t * d2r);
+      for (let k = -R; k <= R; k += 5){ g.beginPath(); g.moveTo(x - uy * k - ux * R, yc + ux * k - uy * R); g.lineTo(x - uy * k + ux * R, yc + ux * k + uy * R); g.stroke(); }
+      g.restore();
+    }
+    g.restore();
+    if (pointer){   // Skala oben am Rand und Zeiger auf β
+      g.strokeStyle = "#7482a3"; g.lineWidth = 1;
+      for (let a = -90; a <= 90; a += 30){ const s = Math.sin(a * d2r), c = -Math.cos(a * d2r); g.beginPath(); g.moveTo(x + s * R, yc + c * R); g.lineTo(x + s * (R + 4), yc + c * (R + 4)); g.stroke(); }
+      const s = Math.sin(beta * d2r), c = -Math.cos(beta * d2r);
+      g.fillStyle = "#ffffff"; g.beginPath(); g.moveTo(x + s * (R + 1), yc + c * (R + 1)); g.lineTo(x + s * (R + 9) - c * 4, yc + c * (R + 9) + s * 4); g.lineTo(x + s * (R + 9) + c * 4, yc + c * (R + 9) - s * 4); g.closePath(); g.fill();
+    }
+  };
+  if (!narrow){ ring(w * X.U); [0, 45, 90, 135].forEach(t => arrow(w * X.U, yc, t, R * 0.75, `rgb(${NA})`)); }   // unpolarisiert: alle Richtungen
+  filter(xP, 0, "Polarisator", false);
+  light(xV, 0, [1, 1], false);
+  light(xN, alpha, [1, 1], true);
+  filter(xA, beta + 90, "Analysator", true);
+  if (!narrow) light(w * X.O, beta + 90, bs.length > 1 ? bs.map(Math.sqrt) : [after], false);
+  // Schirm: eine Fläche oder zwei Hälften; Helligkeit für das Auge gestreckt
+  const RS = R * 1.25;
+  bs.forEach((b, i) => {
+    const v = Math.pow(b, 0.35);
+    g.fillStyle = `rgb(${Math.round(18 + 237 * v)},${Math.round(16 + 190 * v)},${Math.round(10 + 58 * v)})`;
+    g.beginPath();
+    if (bs.length === 1) g.arc(xS, yc, RS, 0, 2 * Math.PI);
+    else { g.moveTo(xS, yc); g.arc(xS, yc, RS, i ? -Math.PI / 2 : Math.PI / 2, i ? Math.PI / 2 : 3 * Math.PI / 2); g.closePath(); }
+    g.fill();
+  });
+  g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5; g.beginPath(); g.arc(xS, yc, RS, 0, 2 * Math.PI); g.stroke();
+  if (bs.length > 1){ g.strokeStyle = "#0d1322"; g.lineWidth = 2; g.beginPath(); g.moveTo(xS, yc - RS); g.lineTo(xS, yc + RS); g.stroke(); }
+  // Beschriftung
+  g.fillStyle = "#8fd3ff"; g.font = `700 12px ${font}`; g.textAlign = "center"; g.textBaseline = "bottom";
+  g.fillText("vorher", xV, yc - R - 6); g.fillText("nachher", xN, yc - R - 6);
+  g.fillStyle = "#7482a3"; g.font = `600 ${narrow ? 10 : 11}px ${font}`; g.textBaseline = "top";
+  const yl = h - 34;
+  g.fillText(narrow ? "Lampe" : "Natriumlampe", xL, yl); g.fillText("Polarisator", xP, yl); g.fillText(`Probenrohr ${len} dm`, (x0 + x1) / 2, yl);
+  g.fillText("Analysator", xA, yl); g.fillText("Schirm", xS, yl);
+  g.fillStyle = "#c9d3ea"; g.font = `700 ${narrow ? 11 : 12}px ${font}`; g.fillText(fmtA(beta), xA, yl + 14);
+  if (!narrow){ g.fillStyle = "#56637a"; g.font = `italic 11px ${font}`; g.textAlign = "left"; g.textBaseline = "top"; g.fillText("Kreise: Blick in den Lichtstrahl", 10, 8); }
 }
 
 
+/* ---------- Fischer-Projektion: Kette von oben (oxidiertes Ende) nach unten; R/L = Seite der OH-Gruppe ---------- */
+const FISCHER = {
+  glc:{name:"Glucose", rows:[{t:"CHO"}, {oh:"R"}, {oh:"L"}, {oh:"R"}, {oh:"R"}, {t:"CH₂OH"}]},
+  fru:{name:"Fructose", rows:[{t:"CH₂OH"}, {t:"C=O"}, {oh:"L"}, {oh:"R"}, {oh:"R"}, {t:"CH₂OH"}]},
+};
+function fischerSVG(f, isL){
+  const n = f.rows.length, dy = 36, top = 22, cx = 100, Wd = 190, Hd = top + (n - 1) * dy + 46;
+  const ref = f.rows.map(r => !!r.oh).lastIndexOf(true);   // unterstes Stereozentrum
+  const y = i => top + i * dy, gap = r => r.t ? 11 : 0;
+  let o = `<svg viewBox="0 0 ${Wd} ${Hd}" role="img" aria-label="Fischer-Projektion von ${isL ? "L" : "D"}-${f.name}" font-family="inherit" font-size="15">`;
+  for (let i = 0; i < n - 1; i++) o += `<line x1="${cx}" y1="${y(i) + gap(f.rows[i])}" x2="${cx}" y2="${y(i + 1) - gap(f.rows[i + 1])}" stroke="currentColor" stroke-width="2"/>`;
+  f.rows.forEach((r, i) => {
+    o += `<text class="num" x="14" y="${y(i)}" dominant-baseline="central">C${i + 1}</text>`;
+    if (r.t){ o += `<text x="${cx}" y="${y(i)}" text-anchor="middle" dominant-baseline="central" fill="currentColor">${r.t}</text>`; return; }
+    const right = (r.oh === "R") !== isL, cls = i === ref ? ` class="ref"` : "", wgt = i === ref ? ` font-weight="700"` : "";
+    o += `<g${cls}><line x1="${cx - 40}" y1="${y(i)}" x2="${cx + 40}" y2="${y(i)}" stroke="currentColor" stroke-width="2"/>` +
+      `<text x="${cx + (right ? 46 : -46)}" y="${y(i)}" text-anchor="${right ? "start" : "end"}" dominant-baseline="central" fill="currentColor"${wgt}>OH</text>` +
+      `<text x="${cx + (right ? -46 : 46)}" y="${y(i)}" text-anchor="${right ? "end" : "start"}" dominant-baseline="central" fill="currentColor">H</text></g>`;
+  });
+  o += `<text x="${cx}" y="${Hd - 10}" text-anchor="middle" font-weight="700" fill="currentColor">${isL ? "L" : "D"}-${f.name}</text></svg>`;
+  return o;
+}
+function updateFischer(){
+  const box = $("fischerbox"), mirrorHTML = `<div class="mirror" aria-hidden="true"><span>Spiegel</span></div>`;
+  if (st.key === "water"){ box.hidden = true; return; }
+  box.hidden = false;
+  let items, note = "";
+  if (st.key === "suc"){ items = [fischerSVG(FISCHER.glc, false), fischerSVG(FISCHER.fru, false)]; note = "Saccharose hat keine offene Kettenform: Sie ist aus α-D-Glucose und β-D-Fructose aufgebaut, beide sind D-Zucker. Gezeigt sind die beiden Bausteine."; }
+  else {
+    const f = st.key === "fru" ? FISCHER.fru : FISCHER.glc, isL = !!st.mirror;
+    items = [fischerSVG(f, isL)];
+    if (showMirror || st.racemate) items = [fischerSVG(f, false), mirrorHTML, fischerSVG(f, true)];
+    else if (isL) items = [fischerSVG(f, true)];
+    if (st.key === "fru") note = "D-Fructose dreht nach links (−), obwohl sie ein D-Zucker ist: D und L beschreiben den Bau, nicht die Drehrichtung.";
+    if (st.mutarot) note = "α- und β-Glucose entstehen beide aus dieser offenen Kette, wenn sie sich zum Ring schließt. Über die offene Kette wandeln sie sich ineinander um (Mutarotation).";
+    if (st.racemate) note = "Im Racemat sind beide Spiegelbilder gleich häufig.";
+  }
+  $("fischer").innerHTML = items.join("");
+  $("fischernote").textContent = note; $("fischernote").hidden = !note;
+}
+
 /* ---------- Texte und Protokoll ---------- */
 function updateText(){
-  const a = alphaNow(), [bL, bR] = halves(a, beta);
+  const bs = screenB(alphaNow(), beta);
   $("cout").textContent = `${conc} g / 100 mL`; $("anout").textContent = fmtA(beta);
   $("status").innerHTML = `<b>${st.name}</b>` + (st.key === "water" ? ": reines Wasser, ohne Zucker." : `, ${conc} g pro 100 mL, Rohr ${len} dm.`) + (st.note ? " " + st.note : "");
-  $("readout").textContent = `Analysator ${fmtA(beta)} · Schirm links ${fmt(bL * 100)} %, rechts ${fmt(bR * 100)} %`;
+  $("readout").textContent = `Analysator ${fmtA(beta)} · ` + (bs.length > 1 ? `Schirm links ${fmt(bs[0] * 100)} %, rechts ${fmt(bs[1] * 100)} %` : `Schirm ${fmt(bs[0] * 100)} % hell`);
   if (st.mutarot) $("clock").textContent = `Zeit seit dem Lösen: ${Math.floor(minutes)} min (Zeitraffer: 1 s = 1 min)`;
 }
 const log = [];
@@ -488,7 +586,7 @@ function updateLog(){
 
 /* ---------- Bedienung ---------- */
 STOFFE.forEach(s => { const o = document.createElement("option"); o.value = s.key; o.textContent = s.name; $("stoff").appendChild(o); });
-function setStoff(k){ st = STOFFE.find(s => s.key === k); $("stoff").value = k; $("clockwrap").hidden = !st.mutarot; minutes = 0; updateText(); draw(); }
+function setStoff(k){ st = STOFFE.find(s => s.key === k); $("stoff").value = k; $("clockwrap").hidden = !st.mutarot; minutes = 0; updateText(); updateFischer(); draw(); }
 $("stoff").addEventListener("change", e => setStoff(e.target.value));
 $("conc").addEventListener("input", e => { conc = +e.target.value; updateText(); });
 document.querySelectorAll("[data-len]").forEach(b => b.addEventListener("click", () => { len = +b.dataset.len; document.querySelectorAll("[data-len]").forEach(x => x.setAttribute("aria-checked", String(x === b))); updateText(); }));
@@ -498,10 +596,11 @@ let pdrag = null;
 pc.addEventListener("pointerdown", e => { pc.setPointerCapture(e.pointerId); pdrag = {x:e.clientX, b:beta}; });
 pc.addEventListener("pointermove", e => { if (pdrag) setBeta(pdrag.b + (e.clientX - pdrag.x) * 0.5); });
 for (const ev of ["pointerup", "pointercancel"]) pc.addEventListener(ev, () => { pdrag = null; });
+$("halfchk").addEventListener("change", e => { halfShade = e.target.checked; updateText(); });
 $("dissolve").addEventListener("click", () => { minutes = 0; updateText(); });
 $("savebtn").addEventListener("click", save);
 $("evalchk").addEventListener("change", e => $("obs").classList.toggle("eval", e.target.checked));
-$("mirrorchk").addEventListener("change", e => { showMirror = e.target.checked; draw(); });
+$("mirrorchk").addEventListener("change", e => { showMirror = e.target.checked; updateFischer(); draw(); });
 $("hchk").addEventListener("change", e => { showH = e.target.checked; draw(); });
 $("autochk").addEventListener("change", e => { auto = e.target.checked; });
 let drag = null;
@@ -521,7 +620,7 @@ function frame(now){
   drawPol(); requestAnimationFrame(frame);
 }
 window.__zucker = {setStoff, setBeta, alpha:() => alphaNow(), setMinutes:m => { minutes = m; updateText(); }, setConc:c => { conc = c; $("conc").value = c; updateText(); }, log:() => log};
-showMirror = $("mirrorchk").checked; showH = $("hchk").checked; auto = $("autochk").checked;
+halfShade = $("halfchk").checked; showMirror = $("mirrorchk").checked; showH = $("hchk").checked; auto = $("autochk").checked;
 setStoff($("stoff").value || "water");
 new ResizeObserver(resize).observe(cv); resize();
 requestAnimationFrame(frame);
