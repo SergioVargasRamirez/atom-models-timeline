@@ -309,7 +309,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
       <li>Werte bei 20 °C und gelbem Natriumlicht (589 nm), gerundet: Saccharose +66,5°, D-Glucose im Gleichgewicht +52,7°, frisch gelöste α-D-Glucose +112,2°, D-Fructose −92,4°. L-Glucose dreht gleich stark in die andere Richtung (−52,7°), ein Racemat aus gleich viel D- und L-Glucose gar nicht.</li>
       <li>Mutarotation: Gelöste Glucose wandelt sich zwischen α- und β-Form um (über die offene Kettenform), bis sich ein Gleichgewicht mit etwa 36 % α und 64 % β einstellt. Dabei sinkt [α] von +112,2° auf +52,7°. Die Halbwertszeit ist hier mit 45 Minuten angenommen (ungefährer Wert bei Raumtemperatur, ohne Katalysator); die Uhr läuft im Zeitraffer, 1 Sekunde entspricht 1 Minute.</li>
       <li>D und L beschreiben den räumlichen Bau (die OH-Gruppe am untersten Stereozentrum in der Fischer-Projektion), nicht die Drehrichtung. Die Drehrichtung steht als (+) oder (−) dabei: D-(+)-Glucose, D-(−)-Fructose.</li>
-      <li>Der Analysator steht bei 0° gekreuzt zum Polarisator; der Schirm hat die Helligkeit sin²(α − β) (Gesetz von Malus) und ist dunkel, wenn der Analysator auf dem Drehwinkel steht. Nahe der Dunkelheit ändert sich die Helligkeit aber kaum, deshalb haben echte Geräte einen Halbschatten: Die beiden Hälften des Lichtbündels schwingen um ±5° gegeneinander verdreht, und man stellt auf gleiche Helligkeit beider Hälften ein. Gleich und ungleich erkennt das Auge sehr genau. Die Helligkeit des Schirms ist für das Auge gestreckt dargestellt. Ein Drehwinkel ist nur bis auf halbe Umdrehungen (180°) eindeutig; hier bleiben alle Werte zwischen −90° und +90°.</li>
+      <li>Der Analysator steht bei 0° gekreuzt zum Polarisator; der Schirm hat die Helligkeit sin²(α − β) (Gesetz von Malus) und ist dunkel, wenn der Analysator auf dem Drehwinkel steht. Nahe der Dunkelheit ändert sich die Helligkeit aber kaum, deshalb haben echte Geräte einen Halbschatten: Die beiden Hälften des Lichtbündels schwingen um ±5° gegeneinander verdreht, und man stellt auf gleiche Helligkeit beider Hälften ein. Gleich und ungleich erkennt das Auge sehr genau. Die Helligkeit des Schirms ist für das Auge gestreckt dargestellt. Die Wellenpakete stehen für einzelne Photonen: Ein Filter lässt ein Photon mit der Wahrscheinlichkeit cos² des Winkels zwischen Schwingungs- und Durchlassrichtung durch, sonst wird es verschluckt. Seitlich gesehen erscheint nur der senkrechte Anteil der Schwingung. Ein Drehwinkel ist nur bis auf halbe Umdrehungen (180°) eindeutig; hier bleiben alle Werte zwischen −90° und +90°.</li>
       <li>Die räumlichen Modelle sind mit RDKit berechnet (Kraftfeld MMFF). Gezeigt ist jeweils die häufigste Ringform in Wasser: β-D-Glucopyranose, β-D-Fructopyranose; Saccharose aus α-D-Glucose und β-D-Fructose. Die Skripte liegen unter <code>scripts/sugar</code>.</li>
     </ul>
   </details>
@@ -416,6 +416,29 @@ function drawAxes(font){   // Achsenkreuz unten links: dreht sich mit dem Molek�
 const HALF = 5;   // δ in Grad
 const NA = "255,196,61";   // Natriumlicht, 589 nm
 const screenB = (alpha, b) => (halfShade ? [-HALF, HALF] : [0]).map(d => Math.pow(Math.sin((alpha + d - b) * Math.PI / 180), 2));
+/* Photonen: zufällige Schwingungsrichtung an der Lampe. Ein Filter lässt ein Photon mit der Wahrscheinlichkeit cos²(θ − Durchlassrichtung)
+   durch (sonst wird es verschluckt), danach schwingt es in Durchlassrichtung. Im Rohr dreht sich θ allmählich um α. */
+let photons = [], spawn = 0, LAY = null;
+const SPEED = 170, cos2 = d => Math.pow(Math.cos(d * Math.PI / 180), 2);
+function photonDir(p, alpha){
+  if (p.st === 0) return p.th;
+  if (p.st === 2) return beta + 90;
+  const f = Math.max(0, Math.min(1, (p.x - LAY.x0) / (LAY.x1 - LAY.x0)));
+  return p.th + alpha * f;
+}
+function stepPhotons(dt){
+  if (!LAY || reduceMotion) return;
+  for (spawn -= dt; spawn < 0; spawn += 0.09 + Math.random() * 0.09) photons.push({x:LAY.xL + 10, th:Math.random() * 180, half:Math.random() < 0.5 ? -1 : 1, st:0});
+  const alpha = alphaNow();
+  for (const p of photons){
+    if (p.die !== undefined){ p.die -= dt; continue; }
+    const nx = p.x + SPEED * dt;
+    if (p.st === 0 && nx >= LAY.xP){ const pol = halfShade ? p.half * HALF : 0; if (Math.random() < cos2(p.th - pol)){ p.st = 1; p.th = pol; } else { p.x = LAY.xP; p.die = 0.35; continue; } }
+    if (p.st === 1 && nx >= LAY.xA){ if (Math.random() < cos2(p.th + alpha - beta - 90)) p.st = 2; else { p.x = LAY.xA; p.die = 0.35; continue; } }
+    p.x = nx;
+  }
+  photons = photons.filter(p => (p.die === undefined || p.die > 0) && p.x < LAY.xS);
+}
 function drawPol(){
   const w = pc.clientWidth, h = pc.clientHeight, dpr = window.devicePixelRatio || 1;
   if (!w) return;
@@ -428,13 +451,16 @@ function drawPol(){
   const xP = w * X.P, xV = w * X.V, x0 = w * X.t0, x1 = w * X.t1, xN = w * X.N, xA = w * X.A;
   const bh = R * 0.5, after = Math.sqrt(bs.reduce((s, b) => s + b, 0) / bs.length);   // Strahl nach dem Analysator, für das Auge gestreckt
   // Lichtstrahl in drei Abschnitten: unpolarisiert, polarisiert, nach dem Analysator
-  const beam = (xa, xb, a) => {
-    g.fillStyle = `rgba(${NA},${a})`; g.fillRect(xa, cy - bh, xb - xa, 2 * bh);
-    if (reduceMotion || a < 0.02) return;
-    g.strokeStyle = `rgba(${NA},${Math.min(0.5, a * 1.6)})`; g.lineWidth = 1.5;   // Wellenfronten wandern mit dem Licht
-    for (let x = xa + ((phase * 14) % 16); x < xb; x += 16){ g.beginPath(); g.moveTo(x, cy - bh); g.lineTo(x, cy + bh); g.stroke(); }
-  };
-  beam(xL, xP, 0.30); beam(xP, xA, 0.20); beam(xA, xS, 0.03 + 0.25 * after);
+  const beam = (xa, xb, a) => { g.fillStyle = `rgba(${NA},${a})`; g.fillRect(xa, cy - bh, xb - xa, 2 * bh); };
+  beam(xL, xP, 0.16); beam(xP, xA, 0.10); beam(xA, xS, 0.02 + 0.14 * after);
+  LAY = {xL, xP, x0, x1, xA, xS};
+  // Photonen als Wellenpakete (wie auf der Seite Rutherford); seitlich sieht man von der Schwingung nur den senkrechten Anteil cos θ
+  for (const p of photons){
+    const th = photonDir(p, alpha), amp = bh * 0.95 * Math.cos(th * d2r), a = p.die === undefined ? 1 : Math.max(0, p.die / 0.35), L = 30;
+    g.strokeStyle = `rgba(${NA},${a.toFixed(2)})`; g.lineWidth = 2; g.beginPath();
+    for (let i = 0; i <= L; i += 1.5){ const y = cy - amp * Math.sin(Math.PI * i / L) * Math.sin(i * 0.55 - phase * 6); i ? g.lineTo(p.x - L + i, y) : g.moveTo(p.x - L + i, y); }
+    g.stroke();
+  }
   // Probenrohr: getönt, sobald ein Stoff darin ist
   const filled = st.key !== "water", th = R * 0.85;
   g.fillStyle = filled ? "rgba(120,200,140,.20)" : "rgba(140,170,220,.10)"; g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5;
@@ -617,7 +643,7 @@ function frame(now){
   if (auto && !reduceMotion && !drag){ rotY += dt * 0.4; draw(); }
   if (st.mutarot){ minutes += dt; if ((tick += dt) > 0.5){ tick = 0; updateText(); } }   // Zeitraffer: 1 s = 1 min
   if (!reduceMotion) phase += dt * 3;
-  drawPol(); requestAnimationFrame(frame);
+  stepPhotons(dt); drawPol(); requestAnimationFrame(frame);
 }
 window.__zucker = {setStoff, setBeta, alpha:() => alphaNow(), setMinutes:m => { minutes = m; updateText(); }, setConc:c => { conc = c; $("conc").value = c; updateText(); }, log:() => log};
 halfShade = $("halfchk").checked; showMirror = $("mirrorchk").checked; showH = $("hchk").checked; auto = $("autochk").checked;
