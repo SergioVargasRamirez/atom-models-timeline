@@ -29,6 +29,7 @@ Anfragen, auch Schriften sind eingebettet.
 | `protonen.html` | Protonenübergang: HCl + H₂O (Nahaufnahme in Schritten), HCl in Wasser mit Grotthuss-Mechanismus, viele Teilchen im Kasten; 3D-Kugel-Stab-Modell, Wasserstoffbrücken und Valenzstrichformeln zuschaltbar | von Hand + Engine |
 | `ammoniak.html` | Ammoniak in Wasser: NH₃ + H₂O (Nahaufnahme mit Rückreaktion), NH₃ in Wasser (Gleichgewicht), viele Teilchen mit Universalindikator | von Hand + Engine |
 | `neutralisation.html` | Neutralisation: HCl trifft NaOH (wenige Teilchen), viele Teilchen mit HCl- und NaOH-Knopf und Universalindikator | von Hand + Engine |
+| `methoden.html` | Methoden: wie gerechnet und gezeichnet wurde (Simulationen, Wärmebewegung, Kräfte, Wellenpakete, Quantenchemie, Genauigkeit, Seite für Seite) | von Hand |
 | `quellen.html` | Quellen und Danksagung | von Hand |
 | `impressum.html` | Impressum, Haftungsausschluss, Lizenz, Einbetten | von Hand |
 | `datenschutz.html` | Datenschutz (keine Cookies, kein Tracking, Hosting GitHub Pages) | von Hand |
