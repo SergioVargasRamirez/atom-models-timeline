@@ -114,7 +114,7 @@ details li{margin-bottom:6px}
 </style>
 <style>
 #stage{aspect-ratio:16/9}
-#polcv{height:200px;border-top:1px solid #1b2338;cursor:ew-resize;touch-action:none}
+#polcv{height:300px;border-top:1px solid #1b2338;cursor:ew-resize;touch-action:none}
 .fischer-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:4px 8px;margin:6px 0 8px;padding-top:16px}
 .fischer-row svg{width:min(190px,38vw);height:auto;color:var(--fg)}
 .fischer-row svg .num{fill:var(--muted);font-size:11px}
@@ -445,15 +445,19 @@ function drawPol(){
   if (pc.width !== Math.round(w * dpr) || pc.height !== Math.round(h * dpr)){ pc.width = Math.round(w * dpr); pc.height = Math.round(h * dpr); }
   const g = pctx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = "#0d1322"; g.fillRect(0, 0, w, h);
   const font = getComputedStyle(document.body).fontFamily, narrow = w < 560, d2r = Math.PI / 180;
-  const R = Math.max(13, Math.min(h * 0.17, w * 0.045)), cy = h * 0.47, alpha = alphaNow(), bs = screenB(alpha, beta);
-  const xL = R * 1.1 + 10, xS = w - R * 1.4 - 10;
-  const X = narrow ? {P:.2, V:.31, t0:.37, t1:.53, N:.6, A:.74} : {U:.14, P:.24, V:.33, t0:.385, t1:.565, N:.62, A:.72, O:.81};
-  const xP = w * X.P, xV = w * X.V, x0 = w * X.t0, x1 = w * X.t1, xN = w * X.N, xA = w * X.A;
+  // Oben das Gerät mit den Photonen, darunter die Kreise „Blick in den Lichtstrahl“ unter der jeweiligen Stelle des Strahls
+  const R = Math.max(13, Math.min(h * 0.1, w * 0.042)), cy = h * 0.26, y2 = h * 0.7, alpha = alphaNow(), bs = screenB(alpha, beta);
+  const xL = R * 1.1 + 10, xS = w - R * 1.4 - 10, xP = w * 0.2, x0 = w * 0.33, x1 = w * 0.6, xA = w * 0.75;
   const bh = R * 0.5, after = Math.sqrt(bs.reduce((s, b) => s + b, 0) / bs.length);   // Strahl nach dem Analysator, für das Auge gestreckt
   // Lichtstrahl in drei Abschnitten: unpolarisiert, polarisiert, nach dem Analysator
   const beam = (xa, xb, a) => { g.fillStyle = `rgba(${NA},${a})`; g.fillRect(xa, cy - bh, xb - xa, 2 * bh); };
   beam(xL, xP, 0.16); beam(xP, xA, 0.10); beam(xA, xS, 0.02 + 0.14 * after);
   LAY = {xL, xP, x0, x1, xA, xS};
+  // Wo die Kreise der unteren Reihe hinschauen: gestrichelte Linien vom Strahl nach unten
+  const spots = [[(xL + xP) / 2, narrow ? "unpol." : "unpolarisiert"], [(xP + x0) / 2, narrow ? "vorher" : "vor der Probe"], [(x1 + xA) / 2, narrow ? "nachher" : "nach der Probe"], [(xA + xS) / 2, narrow ? "danach" : "nach dem Analysator"]];
+  g.setLineDash([3, 5]); g.strokeStyle = "rgba(143,211,255,.35)"; g.lineWidth = 1;
+  for (const [x] of spots){ g.beginPath(); g.moveTo(x, cy + bh + 3); g.lineTo(x, y2 - R - 4); g.stroke(); }
+  g.setLineDash([]);
   // Photonen als Wellenpakete (wie auf der Seite Rutherford); seitlich sieht man von der Schwingung nur den senkrechten Anteil cos θ
   for (const p of photons){
     const th = photonDir(p, alpha), amp = bh * 0.95 * Math.cos(th * d2r), a = p.die === undefined ? 1 : Math.max(0, p.die / 0.35), L = 30;
@@ -481,65 +485,69 @@ function drawPol(){
     for (const s of [1, -1]){ const ex = x + s * dx, ey = y + s * dy, ux = s * dx / L, uy = s * dy / L;
       g.beginPath(); g.moveTo(ex + ux * 2, ey + uy * 2); g.lineTo(ex - ux * hl - uy * hl * 0.6, ey - uy * hl + ux * hl * 0.6); g.lineTo(ex - ux * hl + uy * hl * 0.6, ey - uy * hl - ux * hl * 0.6); g.closePath(); g.fill(); }
   };
-  // Kreis "Blick in den Strahl" oberhalb des Strahls
-  const yc = cy - R * 0.1;
-  const ring = (x, fill = "#111a2c") => { g.fillStyle = fill; g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5; g.beginPath(); g.arc(x, yc, R, 0, 2 * Math.PI); g.fill(); g.stroke(); };
-  const light = (x, thDeg, amp, ghost) => {   // Schwingungsrichtung(en) im Kreis; halbiert bei Halbschatten
-    ring(x);
-    if (ghost && Math.abs(thDeg) > 0.5){ g.setLineDash([3, 4]); g.strokeStyle = "rgba(201,211,234,.45)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, yc - R * 0.85); g.lineTo(x, yc + R * 0.85); g.stroke(); g.setLineDash([]); }
+  const ring = (x, y, fill = "#111a2c") => { g.fillStyle = fill; g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, R, 0, 2 * Math.PI); g.fill(); g.stroke(); };
+  const light = (x, thDeg, amp, ghost) => {   // Schwingungsrichtung(en) im Kreis der unteren Reihe; halbiert bei Halbschatten
+    ring(x, y2);
+    if (ghost && Math.abs(thDeg) > 0.5){ g.setLineDash([3, 4]); g.strokeStyle = "rgba(201,211,234,.45)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, y2 - R * 0.85); g.lineTo(x, y2 + R * 0.85); g.stroke(); g.setLineDash([]); }
     const col = `rgb(${NA})`;
-    if (!halfShade){ arrow(x, yc, thDeg, R * 0.75 * amp[0], col); return; }
-    g.save(); g.beginPath(); g.arc(x, yc, R, 0, 2 * Math.PI); g.clip();
-    g.strokeStyle = "#5a6a92"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, yc - R); g.lineTo(x, yc + R); g.stroke();
-    arrow(x - R * 0.45, yc, thDeg - HALF, R * 0.62 * amp[0], col, 2); arrow(x + R * 0.45, yc, thDeg + HALF, R * 0.62 * amp[1], col, 2);
+    if (!halfShade){ arrow(x, y2, thDeg, R * 0.75 * amp[0], col); return; }
+    g.save(); g.beginPath(); g.arc(x, y2, R, 0, 2 * Math.PI); g.clip();
+    g.strokeStyle = "#5a6a92"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y2 - R); g.lineTo(x, y2 + R); g.stroke();
+    arrow(x - R * 0.45, y2, thDeg - HALF, R * 0.62 * amp[0], col, 2); arrow(x + R * 0.45, y2, thDeg + HALF, R * 0.62 * amp[1], col, 2);
     g.restore();
   };
-  const filter = (x, transDeg, label, pointer) => {   // Polarisationsfilter: Striche in Durchlassrichtung
-    ring(x, "rgba(201,211,234,.10)");
-    g.save(); g.beginPath(); g.arc(x, yc, R - 1, 0, 2 * Math.PI); g.clip();
+  const filter = (x, transDeg, pointer) => {   // Polarisationsfilter im Strahl: Striche in Durchlassrichtung
+    ring(x, cy, "rgba(201,211,234,.10)");
+    g.save(); g.beginPath(); g.arc(x, cy, R - 1, 0, 2 * Math.PI); g.clip();
     g.strokeStyle = "rgba(220,228,245,.75)"; g.lineWidth = 1.2;
     const parts = halfShade && !pointer ? [[-1, transDeg - HALF], [1, transDeg + HALF]] : [[0, transDeg]];
     for (const [side, t] of parts){
-      g.save(); if (side){ g.beginPath(); g.rect(side < 0 ? x - R : x, yc - R, R, 2 * R); g.clip(); }
+      g.save(); if (side){ g.beginPath(); g.rect(side < 0 ? x - R : x, cy - R, R, 2 * R); g.clip(); }
       const ux = Math.sin(t * d2r), uy = -Math.cos(t * d2r);
-      for (let k = -R; k <= R; k += 5){ g.beginPath(); g.moveTo(x - uy * k - ux * R, yc + ux * k - uy * R); g.lineTo(x - uy * k + ux * R, yc + ux * k + uy * R); g.stroke(); }
+      for (let k = -R; k <= R; k += 5){ g.beginPath(); g.moveTo(x - uy * k - ux * R, cy + ux * k - uy * R); g.lineTo(x - uy * k + ux * R, cy + ux * k + uy * R); g.stroke(); }
       g.restore();
     }
     g.restore();
     if (pointer){   // Skala oben am Rand und Zeiger auf β
       g.strokeStyle = "#7482a3"; g.lineWidth = 1;
-      for (let a = -90; a <= 90; a += 30){ const s = Math.sin(a * d2r), c = -Math.cos(a * d2r); g.beginPath(); g.moveTo(x + s * R, yc + c * R); g.lineTo(x + s * (R + 4), yc + c * (R + 4)); g.stroke(); }
+      for (let a = -90; a <= 90; a += 30){ const s = Math.sin(a * d2r), c = -Math.cos(a * d2r); g.beginPath(); g.moveTo(x + s * R, cy + c * R); g.lineTo(x + s * (R + 4), cy + c * (R + 4)); g.stroke(); }
       const s = Math.sin(beta * d2r), c = -Math.cos(beta * d2r);
-      g.fillStyle = "#ffffff"; g.beginPath(); g.moveTo(x + s * (R + 1), yc + c * (R + 1)); g.lineTo(x + s * (R + 9) - c * 4, yc + c * (R + 9) + s * 4); g.lineTo(x + s * (R + 9) + c * 4, yc + c * (R + 9) - s * 4); g.closePath(); g.fill();
+      g.fillStyle = "#ffffff"; g.beginPath(); g.moveTo(x + s * (R + 1), cy + c * (R + 1)); g.lineTo(x + s * (R + 9) - c * 4, cy + c * (R + 9) + s * 4); g.lineTo(x + s * (R + 9) + c * 4, cy + c * (R + 9) - s * 4); g.closePath(); g.fill();
     }
   };
-  if (!narrow){ ring(w * X.U); [0, 45, 90, 135].forEach(t => arrow(w * X.U, yc, t, R * 0.75, `rgb(${NA})`)); }   // unpolarisiert: alle Richtungen
-  filter(xP, 0, "Polarisator", false);
-  light(xV, 0, [1, 1], false);
-  light(xN, alpha, [1, 1], true);
-  filter(xA, beta + 90, "Analysator", true);
-  if (!narrow) light(w * X.O, beta + 90, bs.length > 1 ? bs.map(Math.sqrt) : [after], false);
-  // Schirm: eine Fläche oder zwei Hälften; Helligkeit für das Auge gestreckt
-  const RS = R * 1.25;
+  filter(xP, 0, false);
+  filter(xA, beta + 90, true);
+  // untere Reihe: unpolarisiert (alle Richtungen), vor und nach der Probe, nach dem Analysator
+  ring(spots[0][0], y2); [0, 45, 90, 135].forEach(t => arrow(spots[0][0], y2, t, R * 0.75, `rgb(${NA})`));
+  light(spots[1][0], 0, [1, 1], false);
+  light(spots[2][0], alpha, [1, 1], true);
+  light(spots[3][0], beta + 90, bs.length > 1 ? bs.map(Math.sqrt) : [after], false);
+  // Schirm: eine Fläche oder zwei Hälften, mit der Helligkeit in Prozent; Farbe für das Auge gestreckt
+  const RS = R * 1.3;
   bs.forEach((b, i) => {
-    const v = Math.pow(b, 0.35);
+    const v = Math.pow(b, 0.35), half = bs.length > 1, tx = half ? xS + (i ? 0.48 : -0.48) * RS : xS;
     g.fillStyle = `rgb(${Math.round(18 + 237 * v)},${Math.round(16 + 190 * v)},${Math.round(10 + 58 * v)})`;
     g.beginPath();
-    if (bs.length === 1) g.arc(xS, yc, RS, 0, 2 * Math.PI);
-    else { g.moveTo(xS, yc); g.arc(xS, yc, RS, i ? -Math.PI / 2 : Math.PI / 2, i ? Math.PI / 2 : 3 * Math.PI / 2); g.closePath(); }
+    if (!half) g.arc(xS, cy, RS, 0, 2 * Math.PI);
+    else { g.moveTo(xS, cy); g.arc(xS, cy, RS, i ? -Math.PI / 2 : Math.PI / 2, i ? Math.PI / 2 : 3 * Math.PI / 2); g.closePath(); }
     g.fill();
+    g.fillStyle = v > 0.6 ? "#2a1d00" : "#e8ecf3"; g.textAlign = "center"; g.textBaseline = "middle";
+    const pct = b * 100, txt = `${fmt(pct, half && pct >= 10 ? 0 : 1)} %`;
+    if (half){ if (!narrow){ g.font = `700 10px ${font}`; g.fillText(txt, tx, cy); } }   // schmal: unter dem Schirm
+    else { g.font = `700 ${R < 20 ? 11 : 13}px ${font}`; g.fillText(txt, xS, cy - 6); g.font = `600 ${R < 20 ? 10 : 11}px ${font}`; g.fillText("hell", xS, cy + 8); }
   });
-  g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5; g.beginPath(); g.arc(xS, yc, RS, 0, 2 * Math.PI); g.stroke();
-  if (bs.length > 1){ g.strokeStyle = "#0d1322"; g.lineWidth = 2; g.beginPath(); g.moveTo(xS, yc - RS); g.lineTo(xS, yc + RS); g.stroke(); }
-  // Beschriftung
-  g.fillStyle = "#8fd3ff"; g.font = `700 12px ${font}`; g.textAlign = "center"; g.textBaseline = "bottom";
-  g.fillText("vorher", xV, yc - R - 6); g.fillText("nachher", xN, yc - R - 6);
-  g.fillStyle = "#7482a3"; g.font = `600 ${narrow ? 10 : 11}px ${font}`; g.textBaseline = "top";
-  const yl = h - 34;
+  g.strokeStyle = "#5a6a92"; g.lineWidth = 1.5; g.beginPath(); g.arc(xS, cy, RS, 0, 2 * Math.PI); g.stroke();
+  if (bs.length > 1){ g.strokeStyle = "#0d1322"; g.lineWidth = 2; g.beginPath(); g.moveTo(xS, cy - RS); g.lineTo(xS, cy + RS); g.stroke(); }
+  // Beschriftung: Geräteteile unter der oberen Reihe, Kreise unter der unteren
+  g.fillStyle = "#7482a3"; g.font = `600 ${narrow ? 10 : 11}px ${font}`; g.textAlign = "center"; g.textBaseline = "top";
+  const yl = cy + RS + 8;
   g.fillText(narrow ? "Lampe" : "Natriumlampe", xL, yl); g.fillText("Polarisator", xP, yl); g.fillText(`Probenrohr ${len} dm`, (x0 + x1) / 2, yl);
   g.fillText("Analysator", xA, yl); g.fillText("Schirm", xS, yl);
   g.fillStyle = "#c9d3ea"; g.font = `700 ${narrow ? 11 : 12}px ${font}`; g.fillText(fmtA(beta), xA, yl + 14);
-  if (!narrow){ g.fillStyle = "#56637a"; g.font = `italic 11px ${font}`; g.textAlign = "left"; g.textBaseline = "top"; g.fillText("Kreise: Blick in den Lichtstrahl", 10, 8); }
+  if (narrow && bs.length > 1){ g.textAlign = "right"; g.fillText(`${fmt(bs[0] * 100)} | ${fmt(bs[1] * 100)} %`, w - 6, yl + 14); g.textAlign = "center"; }
+  g.fillStyle = "#8fd3ff"; g.font = `600 ${narrow ? 10 : 11}px ${font}`;
+  for (const [x, label] of spots) g.fillText(label, x, y2 + R + 6);
+  g.fillStyle = "#56637a"; g.font = `italic 11px ${font}`; g.textAlign = "left"; g.fillText("Blick in den Lichtstrahl: Schwingungsrichtung", 10, y2 + R + 26);
 }
 
 
