@@ -246,6 +246,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
           <div class="ends"><span id="amin"></span><span id="amax"></span></div>
         </div>
         <label class="switch"><input type="checkbox" id="curvechk"> Ganze Kurve zeigen</label>
+        <button class="btn" type="button" id="clearbtn">Kurve löschen</button>
         <hr>
         <b>Elektronenpaare</b>
         <div class="legend" id="pairlegend"><span><i style="background:#6ea8ff"></i>bindendes Elektronenpaar</span><span><i style="background:#ff7eb6"></i>freies Elektronenpaar</span></div>
@@ -609,6 +610,7 @@ function setAngle(a, record = true){   // record: nur selbst ausprobierte Winkel
 MOLS.forEach(m => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "radio"); b.dataset.mol = m.key; b.textContent = m.formula; b.addEventListener("click", () => setMol(m.key)); $("molseg").appendChild(b); });
 $("angle").addEventListener("input", e => setAngle(+e.target.value));
 $("curvechk").addEventListener("change", e => { showCurve = e.target.checked; plot(); });
+$("clearbtn").addEventListener("click", () => { delete visited[mol.key]; delete best[mol.key]; updateText(); fillTables(); plot(); });   // nur das gewählte Molekül
 function setMode(on){   // an: Winkel frei; aus: zurück zur stabilsten Form mit Elektronenpaaren
   changeMode = on; $("modechk").checked = on; $("angle").disabled = !on; $("sliderwrap").classList.toggle("off", !on);
   setAngle(mol.min.angle, false);

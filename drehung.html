@@ -254,6 +254,7 @@ html.eingebettet body > *:not(.eingebettet-hinweis){display:none!important}
         </div>
         <p class="hint" id="phihint">Die hintere Hälfte dreht sich um die C–C-Achse (auch: in der Kurve ziehen).</p>
         <label class="switch"><input type="checkbox" id="curvechk"> Ganze Kurve zeigen</label>
+        <button class="btn" type="button" id="clearbtn">Kurve löschen</button>
         <hr>
         <b>Ansicht</b>
         <label class="switch"><input type="checkbox" id="dipchk"> Dipolmoment zeigen</label>
@@ -522,6 +523,7 @@ for (const m of MOLS){
 }
 $("phi").addEventListener("input", e => setPhi(+e.target.value));
 $("curvechk").addEventListener("change", e => { showCurve = e.target.checked; plot(); });
+$("clearbtn").addEventListener("click", () => { visited[mol.key] = new Set(); delete maxSeen[mol.key]; updateText(); fillTable(); plot(); });   // nur das gewählte Molekül
 $("dipchk").addEventListener("change", e => { showDip = e.target.checked; draw(); });
 $("hchk").addEventListener("change", e => { showH = e.target.checked; draw(); });
 $("anschk").addEventListener("change", e => $("obs").classList.toggle("show", e.target.checked));
