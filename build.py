@@ -468,9 +468,10 @@ def sync_site_nav():
 #   TEILCHEN: template/site/teilchen.js     Teilchen-Engine (Säuren und Basen)
 #   WOLKEN:   template/site/wolken-data.js  Elektronendichte und ESP (erzeugt von scripts/esp/export_web.py)
 #   VSEPR:    template/site/vsepr-data.js   Winkelscans und Elektronenpaare (erzeugt von scripts/vsepr/export_vsepr.py)
+#   DREHUNG:  template/site/drehung-data.js Diederwinkel-Scans (erzeugt von scripts/rotation/export_rotation.py)
 
 SNIPPETS = [("TEILCHEN", "teilchen.js", "Teilchen-Engine"), ("WOLKEN", "wolken-data.js", "Elektronenwolken-Daten"),
-            ("VSEPR", "vsepr-data.js", "Elektronenpaar-Daten")]
+            ("VSEPR", "vsepr-data.js", "Elektronenpaar-Daten"), ("DREHUNG", "drehung-data.js", "Drehungs-Daten")]
 
 
 def sync_snippet(tag, source, label):

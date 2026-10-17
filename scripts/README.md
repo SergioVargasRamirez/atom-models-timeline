@@ -132,6 +132,27 @@ python make_sugars.py > sugars.json   # rdkit env; checks every stereocentre aga
 The JSON is pasted into `zucker.html` (`ZUCKER`). L-forms are not stored: the
 page mirrors the D-form.
 
+## rotation/ — torsion scans for drehung.html
+
+```
+cd scripts/rotation
+python scan_torsion.py ethane results/ethane.json --threads 14   # psi4 env, ~40 min each
+python scan_torsion.py ethene results/ethene.json --threads 14             # stops near 110° ...
+python scan_torsion.py ethene results/ethene.json --threads 14 --reverse   # ... then fill in from 180° down
+python scan_torsion.py ethyne results/ethyne.json
+python export_rotation.py                                         # -> template/site/drehung-data.js
+```
+
+Relaxed scan of the Cl–C–C–Cl dihedral, 0° to 180° in 10° steps (B3LYP/def2-TZVP,
+dihedral frozen with optking, everything else optimized); the page mirrors the
+scan for 180° to 360°. Each point starts from its finished neighbour, turned by one
+step; finished points are kept in `<out>.partial.json`, so a rerun resumes. For
+ethene H–C–C–H is frozen as well, otherwise the ends pyramidalize and the scan
+snaps over past 90°. The optimizer does not converge on the Z side past ~100°
+(onset of the diradical), so the E side is scanned with `--reverse`. Twisted 1,2-dichloroethene is a diradical, so the double
+bond is computed unrestricted (UKS) with `guess_mix` (broken symmetry). Ethyne
+is linear and has a single point. `python3 build.py` copies the data into the page.
+
 ## proton_transfer/ — acetic acid gives a proton to water
 
 `proton_trajectory.py` moves the acidic proton along the O···O hydrogen bond
